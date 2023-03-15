@@ -1,0 +1,97 @@
+openapi: "3.0.0"
+info:
+  title: Tags 
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+    variables:
+      httpsBaseUrl:
+        default: api.c000.eagleeyenetworks.com
+        description: HTTPS base URL as retrieved from https://api.eagleeyenetworks.com/api/v3.0/clientSettings.
+
+paths:
+  /tags:
+    get:
+      operationId: getTags
+      description: >
+       This endpoint allows you to retrieve a list of tags.
+       You can filter the result by name__contains and sort the result by sort field.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" 
+       in the response represents the total number of available devices, not the number of bridges resulting from the query string.
+       
+
+      tags:
+        - Tags
+      parameters:
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/name__contains'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        200:
+          description: Account retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagsList'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+  parameters:
+    sort:
+      in: query
+      name: sort
+      description: List of fields that should be sorted
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - -name
+            - +name
+      style: form
+      explode: false
+      
+    name__contains:
+      in: query
+      name: name__contains
+      description: Filter to get Tags whose the name contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+        minLength: 3
+      style: form
+      explode: false
+
+  schemas:
+    TagsList:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagGetResponse'
+                
+    TagGetResponse:
+      properties:
+        name:
+          type: string
+          example: "string"
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

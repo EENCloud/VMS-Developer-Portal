@@ -1,0 +1,1080 @@
+openapi: "3.0.0"
+info:
+  title: Cameras
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /cameras:
+    get:
+      operationId: listCameras
+      description: >
+       This endpoint allows you to retrieve a list of cameras associated with the account, with the ability to filter by account ID, location ID, 
+       bridge ID, multi-camera ID, and tags. It also supports pagination and the ability to include additional information about cameras.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in the response represents the total number of available devices, 
+       not the number of bridges resulting from the query string.
+      tags:
+        - Cameras
+      parameters:
+        - $ref: '#/components/parameters/accountId__in'
+        - $ref: '#/components/parameters/locationId__in'
+        - $ref: '#/components/parameters/bridgeId__in'
+
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedCameraResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: addCamera
+      description: This endpoint allows a camera to be associated with an account. It can only be called with an end-user account and will fail if called with another type 
+       of account.
+      tags:
+        - Cameras
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAddCamera'
+      responses:
+        '201':
+          description: Camera added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiCameraMain'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '409':
+          description: There was a conflict while trying to perform your request.
+          content:
+            application/json:
+              schema:
+                $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/schemas/ApiV3Error'
+              examples:
+                deviceIdentificationFailed:
+                  description: >
+                    Part of adding a camera is identifying its make, model and sometimes firmware version to decide if
+                    it is supported. This can fail due to  various reasons such as unexpected API responses from the
+                    camera, or an unsupported camera make (manufacturer).
+                    If this problem occurs, a user could try to restart the camera, reset it, or if that fails
+                    contacting support to check the brand & model are supported.
+                  value:
+                    code: 409
+                    status: aborted
+                    message: "Camera addition job aborted: failed to identify device make and model."
+                    details: [
+                      {
+                        reason: "deviceIdentificationFailed",
+                        domain: "add.cameras.job",
+                        metadata:
+                        {
+                          path: "/api/v3.0/cameras"
+                        }
+                      }
+                    ]
+                unsupportedModel:
+                  description: >
+                    Camera's model is not supported and cannot be added to the system. The camera might just be of a
+                    not supported model. Check the supported models on our website or with our support.
+                  value:
+                    code: 409
+                    status: aborted
+                    message: "Camera addition job aborted: Camera's model is not supported."
+                    details: [
+                      {
+                        reason: "unsupportedModel",
+                        domain: "add.cameras.job",
+                        metadata:
+                          {
+                            path: "/api/v3.0/cameras"
+                          }
+                      }
+                    ]
+                credentialValidationFailed:
+                  description: >
+                    The camera could not be configured because it's using unknown credentials. Make sure to factory default
+                    reset the camera before trying again.
+                  value:
+                    code: 409
+                    status: aborted
+                    message: "Camera addition job aborted: camera uses unknown credentials. Factory reset the camera before retrying."
+                    details: [
+                      {
+                        reason: "credentialValidationFailed",
+                        domain: "add.cameras.job",
+                        metadata:
+                        {
+                          path: "/api/v3.0/cameras"
+                        }
+                      }
+                    ]
+                localUrlValidationFailed:
+                  description: >
+                    One step of the camera addition is to retrieve the URL used in the local network where the camera is.
+                    This step could not be performed. Possible reasons: the camera or the network is offline.
+                  value:
+                    code: 409
+                    status: aborted
+                    message: "Camera addition job aborted: failed to retrieve the camera's local URL."
+                    details: [
+                      {
+                        reason: "localUrlValidationFailed",
+                        domain: "add.cameras.job",
+                        metadata:
+                        {
+                          path: "/api/v3.0/cameras"
+                        }
+                      }
+                    ]
+                alreadyExists:
+                  description: >
+                    The camera you're trying to add is already added or currently being added in the system. There cannot
+                    be duplicated camera (using the same MAC address or GUID). Make sure to remove the existing one before
+                    you proceed to add it again.
+                  value:
+                    code: 409
+                    status: alreadyExists
+                    message: "The resource already exists."
+                    details: [
+                      {
+                        reason: "The resource already exists",
+                        domain: <service>,
+                        metadata:
+                          {
+                            path: "/api/v3.0/<resource>"
+                          }
+                      }
+                    ]
+        '500':
+          description: The request encountered an internal error.
+          content:
+            application/json:
+              schema:
+                $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/schemas/ApiV3Error'
+              examples:
+                hwRegistrationFailed:
+                  description: >
+                    One of the internal service failed to be reached and therefore the camera could not start its
+                    addition process. Try again or contact support if the error persist.
+                    if this
+                  value:
+                    code: 500
+                    status: internal
+                    message: "Unexpected error while registering the MAC address in order to initiate the camera addition."
+                    details: [
+                      {
+                        reason: "hwRegistrationFailed",
+                        domain: "add.cameras.job",
+                        metadata:
+                          {
+                            path: "/api/v3.0/cameras"
+                          }
+                      }
+                    ]
+                credentialSetupFailed:
+                  description: >
+                    Our system encountered an unexpected error while preparing the credentials to use for configuring
+                    the camera. Try again or contact support if the error persist.
+                  value:
+                    code: 500
+                    status: internal
+                    message: "Unexpected error while preparing the credentials to be set to the camera. Please retry or contact our support."
+                    details: [
+                      {
+                        reason: "credentialSetupFailed",
+                        domain: "add.cameras.job",
+                        metadata:
+                          {
+                            path: "/api/v3.0/cameras"
+                          }
+                      }
+                    ]
+                failedAddingCameraAfterValidation:
+                  description: >
+                    Our system encountered an unexpected error while taking the last step for adding the camera. This is
+                    an error on the system side not on the camera side. The camera is possibly reset to factory default.
+                    Please try again or contact our support if the problem persists.
+                  value:
+                    code: 500
+                    status: internal
+                    message: "Unexpected error while finalizing the camera addition. Please retry or contact our support."
+                    details: [
+                      {
+                        reason: "failedAddingCameraAfterValidation",
+                        domain: "add.cameras.job",
+                        metadata:
+                          {
+                            path: "/api/v3.0/cameras"
+                          }
+                      }
+                    ]
+        '504':
+          description: The request had a deadline that expired before the operation completed.
+          content:
+            application/json:
+              schema:
+                $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/schemas/ApiV3Error'
+              examples:
+                neverConnected:
+                  description: >
+                    The camera addition process failed because the camera did not communicate with our system for at
+                    least 3 minutes. Make sure the camera has reliable internet connection, or try to factory default
+                    reset the camera before trying again.
+                  value:
+                    code: 504
+                    status: deadlineExceeded
+                    message: "Camera addition job deadline exceeded: the camera never connected. Make sure it has an internet connection and is turned on."
+                    details: [
+                      {
+                        reason: "neverConnected",
+                        domain: "add.cameras.job",
+                        metadata:
+                        {
+                          path: "/api/v3.0/cameras"
+                        }
+                      }
+                    ]
+                reconnectFailed:
+                  description: >
+                    The camera addition process failed because the camera did not connect to our system after the initial
+                    validation step. This can happen if the camera lost internet connection for instance. You may need
+                    to factory default reset your camera before being able to add it again.
+                  value:
+                    code: 504
+                    status: deadlineExceeded
+                    message: "Camera addition job deadline exceeded: after the camera validation succeeded, the camera didn't reconnect in time."
+                    details: [
+                      {
+                        reason: "reconnectFailed",
+                        domain: "add.cameras.job",
+                        metadata:
+                          {
+                            path: "/api/v3.0/cameras"
+                          }
+                      }
+                    ]
+
+  /cameras:bulkUpdate:
+    post:
+      operationId: updateBulkCameras
+      description: This endpoint allows the developer to update multiple cameras at once by providing update fields
+      tags:
+        - Cameras
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiUpdateBulkCamera'
+      responses:
+        '201':
+          description: Cameras updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CameraBulkUpdate'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /cameras/{cameraId}:
+
+    parameters:
+      - in: path
+        name: cameraId
+        schema:
+          type: string
+        required: true
+
+    get:
+      operationId: getCamera
+      description: This endpoint allows retrieval of detailed information about a specific camera, with the ability to include additional information. 
+      tags:
+        - Cameras
+      parameters:
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiCameraWithIncludes'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      operationId: deleteCamera
+      description: >
+       This endpoint disassociates the camera from the account, removing all references, recordings, and events, and in some cases resetting the camera to factory default 
+       settings.  
+       This request will be blocked until the camera has been fully removed.
+      tags:
+        - Cameras
+      responses:
+        '204':
+          description: Camera deleted.
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId: updateCamera
+      description: This endpoint allows the developers to update a specific camera by providing update fields.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiCameraUpdate'
+      tags:
+        - Cameras
+      responses:
+        '204':
+          description: Camera Updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+  parameters:
+
+    locationId__in:
+      in: query
+      name: locationId__in
+      required: false
+      description: List of Location IDs to filter on that is comma separated.
+      schema:
+        type: array
+        example: ["2428fda3-389f-48ce-b062-85875dd6b2e2"] # EEN VMS location id value
+        items:
+          type: string
+
+    accountId__in:
+      in: query
+      name: accountId__in
+      required: false
+      description: List of Account IDs to filter on that is comma separated.
+      schema:
+        $ref: '#/components/schemas/ApiEsns'
+
+    bridgeId__in:
+      in: query
+      name: bridgeId__in
+      required: false
+      description: List of Bridge IDs to filter on that is comma separated.
+      schema:
+        $ref: '#/components/schemas/ApiEsns'
+
+    include:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - status
+            - locationSummary
+            - deviceAddress
+            - timeZone
+            - notes
+            - tags
+            - devicePosition
+            - networkInfo
+            - deviceInfo
+            - firmware
+            - visibleByBridges
+            - capabilities
+            - effectivePermissions
+      #          - adminCredentials TODO: needs a better name and description
+      #          - mainCredentials TODO: needs a better name and description
+      #          - debugDetails TODO: Still don't understand Jeff's explanation of the description files, so commented out for now.
+
+  schemas:
+
+    ApiEsns:
+      type: array
+      items:
+        type: string
+        pattern: '^[a-fA-F0-9]{8},?$'
+        example: "00001106,00001107" # EEN VMS Demo Account value
+
+    ApiPaginatedCameraResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiCameraWithIncludes'
+
+    ApiCameraWithIncludes:
+      allOf:
+        - $ref: '#/components/schemas/ApiCameraMain'
+        - $ref: '#/components/schemas/ApiCameraIncludes'
+        - type: object
+
+    ApiCameraMain:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        name:
+          type: string
+        bridgeId:
+          $ref: '#/components/schemas/BridgeId'
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+      required:
+        - id
+        - accountId
+        - name
+        - bridgeId
+
+    ApiCameraIncludes:
+      type: object
+      properties:
+        status:
+          $ref: 'https://commonswagger.cameramanager.com/devices.yaml#/components/schemas/DeviceStatus'
+        locationSummary:
+          $ref: 'https://commonswagger.cameramanager.com/devices.yaml#/components/schemas/LocationSummary'
+        deviceAddress:
+          $ref: 'https://commonswagger.cameramanager.com/devices.yaml#/components/schemas/DeviceAddress'
+        speakerId:
+          $ref: '#/components/schemas/SpeakerId'
+        timeZone:
+          $ref: '#/components/schemas/ApiTimeZone'
+        notes:
+          type: string
+          example: Previously used for laser eye surgery. Records pizzas as squares
+        tags:
+          $ref: '#/components/schemas/DeviceTags'
+        devicePosition:
+          $ref: '#/components/schemas/ApiDevicePosition'
+        networkInfo:
+          $ref: '#/components/schemas/ApiNetworkInfo'
+        deviceInfo:
+          $ref: '#/components/schemas/ApiDeviceInfo'
+        firmware:
+          $ref: '#/components/schemas/ApiFirmware'
+        # TODO: needs a better name.
+        # really need these credentials in service output ?
+        #        adminCredentials:
+        #          $ref: '#/components/schemas/Credentials'
+        # TODO: needs a better name.
+        # Needs a better name to indicate these are the credentials used by the cloud to auth with the camera.
+        # Which means they shouldn't be shared in any of the UIs unless the user has access to debug details.
+        #        mainCredentials:
+        #          $ref: '#/components/schemas/ApiCredentials'
+        # TODO: Still don't understand Jeff's explanation of the description files, so commented out for now.
+        #        debugDetails:
+        #          $ref: '#/components/schemas/ApiDebugDetails'
+        visibleByBridges:
+          type: array
+          items:
+            type: string
+            pattern: ^(?:0[xX])?[0-9a-fA-F]{8}$
+            example: 1000f60d
+        capabilities:
+          $ref: '#/components/schemas/ApiCameraCapabilities'
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveCameraPermissions'
+
+    EffectiveCameraPermissions:
+      readOnly: true
+      type: object
+      properties:
+        read:
+          type: boolean
+        addToLayout:
+          type: boolean
+        viewPreviewVideo:
+          type: boolean
+          description: View preview images from cameras
+        viewLiveVideo:
+          type: boolean
+          description: View full resolution video live
+        viewHistoricVideo:
+          type: boolean
+          description: View historic video
+        turnOnOff:
+          type: boolean
+          description: Turn Camera on/off
+        controlPTZ:
+          type: boolean
+          description: Control Pan, Tilt, Zoom, & recall stations while viewing a preview or live video of PTZ cameras
+        editPTZStations:
+          type: boolean
+          description: Set PTZ mode and create, delete, edit stations
+        downloadVideo:
+          type: boolean
+          description: Download preview and full resolution video
+        delete:
+          type: boolean
+        editBillingSettings:
+          type: boolean
+          description: Editing all Camera Settings
+        editNoBillingSettings:
+          type: boolean
+          description: Edit Camera Settings except for those that affect billing, like Cloud Retention and Full Video Resolution
+        editMotionAreas:
+          type: boolean
+          description: >
+            Set Motion object size and sensitivity, add/delete regions, add/delete alerts for regions.
+            Edit and view existing Analytics. Set object size and sensitivity, add/delete alerts
+        talkDown:
+          type: boolean
+          description: Allows the users to initiate Talk Down to the camera field(s) of view
+
+    ApiBaseCameraCreate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/CameraName'
+        tags:
+          $ref: '#/components/schemas/DeviceTags'
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+
+    ApiBridgedCameraCreate:
+      description: >
+        Base schema for cameras that are attached to a bridge, vs cameras that are connected directly to the cloud.
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseCameraCreate'
+        - type: object
+          properties:
+            bridgeId:
+              $ref: '#/components/schemas/BridgeId'
+            credentials:
+              $ref: '#/components/schemas/ApiDeviceCredentials'
+
+    ApiBridgeCameraCreate:
+      description: >
+        Schema used to describe a new camera to be created that should be attached to a bridge.
+      allOf:
+        - $ref: '#/components/schemas/ApiBridgedCameraCreate'
+        - type: object
+          properties:
+            guid:
+              $ref: '#/components/schemas/Guid'
+      required:
+        - name
+        - bridgeId
+        - guid
+
+    ApiRtspCameraCreate:
+      description: >
+        Schema used to describe a new virtual camera to be created that should be created based on an RTSP stream.
+      allOf:
+        - $ref: '#/components/schemas/ApiBridgedCameraCreate'
+        - type: object
+          properties:
+            rtspSettings:
+              $ref: '#/components/schemas/RtspConnectionSettings'
+      required:
+        - name
+        - bridgeId
+        - rtspSettings
+
+    ApiCameraDirectCreate:
+      description: >
+        Schema used to describe a new camera to be created that directly connects to the cloud.
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseCameraCreate'
+        - type: object
+          properties:
+            macAddress:
+              $ref: '#/components/schemas/MacAddress'
+      required:
+        - name
+        - macAddress
+
+    ApiAddCamera:
+      description: >
+        Base schema to describe all new cameras to be created.
+      oneOf:
+        - $ref: '#/components/schemas/ApiBridgeCameraCreate'
+        - $ref: '#/components/schemas/ApiRtspCameraCreate'
+        - $ref: '#/components/schemas/ApiCameraDirectCreate'
+      discriminator:
+        propertyName: registrationStrategy
+        mapping:
+          bridge: '#/components/schemas/ApiBridgeCameraCreate'
+          rtspUrl: '#/components/schemas/ApiRtspCameraCreate'
+          cameraDirect: '#/components/schemas/ApiCameraDirectCreate'
+      properties:
+        registrationStrategy:
+          $ref: '#/components/schemas/ApiRegistrationStrategy'
+      required:
+        - registrationStrategy
+
+    ApiUpdateBulkCamera:
+      description: >
+        This object identifies the list of cameras to be updated, and the fields and their values to be updated.
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            minItems: 1
+          example: ["10088cde","10088ceb","10088abc"]
+        updateFields:
+          type: object
+          description: >
+            This defines the parameter that will be updated for list of cameras. Currently, we allow only one
+            parameter to be updated at a time.
+          properties:
+            speakerId:
+              nullable: true
+              type: string
+              example: 10039dab
+            locationId:
+              nullable: true
+              description: ID Of the location.
+              type: string
+              example: 2428fda3-389f-48ce-b062-85875dd6b2e2
+      required:
+        - ids
+        - updateFields
+
+    CameraBulkUpdate:
+      properties:
+        #        id:
+        #          type: string
+        #          description: unique job id
+        #          example: 1b0c8ffb-90a5-44a2-b17f-c0bf6ea6c9b1
+        #        done:
+        #          type: boolean
+        #          description: Boolean value identifying if the bulk update job is completed
+        #          example: true
+        #        progress:
+        #          type: number
+        #          description: Represents current progress of job in percentage
+        response:
+          $ref: '#/components/schemas/BulkUpdateResponses'
+
+    BulkUpdateResponses:
+      type: object
+      description: >
+        Provides collection of individual responses of each camera update.
+      additionalProperties:
+        $ref: '#/components/schemas/BulkUpdateResponse'
+      example:
+        {
+          "10088cde": { "status": 400 },
+          "10088ceb": { "status": 204 },
+          "10088abc": { "status": 500 },
+        }
+
+
+    BulkUpdateResponse:
+      type: object
+      properties:
+        status:
+          type : integer
+
+    ApiRegistrationStrategy:
+      type: string
+      enum:
+        - bridge
+        - rtspUrl
+        - cameraDirect
+      description: >
+        Cameras can be added in multiple ways, and this field indicates how this specific camera should be added.
+        Possible methods:
+         * `bridge`: Associate a camera found with `GET /api/v3.0/availableDevices` with one of the bridges that found it.
+         * `rtspUrl`: Define a camera by giving a RTSP URL to retrieve its live stream and the bridge that should connect to it.
+         * `cameraDirect`: Register a camera by its MAC address regardless of its physical location and without needing a bridge.
+
+    RtspConnectionSettings:
+      description: >
+        Describes all settings currently supported to connect to an RTSP stream.
+      type: object
+      properties:
+        ipAddress:
+          type: string
+        videoResourceUrl:
+          type: string
+          example: live.sdp
+          description: >
+            The RTSP URL to connect to the main video (eg. h.264) stream will be created using the IP address and this
+            URL.
+        previewResourceUrl:
+          type: string
+          example: live2.sdp
+          description: >
+            The RTSP URL to connect to the preview video (eg. MJPEG) stream will be created using the IP address and
+            this URL.
+
+    CameraName:
+      type: string
+      description: >
+        The name to assign to the camera. It is used to help identifying the camera in the account.
+
+    BridgeId:
+      type: string
+      pattern: ^(?:0[xX])?[0-9a-fA-F]{8}$
+      example: 1000f60d
+      description: >
+        The bridge a camera is connected to. Keep in mind that some cameras are connected directly to the cloud, which
+        is when this field will not be reported.
+
+    LocationId:
+      description: ID Of the location.
+      type: string
+      example: 2428fda3-389f-48ce-b062-85875dd6b2e2
+
+    SpeakerId:
+      description: >
+        Optional unique identifier of the speaker device associated with this camera. This should be a speaker that
+        is audible to anyone visible in the camera view, allowing an operator to talk to visible people.
+      type: string
+      example: 10039dab
+
+    Guid:
+      type: string
+      format: uuid
+      example: ddfa5b34-5d04-431e-8287-110fe87edf71
+
+    MacAddress:
+      type: string
+      pattern: ^([A-F0-9]{2}:){5}[A-F0-9]{2}$
+      example: 8A:D4:AD:09:DF:91
+
+    IpAddress:
+      type: string
+      pattern: ^(?:25[0-5]|2[0-4]\d|[0-1]?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d{1,2})){3}$
+      example: 10.143.55.140
+
+    DeviceTags:
+      type: array
+      items:
+        type: string
+        minLength: 1
+        maxLength: 64
+
+    ApiTimeZone:
+      type: object
+      properties:
+        zone:
+          type: string
+          example: "Americas/Chicago"
+          description: 'The timezone the account is in.'
+        offset:
+          type: string
+          example: '+10:00'
+          description: 'The time offset from UTC the account is on.'
+          readOnly: true
+
+    ApiDevicePosition:
+      type: object
+      properties:
+        # TODO: really feels like it should be put somewhere else.
+        #        scene:
+        #          type: string
+        #          example: Entrance
+        latitude:
+          description: The latitude of the device. (WGS 84)
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 52.3074013
+        longitude:
+          description: The longitude of the device. (WGS 84).
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 4.9459903
+        azimuth:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+          example: 7.419435
+        rangeInFeet:
+          type: number
+          format: double
+          minimum: 0
+          example: 37.622658
+        rangeInMeters:
+          type: number
+          format: double
+          minimum: 0
+          example: 50.40
+        floor:
+          type: integer
+          minimum: 0
+          example: 50
+
+    # Maybe rename to `ConnectionInfo` and use the `connectionType` as discriminator to decide which fields are used?
+    ApiNetworkInfo:
+      type: object
+      properties:
+        globalIP:
+          $ref: '#/components/schemas/IpAddress'
+        adapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiAdapterInfo'
+
+    ApiDeviceCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username to use when authenticating with the device
+        password:
+          type: string
+          description: Password to use when authenticating with the device
+
+    #    TODO: Still don't understand Jeff's explanation of the description files, so commented out for now.
+    #    DebugDetails:
+    #      properties:
+    #        driverName:
+    #          type: string
+    #          example: camdriver.onvif.GenericOnvifDriver
+    #        driverVersion:
+    #          type: string
+    #          example: v2.0.0801.1002.88.1.33.1.45
+    #        guid:
+    #          type: string
+    #          format: uuid
+    #          example: c6d11f36-9e63-11e1-a5b0-00408cdf9191
+
+    ApiDeviceInfo:
+      type: object
+      properties:
+        icon:
+          description: >
+            This field allows UIs to roughly differentiate between camera types when displaying a list of cameras.
+            * Important: this should not be used in any way to decide on what functionality is available for a camera,
+            that logic should be based on the capabilities and possibly the settings endpoints.
+            * Important: more enum values might be added in the future, clients should handle new values by having a
+            fallback icon, eg a generic "security camera" icon.
+            * Important: The value for a specific model might change without notice.
+          type: string
+          enum:
+            - securityCamera
+            - bodycam
+            - doorbell
+          default: securityCamera
+        #        connectionType:
+        #          # Not 100% sure how to represent all the combinations, maybe we should look more from the UI/use case.
+        #          description: >
+        #            Indicates how the camera is connected:
+        #
+        #            * `directToCloud`: The device itself connects directly to the cloud.
+        #            * `ipToBridge`: The bridge connects to the camera over IP.
+        #            * `rtspToBridge`: The bridge connects to an RTSP stream.
+        #            * `analogToBridge`: The bridge has an analog connection to the camera.
+        #            * `usbToBridge`: The bridge syncs with the camera over USB.
+        #            * `ipToMcd`: The camera is connected over ip to a Multi Channel Device like an NVR, DVR or XVR.
+        #            * `ipToMcd`: The camera has an analog connection to a Multi Channel Device like an NVR, DVR or XVR.
+        #          type: string
+        #          enum:
+        #            - directToCloud
+        #            - ipToBridge
+        #            - rtspToBridge
+        #            - analogToBridge
+        #            - usbToBridge
+        #            - ipToMcd
+        #            - analogToMcd
+        make:
+          description: The Manufactorer or brand of the camera.
+          type: string
+        model:
+          description: The model of the camera.
+          type: string
+        guid:
+          $ref: '#/components/schemas/Guid'
+    #       TODO: Mac Addresses are used in network info, but also as identifiers for a device, so maybe we should have a copy here too for easy parsing?
+    #        macAddresses:
+    #          type: array
+    #          items:
+    #            $ref: '#/components/schemas/MacAddress'
+
+    ApiFirmware:
+      type: object
+      properties:
+        currentVersion:
+          type: string
+          example: v20211019_542_3022
+        status:
+          description: >
+            Indicates what the current status is of the device's firmware:
+            * `up-to-date`: The device's firmware is fully up-to-date.
+            * `upgradable`: The device's firmware can be upgraded.
+            * `unknown`: It is currently unknown if the device's firmware can and should be upgraded.
+          type: string
+          enum:
+            - up-to-date
+            - upgradable
+            - unknown
+        targetVersion:
+          description: Describes, if known, what firmware version this device shuold be upgraded to.
+          type: string
+          example: v20211025_544_6753
+
+    ApiAdapterInfo:
+      type: object
+      properties:
+        macAddress:
+          $ref: '#/components/schemas/MacAddress'
+        ipAddress:
+          $ref: '#/components/schemas/IpAddress'
+
+    ApiCameraUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 126
+          description: Name of the camera
+          example: First camera
+        notes:
+          type: string
+          description: Notes
+          example: Camera used for demo purposes
+        speakerId:
+          $ref: '#/components/schemas/SpeakerId'
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+
+    ApiCameraCapabilities:
+      type: object
+      properties:
+        ptz:
+          $ref: '#/components/schemas/ApiCameraPTZCapabilities'
+        audio:
+          $ref: '#/components/schemas/ApiCameraAudioCapabilities'
+      required: [ ptz, audio ]
+
+    ApiCameraPTZCapabilities:
+      type: object
+      properties:
+        capable:
+          type: boolean
+          description: >
+            Indicates that the camera has some PTZ capability. Check the other capabilities for what exact
+            capability it has.
+          default: false
+        panTilt:
+          type: boolean
+          description: >
+            Indicates that the camera can be panned and tilted using the API.
+          default: false
+        zoom:
+          type: boolean
+          description: >
+            Indicates that the camera can be zoomed in and out using the API.
+          default: false
+        positionMove:
+          type: boolean
+          description: >
+            Indicates that the camera supports the "position" move, see the PTZ API for details.
+          default: false
+        directionMove:
+          type: boolean
+          description: >
+            Indicates that the camera supports the "direction" move, see the PTZ API for details.
+          default: false
+        centerOnMove:
+          type: boolean
+          description: >
+            Indicates that the camera supports the "centerOn" move, see the PTZ API for details.
+          default: false
+      required: [ capable ]
+
+    ApiCameraAudioCapabilities:
+      type: object
+      properties:
+        microphone:
+          description: Indicates that audio can be recorded by the camera, or an associated microphone.
+          type: boolean
+        speaker:
+          description: Indicates that audio can be broadcast by the camera, or an associated speaker.
+          type: boolean
+        halfDuplex:
+          description: >
+            Indicates that audio can be used to communicate in both directions, but only one direction at a time.
+            Also known as "push to talk", this behaves the same as most "walkie-talkie" systems: only one side can
+            talk at a time.
+          type: boolean
+        fullDuplex:
+          description: >
+            Indicates that audio can be used to communicate in both directions simultaneously. This behaves
+            similarly to most telephone systems where both sides can talk at the same time.
+          type: boolean
+  securitySchemes:
+      bearerAuth:            
+        type: http
+        scheme: bearer
+        bearerFormat: JWT 
+security:
+  - bearerAuth: []

@@ -1,0 +1,1229 @@
+openapi: "3.0.0"
+info:
+  title: Locations
+  version: 1.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /locations:
+    get:
+      operationId: getLocations
+      description: >
+       This endpoint is used to retrieve a list of locations.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+         
+       It is important to note that after using the pageSize parameter, 
+       the "totalSize" in the response represents the total number of available devices, not the 
+       number of bridges resulting from the query string.
+      tags:
+        - Locations
+      parameters:
+        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/sort'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+        
+        # Filters
+        - $ref: '#/components/parameters/parentId'
+        - $ref: '#/components/parameters/parentId__ne'
+        - $ref: '#/components/parameters/parentId__in'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/name__ne'
+        - $ref: '#/components/parameters/name__in'
+        - $ref: '#/components/parameters/name__contains'
+        - $ref: '#/components/parameters/address.streetAddress'
+        - $ref: '#/components/parameters/address.streetAddress__ne'
+        - $ref: '#/components/parameters/address.streetAddress__in'
+        - $ref: '#/components/parameters/address.streetAddress__contains'
+        - $ref: '#/components/parameters/address.streetAddress2'
+        - $ref: '#/components/parameters/address.streetAddress2__ne'
+        - $ref: '#/components/parameters/address.streetAddress2__in'
+        - $ref: '#/components/parameters/address.streetAddress2__contains'
+        - $ref: '#/components/parameters/address.city'
+        - $ref: '#/components/parameters/address.city__ne'
+        - $ref: '#/components/parameters/address.city__in'
+        - $ref: '#/components/parameters/address.city__contains'
+        - $ref: '#/components/parameters/address.region'
+        - $ref: '#/components/parameters/address.region__ne'
+        - $ref: '#/components/parameters/address.region__in'
+        - $ref: '#/components/parameters/address.region__contains'
+        - $ref: '#/components/parameters/address.country'
+        - $ref: '#/components/parameters/address.country__ne'
+        - $ref: '#/components/parameters/address.country__in'
+        - $ref: '#/components/parameters/address.country__contains'
+        - $ref: '#/components/parameters/address.postalCode'
+        - $ref: '#/components/parameters/address.postalCode__ne'
+        - $ref: '#/components/parameters/address.postalCode__in'
+        - $ref: '#/components/parameters/address.postalCode__contains'
+        - $ref: '#/components/parameters/childLocationCount'
+        - $ref: '#/components/parameters/childLocationCount__ne'
+
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLocationResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: createLocation
+      description: >
+       This endpoint allows you to create a new location.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Locations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationCreate'
+      responses:
+        201:
+          description: Location created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicLocationResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+  
+  /locations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+
+    get:
+      operationId: getLocation
+      description: >
+       This endpoit allows retrieval the location of a specific ID.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Locations
+      parameters:
+        - $ref: '#/components/parameters/include'
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationGet'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId: updateLocation
+      description: >
+       This endpoint allows you to update the location of an ID.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Locations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        204:
+          description: Location updated
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      operationId: deleteLocation
+      description: >
+       This endpoint allows you to delete a location of an ID.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Locations
+      responses:
+        204:
+          description: Location deleted
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /locations/{id}/locations:
+    parameters:
+      - $ref: '#/components/parameters/id'
+
+    get:
+      operationId: getLocationDescendants
+      description: >
+       This endpoint allows you to retrieve the locations of an ID in a descendant sorted format.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Locations
+      parameters:
+        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/sort'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+        # Filters
+        - $ref: '#/components/parameters/parentId'
+        - $ref: '#/components/parameters/parentId__ne'
+        - $ref: '#/components/parameters/parentId__in'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/name__ne'
+        - $ref: '#/components/parameters/name__in'
+        - $ref: '#/components/parameters/name__contains'
+        - $ref: '#/components/parameters/address.streetAddress'
+        - $ref: '#/components/parameters/address.streetAddress__ne'
+        - $ref: '#/components/parameters/address.streetAddress__in'
+        - $ref: '#/components/parameters/address.streetAddress__contains'
+        - $ref: '#/components/parameters/address.streetAddress2'
+        - $ref: '#/components/parameters/address.streetAddress2__ne'
+        - $ref: '#/components/parameters/address.streetAddress2__in'
+        - $ref: '#/components/parameters/address.streetAddress2__contains'
+        - $ref: '#/components/parameters/address.city'
+        - $ref: '#/components/parameters/address.city__ne'
+        - $ref: '#/components/parameters/address.city__in'
+        - $ref: '#/components/parameters/address.city__contains'
+        - $ref: '#/components/parameters/address.region'
+        - $ref: '#/components/parameters/address.region__ne'
+        - $ref: '#/components/parameters/address.region__in'
+        - $ref: '#/components/parameters/address.region__contains'
+        - $ref: '#/components/parameters/address.country'
+        - $ref: '#/components/parameters/address.country__ne'
+        - $ref: '#/components/parameters/address.country__in'
+        - $ref: '#/components/parameters/address.country__contains'
+        - $ref: '#/components/parameters/address.postalCode'
+        - $ref: '#/components/parameters/address.postalCode__ne'
+        - $ref: '#/components/parameters/address.postalCode__in'
+        - $ref: '#/components/parameters/address.postalCode__contains'
+        - $ref: '#/components/parameters/childLocationCount'
+        - $ref: '#/components/parameters/childLocationCount__ne'
+
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLocationResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /locations/{locationId}/floors:
+    parameters:
+      - $ref: '#/components/parameters/locationId'
+
+    get:
+      operationId: getLocationFloors
+      description: >
+       This endpoint allows you to retrieve floors locations.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions. 
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in the response represents the total number 
+       of available devices, not the number of bridges resulting from the query string.
+
+      tags:
+        - Floors
+      parameters:
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/getFloorInclude'
+
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedExtendedFloorResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: createFloor
+      description: >
+       This endpoint allows you to create a floor.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+
+      tags:
+        - Floors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FloorCreatePayload'
+      responses:
+        201:
+          description: Floor created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicFloorResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        409:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/conflict'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /locations/{locationId}/floors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/locationId'
+      - $ref: '#/components/parameters/floorId'
+    
+    get:
+      operationId: getFloor
+      description: >
+       This endpoint allows you to retrieve all floors of a location assotiated with an ID.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      parameters:
+        - $ref: '#/components/parameters/getFloorInclude'
+      tags:
+        - Floors
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloorGetResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+    
+    patch:
+      description: >
+       This endpoint allows you to update the floors of a location assotiated with an ID.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      operationId: updateFloor
+      tags:
+        - Floors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtendedFloor'
+      responses:
+        204:
+          description: Floor updated
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      description: >
+       This endpoint allows you to delete the floors of a location assotiated with an ID.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      operationId: deleteFloor
+      tags:
+        - Floors
+      responses:
+        204:
+          description: Floor deleted
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /locations/{locationId}/floors/{id}.{type}:
+    parameters:
+      - $ref: '#/components/parameters/locationId'
+      - $ref: '#/components/parameters/floorId'
+      - $ref: '#/components/parameters/type'
+
+    get:
+      operationId: getFloorImage
+      description: >
+       This endpoint allows you to retrieve the floor image assotiated with an ID.  
+         Please first check the floorPlans field in GET /locations/{locationId}/floors or GET /locations/{locationId}/floors/{id} to see if a file with this format exists.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Floors
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /locations/{locationId}/floors/{id}/plans:
+    parameters:
+      - $ref: '#/components/parameters/locationId'
+      - $ref: '#/components/parameters/floorId'
+
+    get:
+      operationId: getFloorPlans
+      description: >
+       This endpoint allows you to retrieve plans of a location that are associated with a floor.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      parameters:
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+      tags:
+        - Floor Plans
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFloorPlansResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: setFloorPlan
+      description: >
+       This endpoint allows you to create a floor plan for a location that are associated with a floor.  
+         Currently only one floor plan file is supported per floor, which means that uploading a new file will overwrite the existing file, even if it is a different format (svg vs png).  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      tags:
+        - Floor Plans
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  format: binary
+
+      responses:
+        201:
+          description: Successfully set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloorPlanGetResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /locations/{locationId}/floors/{id}/plans/{planId}:
+    parameters:
+      - $ref: '#/components/parameters/locationId'
+      - $ref: '#/components/parameters/floorId'
+      - $ref: '#/components/parameters/planId'
+
+    delete:
+      description: >
+       This endpoint allows you to delete a Floor Plan and its corresponding SVG or PNG file.  
+         Support for Location-based camera grouping is only available in the professional and enterprise editions.
+      operationId: deleteFloorPlan
+      tags:
+        - Floor Plans
+      responses:
+        204:
+          description: Floor plan deleted
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+  parameters:
+
+    id:
+      in: path
+      required: true
+      name: id
+      description: Location ID
+      schema:
+        type: string
+
+    locationId:
+      in: path
+      required: true
+      name: locationId
+      description: Location ID
+      schema:
+        type: string
+
+    floorId:
+      in: path
+      required: true
+      name: id
+      description: Floor ID
+      schema:
+        type: string
+
+    planId:
+      in: path
+      required: true
+      name: planId
+      description: Plan ID
+      schema:
+        type: string
+
+    type:
+      in: path
+      required: true
+      name: type
+      description: Type of the floor image
+      schema:
+        type: string
+        enum:
+          - svg
+          - png
+
+    include:
+      in: query
+      name: include
+      description: List of properties that should be included in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - notes
+            - address
+            - geometry
+            - childLocationCount
+            - effectivePermissions
+      style: form
+      explode: false
+
+    getFloorInclude:
+      in: query
+      name: include
+      description: List of properties that should be included in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - floorPlans
+      style: form
+      explode: false
+
+    sort:
+      in: query
+      name: sort
+      description: List of fields that should be sorted
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - -name
+            - -address.streetAddress
+            - -address.streetAddress2
+            - -address.city
+            - -address.region
+            - -address.country
+            - -address.postalCode
+            - +name
+            - +address.streetAddress
+            - +address.streetAddress2
+            - +address.city
+            - +address.region
+            - +address.country
+            - +address.postalCode
+      style: form
+      explode: false
+
+    parentId:
+      in: query
+      name: parentId
+      description: Filter to get the locations with the specified parentId. parentId=null returns only the locations which do not have a parent location
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/id'
+
+    parentId__in:
+      in: query
+      name: parentId__in
+      description: Filter to get the locations whose parentId is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/id'
+      style: form
+      explode: false
+
+    parentId__ne:
+      in: query
+      name: parentId__ne
+      description: Filter to get the locations with the parentId that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/id'
+
+    name:
+      in: query
+      name: name
+      description: Filter to get the locations with the specified name. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    name__in:
+      in: query
+      name: name__in
+      description: Filter to get the locations whose name is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    name__ne:
+      in: query
+      name: name__ne
+      description: Filter to get the locations with the name that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    name__contains:
+      in: query
+      name: name__contains
+      description: >
+        Filter to get the locations whose the name contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.streetAddress:
+      in: query
+      name: address.streetAddress
+      description: Filter to get the locations with the specified address.streetAddress. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.streetAddress__in:
+      in: query
+      name: address.streetAddress__in
+      description: Filter to get the locations whose address.streetAddress is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    address.streetAddress__ne:
+      in: query
+      name: address.streetAddress__ne
+      description: Filter to get the locations with an address.streetAddress that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.streetAddress__contains:
+      in: query
+      name: address.streetAddress__contains
+      description: >
+        Filter to get the locations whose the address.streetAddress contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.streetAddress2:
+      in: query
+      name: address.streetAddress2
+      description: Filter to get the locations with the specified address.streetAddress2. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.streetAddress2__in:
+      in: query
+      name: address.streetAddress2__in
+      description: Filter to get the locations whose address.streetAddress2 is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    address.streetAddress2__ne:
+      in: query
+      name: address.streetAddress2__ne
+      description: Filter to get the locations with an address.streetAddress2 that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.streetAddress2__contains:
+      in: query
+      name: address.streetAddress2__contains
+      description: >
+        Filter to get the locations whose the address.streetAddress2 contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.city:
+      in: query
+      name: address.city
+      description: Filter to get the locations with the specified address.city. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.city__in:
+      in: query
+      name: address.city__in
+      description: Filter to get the locations whose address.city is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    address.city__ne:
+      in: query
+      name: address.city__ne
+      description: Filter to get the locations with an address.city that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.city__contains:
+      in: query
+      name: address.city__contains
+      description: >
+        Filter to get the locations whose the address.city contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.region:
+      in: query
+      name: address.region
+      description: Filter to get the locations with the specified address.region. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.region__in:
+      in: query
+      name: address.region__in
+      description: Filter to get the locations whose address.region is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    address.region__ne:
+      in: query
+      name: address.region__ne
+      description: Filter to get the locations with an address.region that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.region__contains:
+      in: query
+      name: address.region__contains
+      description: >
+        Filter to get the locations whose the address.region contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.country:
+      in: query
+      name: address.country
+      description: Filter to get the locations with the specified address.country. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.country__in:
+      in: query
+      name: address.country__in
+      description: Filter to get the locations whose address.country is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    address.country__ne:
+      in: query
+      name: address.country__ne
+      description: Filter to get the locations with an address.country that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.country__contains:
+      in: query
+      name: address.country__contains
+      description: >
+        Filter to get the locations whose the address.country contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.postalCode:
+      in: query
+      name: address.postalCode
+      description: Filter to get the locations with the specified address.postalCode. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.postalCode__in:
+      in: query
+      name: address.postalCode__in
+      description: Filter to get the locations whose address.postalCode is on the provided list. The lookup is exact and case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    address.postalCode__ne:
+      in: query
+      name: address.postalCode__ne
+      description: Filter to get the locations with an address.postalCode that is not equal to the provided value. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    address.postalCode__contains:
+      in: query
+      name: address.postalCode__contains
+      description: >
+        Filter to get the locations whose the address.postalCode contains the provided substring. The lookup is exact and case insensitive
+      schema:
+        type: string
+
+    childLocationCount:
+      in: query
+      name: childLocationCount
+      description: Filter to get the locations with the specified number of direct children
+      schema:
+        type: integer
+
+    childLocationCount__ne:
+      in: query
+      name: childLocationCount__ne
+      description: Filter to get the locations with the number of direct children not equal to the provided value.
+      schema:
+        type: integer
+
+  # Model definitions
+  schemas:
+
+    # Location definitions
+
+    id:
+      type: string
+      description: Unique identifier of the resource
+      example: 123e4567-e89b-12d3-a456-426614174000
+      readOnly: true
+
+    LocationAddress:
+      allOf:
+        - type: object
+          properties:
+            country:
+              type: string
+              example: USA
+              default: ""
+              minLength: 0
+              maxLength: 128
+            region:
+              type: string
+              example: Texas
+              default: ""
+              minLength: 0
+              maxLength: 128
+            city:
+              type: string
+              example: Austin
+              default: ""
+              minLength: 0
+              maxLength: 128
+            streetAddress:
+              type: string
+              example: 4611 Bee Caves Rd
+              minLength: 0
+              maxLength: 128
+            streetAddress2:
+              type: string
+              example: SUITE 102
+              default: ""
+              minLength: 0
+              maxLength: 128
+            postalCode:
+              type: string
+              example: 78746
+              default: ""
+              minLength: 0
+              maxLength: 128
+
+    BasicLocation:
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          example: CF2 - Austin Office
+          minLength: 1
+          maxLength: 126
+        parentId:
+          allOf:
+            - $ref: '#/components/schemas/id'
+          description: Unique identifier of this location's parent location in the hierarchy
+          default: null
+          readOnly: false
+        isDefault:
+          type: boolean
+          description: >
+            Specifies if a new device should be automatically assigned to this location if not supplied
+          default: False
+
+    Location:
+      allOf:
+        - $ref: '#/components/schemas/BasicLocation'
+      properties:
+        address:
+          $ref: '#/components/schemas/LocationAddress'
+        notes:
+          type: string
+          description: Description for the location
+          default: ""
+          minLength: 0
+          maxLength: 128
+        geometry:
+          type: object
+          description: |
+            GeoJSON structure to store polygon for the specific location.
+            Currently the only supported geometry type is MultiPolygon, but in the future more GeoJSON schemas might be supported, so clients should be able to handle unknown schemas.
+
+            This field must be in the standard GeoJSON format, as described in https://datatracker.ietf.org/doc/html/rfc7946
+
+            Please read https://datatracker.ietf.org/doc/html/rfc7946 for more information about the GeoJSON standard.
+          default: {}
+          example:
+            {"type":"MultiPolygon","coordinates":[[[[40.0,40.0],[20.0,45.0],[45.0,30.0],[40.0,40.0]]],[[[20.0,35.0],[10.0,30.0],[10.0,10.0],[30.0,5.0],[45.0,20.0],[20.0,35.0]],[[30.0,20.0],[20.0,15.0],[20.0,25.0],[30.0,20.0]]]],"bbox":[-10.0,-10.0,10.0,10.0]}
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              enum:
+              - MultiPolygon
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  minItems: 4
+                  items:
+                    type: array
+                    minItems: 2
+                    items:
+                      type: number
+            bbox:
+              type: array
+              minItems: 4
+              items:
+                type: number
+        childLocationCount:
+          readOnly: true
+          type: integer
+          description: The total count of direct children of the location
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveLocationPermissions'
+
+    EffectiveLocationPermissions:
+      readOnly: true
+      type: object
+      properties:
+        read:
+          type: boolean
+        delete:
+          type: boolean
+        edit:
+          type: boolean
+
+    BasicLocationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BasicLocation'
+      required:
+        - id
+        - name
+        - isDefault
+        - parentId
+
+    LocationGet:
+      allOf:
+        - $ref: '#/components/schemas/Location'
+      required:
+        - id
+        - name
+        - isDefault
+        - parentId
+
+    LocationCreate:
+      allOf:
+        - $ref: '#/components/schemas/Location'
+        - type: object
+      required:
+        - name
+
+    PaginatedLocationResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/LocationGet'
+
+    # Floor definitionas
+
+    PointPosition:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          description: The latitude of the device. (WGS 84)
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 52.3074013
+        longitude:
+          description: The longitude of the device. (WGS 84).
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 4.9459903
+
+    BasicFloor:
+      type: object
+      description: Represents a floor of a location
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the floor
+          readOnly: true
+        name:
+          type: string
+          example: Lobby Area - Floor 1
+          default: ""
+          minLength: 0
+          maxLength: 126
+        floorLevel:
+          type: integer
+          description: The floor level in a multi-storey building
+          example: 1
+          minimum: -30
+          maximum: 300
+        topLeftCoordinates:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/PointPosition"
+        bottomRightCoordinates:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/PointPosition"
+
+    ExtendedFloor:
+      allOf:
+        - $ref: '#/components/schemas/BasicFloor'
+      properties:
+        floorPlans:
+          readOnly: true
+          type: array
+          items:
+            $ref: "#/components/schemas/FloorPlanGetResponse"
+
+    BasicFloorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BasicFloor'
+      required:
+        - id
+        - name
+        - floorLevel
+        - topLeftCoordinates
+        - bottomRightCoordinates
+
+    FloorGetResponse:
+      allOf:
+        - $ref: '#/components/schemas/ExtendedFloor'
+      required:
+        - id
+        - name
+        - floorLevel
+        - topLeftCoordinates
+        - bottomRightCoordinates
+
+    FloorCreatePayload:
+      allOf:
+        - $ref: '#/components/schemas/ExtendedFloor'
+      required:
+        - name
+        - floorLevel
+        - topLeftCoordinates
+        - bottomRightCoordinates
+
+    PaginatedExtendedFloorResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/FloorGetResponse'
+
+    # Floor Plan Definitions
+
+    FloorPlan:
+      type: object
+      description: Represents a floor plan file
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the floor plan
+          readOnly: true
+        floorId:
+          type: string
+          description: Unique identifier of the floor
+          readOnly: true
+        type:
+          type: string
+          description: Type of the floor image
+          readOnly: true
+          enum: ["png", "svg", "pdf"]
+        creator:
+          type: string
+          enum: [originalUpload, cloudGenerated]
+          readOnly: true
+
+    FloorPlanGetResponse:
+      allOf:
+        - $ref: '#/components/schemas/FloorPlan'
+      required:
+        - id
+        - floorId
+        - type
+        - creator
+
+    PaginatedFloorPlansResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/FloorPlanGetResponse'
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

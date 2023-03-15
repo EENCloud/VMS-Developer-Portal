@@ -1,0 +1,131 @@
+openapi: "3.0.0"
+info:
+  title: Editions
+  version: 1.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true 
+
+paths:
+  /editions:
+    get:
+      operationId: getEditions
+      description: >
+       This endpoint allows you to retrieve a list of all the editions in the system.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in 
+       the response represents the total number of available devices, not the number of bridges resulting from the query string.
+      tags:
+        - Editions
+      parameters:
+        - $ref: '#/components/parameters/accountId'
+      
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+      responses:
+        200:
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                 $ref: '#/components/schemas/PaginatedEditionResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+  
+  /editions/{id}:
+    get:
+      operationId: getEdition
+      description: This endpoint allows you to retrieve a specific edition by its ID.
+      tags:
+        - Editions
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: Successfully authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edition'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+
+components:
+  parameters:
+
+    # Global parameter types
+    id:
+        in: path
+        required: true
+        name: id
+        description: Edition ID
+        schema:
+          type: string
+    
+    accountId:
+        in: query
+        name: accountId
+        description: Account ID specified in as an ESN Type.
+        schema:
+          type: string
+
+  # Model definitions
+  schemas:
+  
+    Edition:
+      properties:
+        id:
+          oneOf:
+            - $ref: '#/components/parameters/id/schema'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 32
+        order:
+          type: integer
+          description: The order in which the edition should be sorted
+        capabilities:
+          type: object
+          description: Object with key as feature flag and value boolean determining if it is on/off
+      required:
+        - id
+        - name
+        - order
+        - capabilities
+
+    PaginatedEditionResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/Edition'    
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

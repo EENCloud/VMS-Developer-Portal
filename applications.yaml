@@ -1,0 +1,484 @@
+openapi: "3.0.0"
+info:
+  title: Applications
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+paths:
+  /applications:
+    get:
+      operationId: listApplications
+      description: >
+       This endpoint allows retrieval of all applications accessible by the requesting user.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in the 
+       response represents the total number of available devices, not the number of bridges resulting from the query string.
+      tags:
+        - Applications
+      parameters:
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedApplicationResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: createApplication
+      description: This endpoint allows you to create a new application under requesting user's account.
+      tags:
+        - Applications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiApplicationCreate'
+      responses:
+        '201':
+          description: Application Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiApplication'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /applications/{applicationId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationId'
+    get:
+      operationId: getApplication
+      description: This endpoint allows you to retrieve a single application.
+      tags:
+        - Applications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiApplication'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId: updateApplication
+      description: This endpoint allows you to update a single application.
+      tags:
+        - Applications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiApplicationUpdate'
+      responses:
+        '204':
+          description: Application Updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      operationId: deleteApplication
+      description: This endpoint allows you to delete a single application.
+      tags:
+        - Applications
+      responses:
+        '204':
+          description: Application deleted.
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /applications/{applicationId}/oauthClients:
+    parameters:
+      # Pagination
+      - $ref: '#/components/parameters/applicationId'
+    get:
+      parameters:
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+      description: >
+       This endpoint allows retrieval of all OAuth credentials for a given user.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize"
+       in the response represents the total number of available devices, not the number of bridges resulting from the query string.
+      operationId: getOauthClients
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedOauthClientResponse'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        406:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/notAcceptableError'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Application Oauth Clients
+
+    post:
+      description: This endpoint allows you to create a new OAuth client for given user.
+      operationId: addOauthClient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationOauthClientCreate'
+        required: true
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOauthClient'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        406:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/notAcceptableError'
+        409:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/conflict'
+        415:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unsupportedMediaType'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Application Oauth Clients
+
+  /applications/{applicationId}/oauthClients/{clientId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationId'
+      - $ref: '#/components/parameters/clientId'
+    get:
+      description: This endpoint allows you to retrieve a specific OAuth client.
+      operationId: getOauthClient
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOauthClient'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        406:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/notAcceptableError'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Application Oauth Clients
+
+    patch:
+      description: This endpoint allows you to update a specific Oauth client.
+      tags:
+        - Application Oauth Clients
+      operationId: updateClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationOauthClientUpdate'
+      responses:
+        '204':
+          description: Client Updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      description: This endpoint allows you to delete a specific OAuth client of a given account.
+      operationId: deleteOauthClient
+      responses:
+        204:
+          description: OK
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        404:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        406:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/notAcceptableError'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Application Oauth Clients
+
+components:
+  parameters:
+    clientId:
+      name: clientId
+      in: path
+      description: Identifier of a OAuth client
+      required: true
+      schema:
+        type: string
+        maxLength: 255
+
+    applicationId:
+      name: applicationId
+      in: path
+      description: Identifier of an application
+      required: true
+      schema:
+        type: string
+
+  schemas:
+
+    ApiPaginatedApplicationResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiApplication'
+
+    ApiPaginatedOauthClientResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationOauthClient'
+
+    ApiApplicationBase:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the application
+          example: Application name
+        developer:
+          type: string
+          description: Name of the developer/company which developed this application.
+          example: eagle eye networks
+        description:
+          type: string
+          description: The description of the application.
+          example: this is the web client
+        website:
+          type: string
+          format: uri
+          description: Website of this application.
+          example: https://een.com
+        isPublic:
+          type: boolean
+          description: Whether this application is intended to be public (available for other parties through an application store).
+          example: false
+
+    ApiApplicationUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApiApplicationBase'
+        - type: object
+          properties:
+            technicalContact:
+              $ref: '#/components/schemas/ApplicationTechContactUpdate'
+
+    ApiApplicationCreate:
+      allOf:
+        - $ref: '#/components/schemas/ApiApplicationBase'
+        - type: object
+          properties:
+            technicalContact:
+              $ref: '#/components/schemas/ApplicationTechContact'
+          required:
+            - name
+            - developer
+            - description
+            - website
+            - isPublic
+            - technicalContact
+
+
+
+    ApiApplication:
+      description: This object denotes a single Application.
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+              description: Unique identifier for application
+              example: application Id
+            technicalContact:
+              $ref: '#/components/schemas/ApplicationTechContact'
+        - $ref: '#/components/schemas/ApiApplicationBase'
+
+      required:
+        - id
+        - name
+        - developer
+        - description
+        - website
+        - isPublic
+        - technicalContact
+
+    ApplicationTechContactUpdate:
+      type: object
+      description: Request body for application update.
+      properties:
+        name:
+          type: string
+          description: Name of point of contact for this application.
+          example: prakash
+        email:
+          type: string
+          example: abc@gmail.com
+          description: Email id of the person to contact for this application.
+          format: email
+
+    ApplicationTechContact:
+      allOf:
+        - $ref: '#/components/schemas/ApplicationTechContactUpdate'
+      required:
+        - name
+        - email
+
+    ApplicationOauthClientUpdate:
+      type: object
+      description: Request body for oauth client update.
+      properties:
+        name:
+          type: string
+          description: Name of the oauth client.
+          example: client-name
+        redirectUris:
+          type: array
+          items:
+            type: string
+            description: List of allowed redirect URIs support by the client.
+            format: uri
+            example: ["https://google.co.in/","https://google.nl/" ]
+
+    ApplicationOauthClientCreate:
+      description: request body for creating a new OAuth client
+      allOf:
+        - $ref: '#/components/schemas/ApplicationOauthClientUpdate'
+        - type: object
+          properties:
+            type:
+              type: string
+              description: This defines the type of this client . Clients are CONFIDENTIAL by default.
+              enum: [public,confidential]
+              default: confidential
+              example: confidential
+      required:
+        - name
+        - redirectUris
+
+    ApplicationOauthClient:
+      allOf:
+        - type: object
+          properties:
+            id:
+              maxLength: 255
+              type: string
+              description: Unique client identifier
+              example: e005968e714911eda1eb0242ac120002
+            secret:
+              maxLength: 255
+              type: string
+              description: String representing a secret passphrase.
+              example: NnjRRTOYAlGpqedN65OLf4sPMFH8kGbG
+            scopes:
+              type: array
+              items:
+                type: string
+                example: [vms.all]
+        - $ref: '#/components/schemas/ApplicationOauthClientCreate'
+      required:
+        - id
+        - secret
+        - scopes
+
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []        

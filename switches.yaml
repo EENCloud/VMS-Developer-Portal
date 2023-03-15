@@ -1,0 +1,396 @@
+openapi: "3.0.0"
+info:
+  title: Switches
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /switches:
+    get:
+      operationId: listSwitches
+      description: >
+       This endpoint allows users to retrieve a paginated list of switches within a given account.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in the response 
+       represents the total number of available devices, not the number of bridges resulting from the query string.
+      tags:
+        - Switches
+      parameters:
+        - $ref: '#/components/parameters/accountId__in'
+
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedSwitchResponse'
+        '400':
+          # If the request (ex: query parameters) is invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          # If access token is missing or invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '404':
+          # If one of the parameters references an object (ex: account) that doesn't exist, or the user doesn't have
+          # access to.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /switches/{switchId}:
+
+    parameters:
+      - $ref: '#/components/parameters/switchId'
+
+    get:
+      operationId: getSwitch
+      description: This endpoint allows users to retrieve a specific switch based on its id.
+      tags:
+        - Switches
+      parameters:
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSwitchWithIncludes'
+        '400':
+          # If the request (ex: query parameters) is invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          # If access token is missing or invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          # If the user doesn't have permission to even view switches. Used to differentiate with not having permission
+          # to access a specific switch.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          # If the referenced switch doesn't exist, or the user doesn't have access to it.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      description: This endpoint allows users to update a given switch.
+      operationId: updateSwitch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiSwitchUpdate'
+      responses:
+        '204':
+          description: Switch Updated
+        '400':
+          # If the request (ex: query parameters or request body) is invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          # If access token is missing or invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          # If the user doesn't have permission to even view or edit switches, or doesn't have permission to edit the
+          # specific switch.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          # If the referenced switch doesn't exist, or the user doesn't have access to it.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Switches
+
+  /switches/{switchId}/ports/{portId}/actions:
+
+    parameters:
+      - $ref: '#/components/parameters/switchId'
+      - $ref: '#/components/parameters/portId'
+
+    post:
+      operationId: updatePort
+      description: A specific port can be turned On/Off with this endpoint. A port can also be power cycled. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiSwitchPortUpdate'
+      responses:
+        '204':
+          description: Port Updated
+        '400':
+          # If the request (ex: query parameters or request body) is invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          # If access token is missing or invalid.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          # If the user doesn't have permission to even view or control switches, or doesn't have permission to control
+          # the specific switch.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          # If the referenced switch doesn't exist, or the user doesn't have access to it.
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Switches
+
+components:
+  parameters:
+
+    switchId:
+      in: path
+      name: switchId
+      schema:
+        type: string
+      required: true
+
+    portId:
+      in: path
+      name: portId
+      schema:
+        type: integer
+      required: true
+
+    accountId__in:
+      in: query
+      name: accountId__in
+      required: false
+      description: List of Account IDs to filter on that is comma separated.
+      schema:
+        $ref: '#/components/schemas/ApiEsns'
+
+    include:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - status
+            - notes
+            - networkInfo
+            - firmware
+            - ports
+
+  schemas:
+
+    ApiEsns:
+      type: array
+      example: ["00001106","00001107"] # EEN VMS Demo Account value
+      items:
+        type: string
+
+    ApiPaginatedSwitchResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiSwitchWithIncludes'
+
+    ApiSwitchUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+
+    ApiSwitchWithIncludes:
+      allOf:
+        - $ref: '#/components/schemas/ApiSwitchMain'
+        - $ref: '#/components/schemas/ApiSwitchIncludes'
+        - type: object
+
+    ApiSwitchMain:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 25c72162-cfe0-57d1-a94a-ac43904ed01a
+          format: uuid
+          description: "Unique switch identifier"
+        accountId:
+          type: string
+          description: Account ID.
+          example: 00001106
+        name:
+          $ref: '#/components/schemas/Name'
+        bridgeId:
+          $ref: '#/components/schemas/BridgeId'
+        portCount:
+          type: integer
+          example: 4
+      required:
+        - id
+        - name
+        - accountId
+
+    ApiSwitchIncludes:
+      type: object
+      properties:
+        status:
+          $ref: 'https://commonswagger.cameramanager.com/devices.yaml#/components/schemas/DeviceStatus'
+        notes:
+          type: string
+          example: Switch with label "SW001"
+        ports:
+          type: array
+          description: List of ports of the switch and details about each port and what is possibly connected to it.
+          items:
+            $ref: '#/components/schemas/ApiSwitchPort'
+        networkInfo:
+          $ref: '#/components/schemas/ApiNetworkInfo'
+        firmware:
+          $ref: '#/components/schemas/ApiFirmware'
+
+    ApiSwitchPortUpdate:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - enable
+            - disable
+            - reboot
+          description: |
+            * `enable` - Turn on the port.
+            * `disable` - Turn off the port.
+            * `reboot` - Power cycle the port.
+      required:
+        - action
+
+    ApiSwitchPort:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 11
+          description: Port identifier, unique for the given switch
+        enabled:
+          type: boolean
+          description: Indicates whether the port is on (true) or off (false)
+        power:
+          type: number
+          description: Power in Watts that this port is drawing
+          example: 9.8
+        detectedDeviceCount:
+          type: integer
+          description: >
+            Number of devices connected to the port.
+            If a single device has been detected, the Mac address and possibly the IP Address are returned.
+          example: 4
+        devices:
+          type: array
+          description: List of devices that are known to be connected to the port.
+          items:
+            $ref: '#/components/schemas/DetectedDevice'
+
+    DetectedDevice:
+      type: object
+      description: Describes a device detected behind a port.
+      properties:
+        macAddress:
+          allOf:
+            - $ref: '#/components/schemas/MacAddress'
+            - description: MAC address behind the port.
+        ipAddress:
+          allOf:
+            - $ref: '#/components/schemas/IpAddress'
+            - description: IP Address found using ARP for the given MAC address.
+        guid:
+          type: string
+          format: uuid
+          description: GUID of the device that corresponds to the MAC or IP connected to the port.
+        esn:
+          type: string
+          description: Esn of the device that corresponds to the MAC or IP connected to the port.
+          example: 100052842
+
+    Name:
+      type: string
+      example: EEN 4 Port PoE
+      description: Switch name
+
+    MacAddress:
+      type: string
+      pattern: ^([A-F0-9]{2}:){5}[A-F0-9]{2}$
+      example: 8A:D4:AD:09:DF:91
+
+    IpAddress:
+      type: string
+      pattern: ^(?:25[0-5]|2[0-4]\d|[0-1]?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d{1,2})){3}$
+      example: 10.143.55.140
+
+    BridgeId:
+      type: string
+      example: 1000f60d
+      description: >
+        The bridge a switch is connected to.
+
+    ApiNetworkInfo:
+      type: object
+      properties:
+        globalIP:
+          $ref: '#/components/schemas/IpAddress'
+        adapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiAdapterInfo'
+
+    ApiAdapterInfo:
+      type: object
+      properties:
+        macAddress:
+          $ref: '#/components/schemas/MacAddress'
+        ipAddress:
+          $ref: '#/components/schemas/IpAddress'
+
+    ApiFirmware:
+      type: object
+      properties:
+        currentVersion:
+          type: string
+          example: v20211019_542_3022
+        status:
+          description: >
+            Indicates what the current status is of the device's firmware:
+            * `up-to-date`: The device's firmware is fully up-to-date.
+            * `upgradable`: The device's firmware can be upgraded.
+            * `unknown`: It is currently unknown if the device's firmware can and should be upgraded.
+          type: string
+          enum:
+            - up-to-date
+            - upgradable
+            - unknown
+        targetVersion:
+          description: Describes, if known, what firmware version this device shuold be upgraded to.
+          type: string
+          example: v20211025_544_6753
+
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []
+

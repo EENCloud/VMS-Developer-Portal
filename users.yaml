@@ -1,0 +1,974 @@
+openapi: "3.0.0"
+info:
+  title: Users 
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /users:
+    get:
+      operationId: getUsers
+      description: >
+       This endpoint allows the users to retrieve a list of users within the account.   
+       This endpoint supports filtering, pagination, and sorting, as well as including additional information with the response.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in the response represents the total number 
+       of available devices, not the number of bridges resulting from the query string.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/locationId__in'
+        - $ref: '#/components/parameters/locationId__ne'
+        - $ref: '#/components/parameters/firstName__in'
+        - $ref: '#/components/parameters/firstName__contains'
+        - $ref: '#/components/parameters/lastName__in'
+        - $ref: '#/components/parameters/lastName__contains'
+        - $ref: '#/components/parameters/email__in'
+        - $ref: '#/components/parameters/email__contains'
+        - $ref: '#/components/parameters/permissions.administrator'
+        - $ref: '#/components/parameters/status.loginStatus__in'
+        - $ref: '#/components/parameters/sort'
+
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedUserResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: createUser
+      description: >
+       This endpoint allows users to create a user in the account. The created user will be in pending state and a verification email will be sent to the user.
+       Once approved, newly created user will be in active state and will be able to be used.
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAddUser'
+      responses:
+        '201':
+          description: User Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserMain'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '409':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/conflict'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+
+  /users/{userId}:
+
+    parameters:
+      - $ref: '#/components/parameters/userId'
+
+    get:
+      operationId: getUser
+      description: This endpoint allows the users to retrieve info about a specific user based on the user ID. 
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserWithIncludes'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      operationId: deleteUser
+      description: >
+        This endpoint allows the users to delete a user from the account, removing all references related to that user.
+      tags:
+        - Users
+      responses:
+        '204':
+          description: User deleted.
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId: updateUser
+      description: This endpoint allows the users to updat a user's data. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiUserUpdate'
+      tags:
+        - Users
+      responses:
+        '204':
+          description: User Updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /users/self:
+
+    get:
+      operationId: getCurrentUser
+      description: This endpoint allows the users to retrieve info about the current user. 
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserWithIncludes'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId : updateCurrentUser
+      description: This endpoint allows the users to update current user's data. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiUserSelfUpdate'
+      tags:
+        - Users
+      responses:
+        '204':
+          description: User Updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+
+  /users/self/trustedClients:
+
+    get:
+      operationId: getTrustedClients
+      description: >
+       This endpoint allows you to retrieve a list of trusted clients.  
+         
+       It is important to note that after using the pageSize parameter, 
+       the "totalSize" in the response represents the total number of available devices, not the number of bridges resulting from the query string.
+      tags:
+        - TrustedClients
+      parameters:
+        - $ref: '#/components/parameters/includeTrustedDevices'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedTrustedClientResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /users/self/trustedClients/{trustedClientId}:
+
+    parameters:
+      - $ref: '#/components/parameters/trustedClientId'
+
+    delete:
+      operationId: deleteTrustedClient
+      description: >
+        This endpoint allows you to delete a trusted client.
+      tags:
+        - TrustedClients
+      responses:
+        '204':
+          description: Trusted client deleted.
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+  parameters:
+
+    userId:
+      in: path
+      name: userId
+      schema:
+        type: string
+      required: true
+
+    trustedClientId:
+      in: path
+      name: trustedClientId
+      schema:
+        type: string
+      required: true
+
+    locationId__in:
+      in: query
+      name: locationId__in
+      required: false
+      description: List of Location IDs to filter on that is comma separated.
+      schema:
+        type: array
+        example: ["2428fda3-389f-48ce-b062-85875dd6b2e2"] # EEN VMS location id value
+        items:
+          type: string
+
+    locationId__ne:
+      in: query
+      name: locationId__ne
+      required: false
+      description: Filter to get the users with an locationId that is not equal to the provided value. The lookup is exact but case insensitive.
+      schema:
+        example: "2428fda3-389f-48ce-b062-85875dd6b2e2" # EEN VMS location id value
+        items:
+          type: string
+
+    sort:
+      in: query
+      name: sort
+      description: List of fields that should be sorted
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - -firstName
+            - +firstName
+            - -lastName
+            - +lastName
+            - -email
+            - +email
+            - -loginDetails.lastLogin
+            - +loginDetails.lastLogin
+            
+      style: form
+      explode: false
+
+    firstName__in:
+      in: query
+      name: firstName__in
+      description: Filter to get the users whose firstName is on the provided list. The lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    firstName__contains:
+      in: query
+      name: firstName__contains
+      description: >
+        Filter to get the users whose the firstName contains the provided substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+
+    lastName__in:
+      in: query
+      name: lastName__in
+      description: Filter to get the users whose lastName is on the provided list. The lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    lastName__contains:
+      in: query
+      name: lastName__contains
+      description: >
+        Filter to get the users whose the lastName contains the provided substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+
+    email__in:
+      in: query
+      name: email__in
+      description: Filter to get the users whose email is on the provided list. The lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    email__contains:
+      in: query
+      name: email__contains
+      description: >
+        Filter to get the users whose the email contains provided substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+
+    permissions.administrator:
+      in: query
+      name: permissions.administrator
+      description: >
+        Filter to get the users with provided administrator value.
+      schema:
+        type: boolean
+
+    status.loginStatus__in:
+      in: query
+      name: status.loginStatus__in
+      description: Filter to get the users whose loginStatus is on the provided list. The lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - active
+            - pending
+            - blocked
+      style: form
+      explode: false
+
+    include:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - loginDetails
+            - locationSummary
+            - contactDetails
+            - timeZone
+            - support
+            - status
+            - permissions
+            - layoutSettings
+            - previewSettings
+            - effectivePermissions
+
+    includeTrustedDevices:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - device
+            - browser
+            - operatingSystem
+
+  schemas:
+
+    ApiPaginatedTrustedClientResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/TrustedClient'
+
+    TrustedClient:
+      type: object
+      properties:
+        id:
+          type: string
+        lastLogin:
+          type: string
+          format: date-time
+        ip:
+          type: string
+          example: 192.158.1.38
+        bot:
+          type: boolean
+          description: Indicates whether user agent is a search engine crawler/spider
+          example: false
+        description:
+          type: string
+          example: iPhone / iOS 5.1 / Mobile Safari 5.1
+          description: Information about device type, operating system and browser
+        device:
+          $ref: '#/components/schemas/TrustedClientDevice'
+        browser:
+          $ref: '#/components/schemas/TrustedClientBrowser'
+        operatingSystem:
+          $ref: '#/components/schemas/TrustedClientOperatingSystem'
+      required:
+        - id
+        - lastLogin
+        - ip
+        - bot
+        - description
+
+    TrustedClientDevice:
+      type: object
+      properties:
+        brand:
+          type: string
+          example: Apple
+        model:
+          type: string
+          example: iPhone
+        family:
+          type: string
+          example: iPhone
+        type:
+          type: string
+          enum:
+          - pc
+          - tablet
+          - mobile
+          example: mobile
+        touchCapable:
+          type: boolean
+          description: Indicates whether user agent has touch capabilities
+          example: true
+      required:
+        - brand
+        - model
+        - family
+        - type
+        - touchCapable
+
+    TrustedClientBrowser:
+      type: object
+      properties:
+        family:
+          type: string
+          example: Mobile Safari
+        version:
+          type: string
+          example: 5.1
+      required:
+        - family
+        - version
+
+    TrustedClientOperatingSystem:
+      type: object
+      properties:
+        family:
+          type: string
+          example: iOS
+        version:
+          type: string
+          example: 5.1
+      required:
+        - family
+        - version
+
+    ApiPaginatedUserResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiUserWithIncludes'
+
+    ApiUserWithIncludes:
+      allOf:
+        - $ref: '#/components/schemas/ApiUserMain'
+        - $ref: '#/components/schemas/ApiUserIncludes'
+        - type: object
+
+    ApiUserMain:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          $ref: '#/components/schemas/Email'
+        accountId:
+          type: string
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        language:
+          # api/v3.0/languages
+          type: string
+      required:
+        - id
+        - firstName
+        - lastName
+        - accountId
+        - email
+
+    ApiUserIncludes:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        locationSummary:
+          $ref: 'https://commonswagger.cameramanager.com/devices.yaml#/components/schemas/LocationSummary'
+        loginDetails:
+          $ref: '#/components/schemas/LoginDetails'
+        timeZone:
+          $ref: '#/components/schemas/TimeZone'
+        contactDetails:
+          $ref: '#/components/schemas/ContactDetails'
+        support:
+          $ref: '#/components/schemas/Support'
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        layoutSettings:
+          $ref: '#/components/schemas/LayoutSettings'
+        previewSettings:
+          $ref: '#/components/schemas/PreviewSettings'
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveUserPermissions'
+
+    EffectiveUserPermissions:
+      readOnly: true
+      type: object
+      properties:
+        read:
+          type: boolean
+        delete:
+          type: boolean
+        edit:
+          type: boolean
+
+    LoginDetails:
+      type: object
+      properties:
+        lastLogin:
+          type: string
+          format: date-time
+        loginSchedule:
+          $ref: '#/components/schemas/LoginSchedule'
+
+    Support:
+      type: object
+      properties:
+        pin:
+          $ref: '#/components/schemas/Pin'
+
+    ApiAddUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: >
+            First name of the user.
+        lastName:
+          type: string
+          description: >
+            Last name of the user.
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        email:
+          $ref: '#/components/schemas/Email'
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+      required:
+        - firstName
+        - lastName
+        - email
+
+    ContactDetails:
+      type: object
+      properties:
+        alternateEmail:
+          $ref: '#/components/schemas/AlternateEmail'
+        phone:
+          type: string
+
+    Status:
+      type: object
+      description: This status signifies the current status of the user.
+      properties:
+        loginStatus:
+          type: string
+          description: >
+            Login status of user
+             * `active` - User is active
+             * `pending` - Every newly created user is in pending state until it verifies its email and set credentials.
+             * `blocked` - User was active once but it has been disabled by Admin.
+          enum:
+            - active
+            - pending
+            - blocked
+
+    Interval:
+      type: object
+      description: Interval of a schedule
+      properties:
+        start:
+          type: string
+          pattern: "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+          description: Starting point of the interval. It should be in the range of 00:00 to 23:59 since this is the range for a day
+        end:
+          type: string
+          pattern: "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+          description: End point of the interval. It should be in the range of 00:00 to 23:59 since this is the range for the day
+      required:
+        - start
+        - end
+
+    LoginSchedule:
+      type: object
+      description: It signifies a week long user login schedule. This schedule is effective according to user timezone.
+      properties:
+        sunday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        monday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        tuesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        wednesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        thursday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        friday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        saturday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+      required:
+        - sunday
+        - monday
+        - tuesday
+        - wednesday
+        - thursday
+        - friday
+        - saturday
+
+    ApiUserUpdate:
+      type: object
+      properties:
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        status:
+          type: string
+          description: User can be enabled if set to "active" and disabled if set to "blocked"
+          enum:
+            - active
+            - blocked
+        loginSchedule:
+          $ref: '#/components/schemas/LoginSchedule'
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+
+    ApiUserSelfUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          $ref: '#/components/schemas/Email'
+        support:
+          $ref: '#/components/schemas/Support'
+        language:
+          # api/v3.0/languages
+          type: string
+        timeZone:
+          $ref: '#/components/schemas/TimeZone'
+        layoutSettings:
+          $ref: '#/components/schemas/LayoutSettings'
+        previewSettings:
+          $ref: '#/components/schemas/PreviewSettings'
+
+    Email:
+      type: string
+      description: This email is used for login.
+      format: email
+
+    Pin:
+      type: string
+      description: Six digit string that signifies a support pin. Support can use this pin to login to user account.
+      pattern: ^[0-9]*$
+      example: "000000"
+      minLength: 6
+      maxLength: 6
+
+    LayoutSettings:
+      type: object
+      properties:
+        rotationInterval:
+          type: integer
+          description: Layout rotation internal in seconds after which current layout is switched to next one in the below list.
+        rotationOrder:
+          type: array
+          description: Ordered list of layout IDs that user has access to, which will be displayed in order after rotationInterval.
+          items:
+            type: string
+            description: Unique layout identifier
+      required:
+        - rotationInterval
+        - rotationOrder
+
+    PreviewSettings:
+      type: object
+      properties:
+        showMotionBoxes:
+          type: boolean
+          description: Indicates whether motion boxes should be shown
+        showAnalytics:
+          type: boolean
+          description: Indicates whether addtitional analytics should be shown
+        showPluginExtensions:
+          type: boolean
+          description: Indicates whether to show custom annotations for third party applications.
+
+    AlternateEmail:
+      type: string
+      description: This email is used sending notifications from user account.
+      format: email
+
+    LocationId:
+      description: ID Of the location.
+      type: string
+      example: "2428fda3-389f-48ce-b062-85875dd6b2e2"
+
+    TimeZone:
+      type: object
+      properties:
+        timeZone:
+          type: string
+          example: "Americas/Chicago"
+          description: 'The timezone the user is in.'
+
+    Permissions:
+      type: object
+      properties:
+        administrator:
+          type: boolean
+          description: >
+            All permissions are enabled - create, delete, edit, and view access to all accounts and user settings,
+            bridges, cameras, layouts, audit log and archive
+        editAccounts:
+          type: boolean
+          description: >
+            Edit and view Control, Days, Security, Camera, Alerts, Notifications, Privacy, Sharing, Responders,
+            Default retentions, and camera resolution settings
+        layoutAdministrator:
+          type: boolean
+          description: >
+            Create, delete, edit and view any accessible layouts. All user layouts are visible to admin users
+        createLayouts:
+          type: boolean
+          description: >
+            Ability to create layouts and edit the layouts created.
+            This does not grant permission to edit layouts created by other users
+        editNoBillingDeviceSettings:
+          type: boolean
+          description: >
+            Edit Camera Settings except for Cloud Retention and Full Video Resolution. 
+            Cannot add or delete cameras. Edit existing Analytics. Cannot add or delete Analytics
+        turnCamerasOnOff:
+          type: boolean
+          description: Turn Cameras on/off. Cameras off cannot be recorded
+        editMotionAreas:
+          type: boolean
+          description: >
+            Edit and view Motion under Camera Settings. Set object size and sensitivity, add/delete regions,
+            add/delete alerts for regions. Edit and view existing Analytics
+            Set object size and sensitivity, add/delete alerts
+        editAllCameraSettings:
+          type: boolean
+          description: Editing all Camera Settings. Cannot add or delete cameras.
+        editUsers:
+          type: boolean
+          description: Create, delete, edit, and view non-admin users in an end user account.
+        upgradeEdition:
+          type: boolean
+          description: Upgrade current edition subscription to a higher level edition
+        addEditBridgesCameras:
+          type: boolean
+          description: >
+            Create, delete, edit, and view Bridges and Cameras.
+            This is the only permission for a non-admin to be able to add and view bridges in an end user account
+        editSharing:
+          type: boolean
+          description: Edit and view Sharing and Responders settings
+        controlPTZ:
+          type: boolean
+          description: >
+            Control Pan, Tilt, Zoom, & recall stations while viewing a preview or live video of PTZ cameras
+        editPTZStations:
+          type: boolean
+          description: >
+            Edit and view PTZ tab under Camera Settings. Set PTZ mode and create, delete, edit stations
+        addEditSpeakers:
+          type: boolean
+          description: Add speakers, edit speaker settings, delete speakers
+        editSpeakers:
+          type: boolean
+          description: Edit speaker settings. Cannot add or delete speakers
+        viewLiveVideo:
+          type: boolean
+          description: View full resolution video live
+        viewHistoricVideo:
+          type: boolean
+          description: View history browser and historic video
+        downloadVideo:
+          type: boolean
+          description: Download preview and full resolution video
+        viewPreviewVideo:
+          type: boolean
+          description: View preview images from cameras
+        talkDown:
+          type: boolean
+          description: Allows the users to initiate Talk Down to the camera field(s) of view
+        editMap:
+          type: boolean
+          description: Add and edit floors, lines, shapes, and cameras on the map
+        viewAuditLog:
+          type: boolean
+          description: View Audit Log and download reports from it
+        viewArchive:
+          type: boolean
+          description: View all files and folders within the Archive
+        editArchive:
+          type: boolean
+          description: Save videos to Archive - delete, edit, and view files and folders within the Archive
+        viewPlugins:
+          type: boolean
+          description: View all Plugins
+        editPlugins:
+          type: boolean
+          description: Add and remove plugins
+        exportUsers:
+          type: boolean
+          description: Export a list of account users in .csv format
+        viewVSP:
+          type: boolean
+          description: User access to view vehicle data, search vehicle across camera & location, set rules, and alert
+        editResellerUsers:
+          type: boolean
+          description: Create, delete, edit, and view reseller user who is not an Admin
+        editAdminUsers:
+          type: boolean
+          description: >
+            Create, delete, edit, and view admin and non-admin users in an end user account.
+            Give access to bridges, cameras, and layouts.
+            Create new end user accounts and give access to them
+        viewContract:
+          type: boolean
+          description: View recordings, search, and create new recordings
+        addRemovePayment:
+          type: boolean
+          description: Add and remove payment methods
+        viewInvoice:
+          type: boolean
+          description: View and download invoices
+        placeOrders:
+          type: boolean
+          description: Add products to the shipping cart and place orders
+        viewShipments:
+          type: boolean
+          description: View the status of shipments
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

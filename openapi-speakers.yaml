@@ -1,0 +1,557 @@
+openapi: "3.0.0"
+info:
+  title: Speakers
+  version: 1.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /speakers:
+    get:
+      operationId: listSpeakers
+      description: >
+       Retrieving a list of speakers is possible with this endpoint.  
+         
+       It is important to note that after using the pageSize parameter,
+       the "totalSize" in the response represents the total number of available devices, 
+       not the number of bridges resulting from the query string.
+      tags:
+        - Speakers
+      parameters:
+        - $ref: '#/components/parameters/accountId__in'
+        - $ref: '#/components/parameters/locationId__in'
+
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSpeakerResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: addSpeaker
+      description: By using this endpoint you can create a speaker. 
+      tags:
+        - Speakers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAddSpeaker'
+
+      responses:
+        '201':
+          description: Speaker added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSpeakerMain'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '409':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/conflict'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /speakers/{speakerId}:
+
+    parameters:
+      - in: path
+        name: speakerId
+        schema:
+          type: string
+        required: true
+
+    get:
+      operationId: getSpeaker
+      description: This endpoint allows you to retrieve a specific speaker.
+      tags:
+        - Speakers
+      parameters:
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerWithIncludes'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId: updateSpeaker
+      description: This endpoint allows you to update a specific speaker.
+      tags:
+        - Speakers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiSpeakerUpdate'
+      responses:
+        '204':
+          description: Speaker updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    delete:
+      operationId: deleteSpeaker
+      description: >
+       This endpoint allows you to dis-associate a speaker from the account, removing all references, recordings, and events.  
+         
+       This request will be blocked until the speaker has been fully removed.
+      tags:
+        - Speakers
+      responses:
+        '204':
+          description: Speaker deleted.
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+  parameters:
+
+    locationId__in:
+      in: query
+      name: locationId__in
+      required: false
+      description: List of Location IDs to filter on that is comma separated.
+      schema:
+        type: array
+        example: ["2428fda3-389f-48ce-b062-85875dd6b2e2"] # EEN VMS location id value
+        items:
+          type: string
+
+    accountId__in:
+      in: query
+      name: accountId__in
+      required: false
+      description: List of Account IDs to filter on that is comma separated.
+      schema:
+        $ref: '#/components/schemas/ApiEsns'
+
+    include:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - status
+            - locationSummary
+            - timeZone
+            - notes
+            - tags
+            - devicePosition
+            - networkInfo
+            - deviceInfo
+            - visibleByBridges
+            - settings
+            - effectivePermissions
+      style: form
+
+  schemas:
+
+    # TODO move common/devices.yaml
+    ApiEsns:
+      type: array
+      items:
+        type: string
+        pattern: '^[a-fA-F0-9]{8},?$'
+        example: "00001106,00001107" # EEN VMS Demo Account value
+
+    PaginatedSpeakerResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpeakerWithIncludes'
+
+    SpeakerWithIncludes:
+      allOf:
+        - $ref: '#/components/schemas/ApiSpeakerMain'
+        - $ref: '#/components/schemas/ApiSpeakerIncludes'
+        - type: object
+
+    ApiSpeakerMain:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        name:
+          $ref: '#/components/schemas/DeviceName'
+        bridgeId:
+          $ref: '#/components/schemas/BridgeId'
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        isShared:
+          type: boolean
+      required:
+        - id
+        - accountId
+        - name
+        - bridgeId
+
+    ApiSpeakerIncludes:
+      type: object
+      properties:
+        status:
+          $ref: 'https://commonswagger.cameramanager.com/devices.yaml#/components/schemas/DeviceStatus'
+        notes:
+          type: string
+          example: Previously used for laser eye surgery. Records pizzas as squares
+        tags:
+          type: array
+          items:
+            type: string
+        locationSummary:
+          $ref: '#/components/schemas/ApiLocationSummary'
+        timeZone:
+          $ref: '#/components/schemas/ApiTimeZone'
+        devicePosition:
+          $ref: '#/components/schemas/ApiDevicePosition'
+        networkInfo:
+          $ref: '#/components/schemas/ApiNetworkInfo'
+        deviceInfo:
+          $ref: '#/components/schemas/ApiDeviceInfo'
+        visibleByBridges:
+          type: array
+          items:
+            type: string
+            pattern: ^(?:0[xX])?[0-9a-fA-F]{8}$
+            example: 1000f60d
+        settings:
+          $ref: '#/components/schemas/SpeakerSettings'
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveSpeakerPermissions'
+
+    EffectiveSpeakerPermissions:
+      readOnly: true
+      type: object
+      properties:
+        read:
+          type: boolean
+        delete:
+          type: boolean
+        edit:
+          type: boolean
+
+    # TODO move common/devices.yaml
+    DeviceTags:
+      type: array
+      items:
+        type: string
+        minLength: 1
+        maxLength: 64
+
+    # TODO move common/locations.yaml?
+    ApiLocationSummary:
+      # Called the "LocationSummary" and not just "Location" to differentiate from a full "Location" object we might
+      # want to use in a separate API.
+      # Fields are meant to be the same as the one in the normal "Location" object, just a subset of them.
+      description: "Summary of the location object, see /locations to get more information."
+      properties:
+        id:
+          $ref: '#/components/schemas/LocationId'
+        name:
+          description: User-defined name for the location.
+          type: string
+        streetAddress:
+          type: string
+        streetAddress2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+
+    # TODO move common/devices.yaml
+    ApiTimeZone:
+      type: object
+      properties:
+        zone:
+          type: string
+          example: "Americas/Chicago"
+          description: 'The timezone the account is in.'
+        offset:
+          type: string
+          example: '+10:00'
+          description: 'The time offset from UTC the account is on.'
+          readOnly: true
+
+    # TODO move common/devices.yaml
+    ApiDevicePosition:
+      type: object
+      properties:
+        latitude:
+          description: The latitude of the device. (WGS 84)
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 52.3074013
+        longitude:
+          description: The longitude of the device. (WGS 84).
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 4.9459903
+        azimuth:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+          example: 7.419435
+        rangeInFeet:
+          type: number
+          format: double
+          minimum: 0
+          example: 37.622658
+        rangeInMeters:
+          type: number
+          format: double
+          minimum: 0
+          example: 50.40
+        floor:
+          type: integer
+          minimum: 0
+          example: 50
+
+    # Maybe rename to `ConnectionInfo` and use the `connectionType` as discriminator to decide which fields are used?
+    # TODO move common/devices.yaml
+    ApiNetworkInfo:
+      type: object
+      properties:
+        interface:
+          type: string
+          enum:
+            - lan
+            - wan
+          description: >
+            The bridge interface to which the speaker is attached:
+             * lan: Camera lan interface.
+             * wan: Wide Area network interface.
+        adapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiAdapterInfo'
+
+    # TODO move common/devices.yaml
+    ApiDeviceCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username to use when authenticating with the device
+        password:
+          type: string
+          description: Password to use when authenticating with the device. Password will not be returned in the GET apis. However, POST and PATCH will take the password field.
+      required:
+        - username
+
+    # TODO move common/devices.yaml
+    ApiDeviceInfo:
+      description: Information that could also be visible on the physical device.
+      type: object
+      properties:
+        make:
+          description: The Manufactorer or brand of the speaker.
+          type: string
+          example: Axis communications
+        model:
+          description: The model of the speaker.
+          type: string
+          example: C1310-E Network Horn Speaker
+        #macAddresses:
+        #  type: array
+        #  items:
+        #    $ref: '#/components/schemas/MacAddress'
+        guid:
+          $ref: '#/components/schemas/Guid'
+
+    SpeakerSettings:
+      description: Device specific settings that can be configured on the speakers. This is accessible for shared speakers?
+      type: object
+      properties:
+        mainCredentials:
+          allOf:
+            - description: >
+                The credentials that will used for communicating with the devices with the main API of the device,
+                which generally is its ONVIF API.
+            - $ref: '#/components/schemas/ApiDeviceCredentials'
+        adminCredentials:
+          allOf:
+            - description: >
+                Admin credentials using which a tunnel can be established with the devices or certain advanced
+                configurations can be changed.
+            - $ref: '#/components/schemas/ApiDeviceCredentials'
+        sipCredentials:
+          allOf:
+            - description: >
+                The credentials that will be used to authenticate SIP sessions.
+            - $ref: '#/components/schemas/ApiDeviceCredentials'
+        sipPort:
+          type: integer
+          description: Port to which SIP requests should be sent from the bridge. Applicable for sip speakers and defaults to 5060
+          minimum: 1025
+          maximum: 65535
+          default: 5060
+          example: 5060
+
+    # TODO move common/devices.yaml
+    ApiAdapterInfo:
+      type: object
+      properties:
+        macAddress:
+          $ref: '#/components/schemas/MacAddress'
+        ipAddress:
+          $ref: '#/components/schemas/IpAddress'
+
+    ApiSpeakerUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 126
+          description: Name of the speaker
+          example: First speaker
+        notes:
+          $ref: '#/components/schemas/DeviceNotes'
+
+    # TODO move common/devices.yaml
+    Guid:
+      type: string
+      format: uuid
+      example: ddfa5b34-5d04-431e-8287-110fe87edf71
+
+    # TODO move common/devices.yaml or common/locations.yaml?
+    LocationId:
+      description: ID Of the location.
+      type: string
+      example: 1
+
+    # TODO move common/devices.yaml
+    BridgeId:
+      type: string
+      pattern: ^(?:0[xX])?[0-9a-fA-F]{8}$
+      example: 1000f60d
+
+    # TODO move common/devices.yaml
+    DeviceName:
+      description: User-defined name for the device.
+      type: string
+      example: My new device
+
+    # TODO move common/devices.yaml
+    DeviceNotes:
+      type: string
+      example: Painted black to better blend with its environment.
+
+    # TODO move common/devices.yaml
+    MacAddress:
+      type: string
+      pattern: ^([A-F0-9]{2}:){5}[A-F0-9]{2}$
+      example: 8A:D4:AD:09:DF:91
+
+    # TODO move common/devices.yaml
+    IpAddress:
+      type: string
+      pattern: ^(?:25[0-5]|2[0-4]\d|[0-1]?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d{1,2})){3}$
+      example: 10.143.55.140
+
+    ApiAddSpeaker:
+      allOf:
+        - $ref: '#/components/schemas/SpeakerSettings'
+        - type: object
+          properties:
+            registrationStrategy:
+              $ref: '#/components/schemas/RegistrationStrategy'
+            name:
+              $ref: '#/components/schemas/DeviceName'
+            tags:
+              $ref: '#/components/schemas/DeviceTags'
+            bridgeId:
+              $ref: '#/components/schemas/BridgeId'
+            guid:
+              $ref: '#/components/schemas/Guid'
+          required:
+            - registrationStrategy
+            - name
+            - bridgeId
+            - guid
+
+    RegistrationStrategy:
+      description: Indicates how the speaker was added to the system
+      type: string
+      default: discoveredSip
+      enum:
+        - discoveredSip
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

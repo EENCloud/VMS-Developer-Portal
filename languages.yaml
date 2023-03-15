@@ -1,0 +1,83 @@
+openapi: "3.0.0"
+info:
+  title: Languages
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /languages:
+    get:
+      operationId: listLanguages
+      description: >
+       This endpoint allows you to retrieve a list of languages supported by the service.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in 
+       the response represents the total number of available devices, not the number of bridges resulting from the query string.
+      tags:
+        - Languages
+      parameters:
+
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLanguageResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+
+  schemas:
+
+    PaginatedLanguageResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/Language'
+
+    Language:
+      type: object
+      description: Represents a langugage that is supported by the Eagle Eye Networks API.
+      properties:
+        tag:
+          type: string
+          description: >
+            IETF language tag used as main identifier of the language in the Eagle Eye Networks API.
+            The format can be just the two character "primary language subtag" or a combination of 
+            the two character "primary language subtag" and 2 character "region subtag".
+          example: pt-BR
+          pattern: ^[a-z]{2}(-[A-Z]{2})?$
+        name:
+          type: string
+          description: >
+            Name of the language in native language, with an optional region in parentheses, eg. ‘Espanol’ for Spanish.
+          example: Português (Brasil)
+      required:
+        - tag
+        - name
+
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

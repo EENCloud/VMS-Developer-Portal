@@ -1,0 +1,290 @@
+openapi: "3.0.0"
+info:
+  title: Layouts
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+
+  /layouts:
+    get:
+      operationId: getLayouts
+      description: >
+       This enpoint allows you to retrieve all the layouts associated with the account.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" 
+       in the response represents the total number of available devices, not the number of bridges resulting from the query string.
+      parameters:
+        - $ref: '#/components/parameters/include'
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedLayoutResponse'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Layouts
+
+    post:
+      description: This endpoint allows you to create a layout for an account by providing its layout ID.
+      operationId: createLayout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiLayoutCreate'
+      responses:
+        '201':
+          description: Layout Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiLayout'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Layouts
+
+  /layouts/{layoutId}:
+
+    # Path parameters and parameters used for all methods.
+    parameters:
+      - $ref: '#/components/parameters/layoutId'
+    delete:
+      operationId: deleteLayout
+      description: This endpoint allows you to delete an existing layout.
+      responses:
+        '204':
+          description: Layout deleted.
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+      tags:
+        - Layouts
+
+    get:
+      operationId: getLayout
+      description: This endpoint allows you to retrieve info of a specific layout. 
+      tags:
+        - Layouts
+      parameters:
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiLayout'
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      description: This endpoint allows you to update a layout for an account by providing the layout ID.
+      operationId: updateLayout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiLayoutUpdate'
+      responses:
+        '204':
+          description: Layout Updated
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+      tags:
+        - Layouts
+
+components:
+
+  parameters:
+
+    layoutId:
+      name: layoutId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 123ab123-1233-11a1-ab01-1b123ab1234
+        description: "Unique layout identifier"
+
+    include:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - effectivePermissions
+
+  schemas:
+
+    EffectiveLayoutPermissions:
+      readOnly: true
+      type: object
+      properties:
+        delete:
+          type: boolean
+        read:
+          type: boolean
+        edit:
+          type: boolean
+
+    ApiLayoutUpdate:
+      properties:
+        panes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiPane'
+        settings:
+          $ref: '#/components/schemas/ApiLayoutSettingsUpdate'
+
+    ApiLayoutCreate:
+      allOf:
+        - $ref: '#/components/schemas/ApiLayoutUpdate'
+        - properties:
+            name:
+              type: string
+              description: name of the layout.
+              example: Main office floor 1
+            settings:
+              $ref: '#/components/schemas/ApiLayoutSettings'
+      required: [name,panes,settings]
+
+    # Layout model
+    ApiLayout:
+      allOf:
+        - $ref: '#/components/schemas/ApiLayoutCreate'
+      properties:
+        id:
+          type: string
+          example: 123ab123-1233-11a1-ab01-1b123ab1234
+          description: "Unique layout identifier"
+        accountId:
+          type: string
+          description: Account ID specified in as an ESN Type.
+          pattern: '^[a-fA-F0-9]{8}$'
+          example: 00001106
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveLayoutPermissions'
+      required: [id,accountId]
+
+    # Pane definition
+    ApiPane:
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: unique identifer of pane in layout assigned to each pane. This determines the location indexing of panes in layout.
+          minimum: 0
+        name:
+          type: string
+          example: front door
+          description: Name of the pane in layout
+        type:
+          type: string
+          example: preview
+          enum: [preview]
+          description: >
+            * `preview` - show the view for a single camera using "preview" images which are lower resolution and lower frequency than the real stream.
+        size:
+          type: integer
+          example: 1
+          description: Size of displayed image in pane. Size 1 shows the smallest size
+          minimum: 1
+        cameraId:
+          type: string
+          example: 1003b545
+          description: Unique identifier of the camera.
+
+      required: [id, name, type, size, cameraId]
+
+    ApiLayoutSettingsUpdate:
+      description: object identifying the layout settings
+      properties:
+        showCameraBorder:
+          type: boolean
+          example: true
+          description: this flag if enabled, shows pane borders.
+        showCameraName:
+          type: boolean
+          example: true
+          description: this flag if enabled, shows camera name
+        cameraAspectRatio:
+          type: string
+          description: Aspect ratio of image
+          example: 16x9
+          enum: ["16x9","4x3"]
+        paneColumns:
+          type: integer
+          example: 3
+          description: Max number of cameras to show per row
+
+    ApiLayoutSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiLayoutSettingsUpdate'
+        - required: [showCameraBorder,showCameraName,cameraAspectRatio,paneColumns ]
+
+    ApiPaginatedLayoutResponse:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiLayout'
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

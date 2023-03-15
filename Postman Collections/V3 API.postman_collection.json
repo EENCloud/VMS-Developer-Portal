@@ -18,7 +18,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://auth.eagleeyenetworks.com/oauth2/authorize?scope=vms.all&client_id=0b4a2f40bcd24b6f8ed642a2bbca92bc&response_type=code&redirect_uri=http://127.0.0.1:3333",
+							"raw": "https://auth.eagleeyenetworks.com/oauth2/authorize?scope=vms.all&client_id={{client_id}}&response_type=code&redirect_uri=http://127.0.0.1:3333",
 							"protocol": "https",
 							"host": [
 								"auth",
@@ -36,7 +36,7 @@
 								},
 								{
 									"key": "client_id",
-									"value": "0b4a2f40bcd24b6f8ed642a2bbca92bc"
+									"value": "{{client_id}}"
 								},
 								{
 									"key": "response_type",
@@ -76,12 +76,12 @@
 							"basic": [
 								{
 									"key": "username",
-									"value": "0b4a2f40bcd24b6f8ed642a2bbca92bc",
+									"value": "{{client_id}}",
 									"type": "string"
 								},
 								{
 									"key": "password",
-									"value": "D6|}8pK3_b[0H`B*kDcj",
+									"value": "{{client_secret}}",
 									"type": "string"
 								}
 							]

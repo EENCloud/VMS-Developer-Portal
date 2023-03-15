@@ -1,0 +1,805 @@
+openapi: "3.0.0"
+info:
+  title: Account
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0/'
+    description: "Eagle Eye Networks API Server"
+x-readme:
+  explorer-enabled: true
+
+paths:
+  /accounts/self:
+    get:
+      operationId: getSelfAccount
+      description: "The endpoint will return current logged-in account object, without includables. Use include parameter to reveal them."
+      tags:
+        - Accounts
+      parameters:
+        # Include parameters
+        - $ref: '#/components/parameters/include'
+
+      responses:
+        200:
+          description: "Account retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAccountFullObject'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    patch:
+      operationId : updateSelfAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAccountFullObject'
+      description: "This endpoint allows you to update editable fields and objects in the current logged-in account. Only fields mentioned in the request body below are editable."
+      tags:
+        - Accounts
+      responses:
+        204:
+          description: "Account Updated"
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /accounts/self/capabilities:
+    get:
+      operationId: getSelfAccountCapabilities
+      description: "The endpoint will return all enabled capabilities for an account."
+      tags:
+        - Capabilities
+
+      responses:
+        200:
+          description: "Account capabilities"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAccountCapabilities'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /accounts/self/credentials:
+    get:
+      operationId: getCredentials
+      description: > 
+       The endpoint will return default credentials for cameras. These credentials will be used when a camera is being added, but no username/password was specified.  
+         
+       It is important to note that after using the pageSize parameter, the "totalSize" in the response represents the total number of available devices, not the number
+       of bridges resulting from the query string.
+
+      tags:
+        - Credentials
+
+      parameters:
+        # Pagination
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageToken'
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/parameters/pageSize'
+
+      responses:
+        200:
+          description: "Account credentials for cameras"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAccountPaginatedCredentials'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+    post:
+      operationId: createCredential
+      description: "This endpoint will create a credential for a camera."
+      tags:
+        - Credentials
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAccountCredentials'
+
+      responses:
+        201:
+          description: Credential created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAccountCredentials'
+        400:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        401:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        403:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        500:
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+  /accounts/self/credentials/{credentialId}:
+    parameters:
+      - $ref: '#/components/parameters/credentialId'
+    delete:
+      operationId: deleteCredential
+      description: >
+        This endpoint allows you to delete a credential from the account.
+      tags:
+        - Credentials
+      responses:
+        '204':
+          description: Credential deleted.
+        '400':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/validationError'
+        '401':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/unauthorized'
+        '403':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/forbidden'
+        '404':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/resourceNotFound'
+        '500':
+          $ref: 'https://commonswagger.cameramanager.com/error.yaml#/components/responses/internalServerError'
+
+components:
+  parameters:
+    include:
+      in: query
+      name: include
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - effectivePermissions
+            - timeZone
+            - workingHours
+            - security
+            - passwordManagementRules
+            - responders
+            - defaultCameraSettings
+            - videoPrivacy
+            - bridgeSettings
+            - cameraSettings
+            - brandingInfo
+    credentialId:
+      in: path
+      required: true
+      name: credentialId
+      description: Credential ID
+      schema:
+        type: string
+
+  schemas:
+    ApiAccountFullObject:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          minLength: 1
+          maxLength: 12
+        name:
+          type: string
+          readOnly: true
+          minLength: 1
+          maxLength: 126
+        editionId:
+          type: string
+          minLength: 1
+          maxLength: 126
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveAccountPermissions'
+        timeZone:
+          $ref: '#/components/schemas/TimeZone'
+        workingHours:
+          $ref: '#/components/schemas/WorkingHours'
+        security:
+          $ref: '#/components/schemas/Security'
+        passwordManagementRules:
+          $ref: '#/components/schemas/PasswordManagementRules'
+        responders:
+          $ref: '#/components/schemas/Responders'
+        defaultCameraSettings:
+          $ref: '#/components/schemas/DefaultCameraSettings'
+          readOnly: true
+        videoPrivacy:
+          $ref: '#/components/schemas/VideoPrivacy'
+        bridgeSettings:
+          $ref: '#/components/schemas/BridgeSettings'
+        cameraSettings:
+          $ref: '#/components/schemas/CameraSettings'
+        brandingInfo:
+          readOnly: true
+          $ref: 'https://commonswagger.cameramanager.com/brands.yaml#/components/schemas/Branding'
+      required:
+        - id
+        - name
+        - editionId
+
+    EffectiveAccountPermissions:
+      type: object
+      readOnly: true
+      properties:
+        read:
+          type: boolean
+        edit:
+          type: boolean
+          description: Edit account settings 
+        upgradeEdition:
+          type: boolean
+          description: Upgrade current edition subscription to a higher level edition. Downgrades require technical support.
+        addBridgesCameras:
+          type: boolean
+          description: Add bridges and cameras to the account
+        addSpeakers:
+          type: boolean
+          description: Add speakers to the account
+        addLayouts:
+          type: boolean
+          description: Add layouts to the account
+        addUsers:
+          type: boolean
+          description: Add users to the account
+        viewAuditLog:
+          type: boolean
+          description: View Audit Log and download reports from it
+        viewArchive:
+          type: boolean
+          description: View all files and folders within the Archive
+        editArchive:
+          type: boolean
+          description: Save videos to Archive - delete, and edit files and folders within the Archive
+        viewPlugins:
+          type: boolean
+          description: View the list of plugins
+        addPlugins:
+          type: boolean
+          description: Add plugins
+        exportUsers:
+          type: boolean
+          description: Export a list of account users in .csv format
+
+    TimeZone:
+      type: object
+      properties:
+        timeZone:
+          type: string
+          example: "America/Chicago"
+          minLength: 1
+          maxLength: 64
+
+    WorkingHours:
+      type: object
+      properties:
+        days:
+          $ref: '#/components/schemas/WorkingHoursDays'
+        hours:
+          $ref: '#/components/schemas/WorkingHoursHours'
+
+    WorkingHoursDays:
+      type: object
+      description: "Which day of the week is an account working day."
+      properties:
+        sunday:
+          type: boolean
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+
+    WorkingHoursHours:
+      type: object
+      description: "Time period which will be working hours for an account."
+      properties:
+        start:
+          type: string
+          pattern: "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+          description: "Starting point of the interval. It should be in the range of 00:00 to 23:59 since this is the range for a day."
+          minLength: 5
+          maxLength: 5
+        end:
+          type: string
+          pattern: "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+          description: "End point of the interval. It should be in the range of 00:00 to 23:59 since this is the range for the day."
+          minLength: 5
+          maxLength: 5
+      required:
+        - start
+        - end
+
+    Security:
+      type: object
+      properties:
+        sessionDuration:
+          type: integer
+          example: 10080
+          description: >
+            Unit: Minutes. Sets the maximum duration of access token (Also known as the auth sesstion).
+            The result is that this is the maximum time webapps will be logged in for.
+            Other applications such as mobile and server to server applications are not directly affected by this maximum,
+            as they can automatically get a new access token using a refresh token or automated login."
+          minimum: 1
+          maximum: 525600
+        sessionInactivityTimeout:
+          type: integer
+          example: 1440
+          description: >
+            Unit: Minutes. Account admins can set this value to request apps to automatically log-out
+            if the user hasn't interacted with the application for the given time.
+            This is mainly useful in webapps due to the higher likelihood of a user leaving a screen unlocked
+            and walking away.
+          minimum: 5
+          maximum: 1440
+        loginAttemptLimit:
+          type: integer
+          example: 3
+          description: "Maximum number of consecutive failed login attempts within a 24 hour period that a user will be allowed before being forced to do a password reset."
+          minimum: 3
+          maximum: 99
+        twoFactorAuthenticationForced:
+          type: boolean
+          description: "Sets all users on the account to Two Factor Authentication."
+
+    PasswordManagementRules:
+      type: object
+      properties:
+        requireSpecialChar:
+          description: "Password needs to contain at least one symbol, specifically: ~`!@#$%^&*()_+"
+          type: boolean
+        requireNumericChar:
+          description: "The user will be required to create a password with at least one numeric character."
+          type: boolean
+        daysToExpire:
+          description: "Require to create a new password in the given number of days."
+          type: integer
+          minimum: 0
+          maximum: 365
+        excludeUsername:
+          description: "Require to create a password that does not contain a username of the given user."
+          type: boolean
+        limits:
+          $ref: '#/components/schemas/PasswordLimits'
+
+    PasswordLimits:
+      type: object
+      properties:
+        allowedMinimumLength:
+          description: "Allowed minimum value for the minimumLength field."
+          type: integer
+          readOnly: true
+          example: 10
+        allowedMaximumLength:
+          description: "Allowed minimum value for the maximumLength field."
+          type: integer
+          readOnly: true
+          example: 64
+        minimumLength:
+          description: "Require to create a password with the minimum length of the set value."
+          type: integer
+          example: 10
+        maximumLength:
+          description: "Require to create a password with the maximum length of the set value."
+          type: integer
+          example: 64
+        reuseNumberLimit:
+          description: "Require to create a password that was not previously used for the selected number of previous passwords of the given user."
+          type: integer
+          minimum: 0
+          maximum: 15
+        reuseDayLimit:
+          description: "Defines the minimum number of days before a password can be reused."
+          type: integer
+          example: 1
+          minimum: 0
+          maximum: 120
+
+    Responders:
+      type: object
+      properties:
+        active:
+          description: "Activate Responder Share feature."
+          type: boolean
+
+    DefaultCameraSettings:
+      type: object
+      properties:
+        cloudRetentionDays:
+          description: "Default number of days that recorded video will be kept in the cloud when cameras are added."
+          type: integer
+          example: 10
+          minimum: 1
+          maximum: 1825
+        maximumOnPremiseRetentionDays:
+          description: >
+            Default maximum value for the number of days that recorded video will be kept on premise.
+            Used when new cameras are added to the system.
+          type: integer
+          example: 7
+        minimumOnPremiseRetentionDays:
+          description: >
+            Default minimum value for the number of days that recorded video will be kept on premise.
+            Used when new cameras are added to the system.
+          type: integer
+          example: 14
+        previewResolution:
+          $ref: '#/components/schemas/PreviewResolution'
+        fullVideoResolution:
+          $ref: '#/components/schemas/FullVideoResolution'
+
+    PreviewResolution:
+      description: "New resolutions might be added in the future. Currently only \"cif\" (320 x 180) and \"std\" (SD1) resolutions are supported."
+      type: string
+      enum: ['cif', 'std']
+
+    FullVideoResolution:
+      description: "New resolutions might be added in the future. Currently only \"std\" (SD1), \"high\" (HD1), \"1080P (HD2)\", \"3MP (HD3)\", \"4MP (HD4)\", \"5MP (HD5)\" and \"10MP (HD10)\" resolutions are supported."
+      type: string
+      enum: ['std', 'high', '1080P', '3MP', '4MP', '5MP', '10MP']
+
+    VideoPrivacy:
+      properties:
+        enabled:
+          type: boolean
+
+    BridgeSettings:
+      properties:
+        bridgeHealth:
+          type: boolean
+
+    CameraSettings:
+      properties:
+        rtspCameras:
+          type: boolean
+
+    ApiAccountCapabilities:
+      type: object
+      properties:
+        videoAnalyticsAdvancedMotion:
+          type: boolean
+          description: >
+            Indicates that the account has advanced motion capability.
+          default: false
+        alertLinkRedirection:
+          type: boolean
+          description: >
+            Indicates that the account has alert link redirection capability. When user clicks link from alert email and he is not logged in, lets him log in and after redirect to the video.
+          default: false
+        auditLog:
+          type: boolean
+          description: >
+            Indicates that the account has audit log capability.
+          default: false
+        auditNotifications:
+          type: boolean
+          description: >
+            Indicates that the account has audit notifications capability. Gives account the ability to receive standard Eagle Eye notifications from audit log events.
+          default: false
+        b2d2:
+          type: boolean
+          description: >
+            Indicates that the account has big data events DB capability.
+          default: false
+        linkToBusinessPortal:
+          type: boolean
+          description: >
+            Indicates that the account has business portal link capability.
+          default: false
+        cameraDewarping:
+          type: boolean
+          description: >
+            Indicates that the account has camera dewarping capability.
+          default: false
+        cameraDirect:
+          type: boolean
+          description: >
+            Indicates that the account is capable of using camera direct cameras.
+          default: false
+        cameraIo:
+          type: boolean
+          description: >
+            Indicates that the account has camera I/O capability.
+          default: false
+        isSearchCaseInsensitive:
+          type: boolean
+          description: >
+            Indicates that the account has camera insensitive contract search capability.
+          default: false
+        certUpdateOnRegistration:
+          type: boolean
+          description: >
+            Indicates that the account has certificate update  capability.
+          default: false
+        videoAnalyticsCrowdDetection:
+          type: boolean
+          description: >
+            Indicates that the account has crowd detection capability.
+          default: false
+        isCustomTos:
+          type: boolean
+          description: >
+            Indicates that the account has custom terms capability.
+          default: false
+        distributorDashboard:
+          type: boolean
+          description: >
+            Indicates that the account has distributor dashboard capability.
+          default: false
+        driveFsLocalUpload:
+          type: boolean
+          description: >
+            Indicates that the account has local upload capability on DriveFS feature.
+          default: false
+        driveFsUserPermission:
+          type: boolean
+          description: >
+            Indicates that the account has DriveFS user permission capability.
+          default: false
+        driveFs:
+          type: boolean
+          description: >
+            Indicates that the account has DriveFS capability.
+          default: false
+        editions:
+          type: boolean
+          description: >
+            Indicates that the account has editions capability.
+          default: false
+        encryptedTunnels:
+          type: boolean
+          description: >
+            Indicates that the account has encrypted tunnels capability.
+          default: false
+        exportUsers:
+          type: boolean
+          description: >
+            Indicates that the account has capability to export users.
+          default: false
+        extStatus:
+          type: boolean
+          description: >
+            Indicates that the account supports ExtStatus feature.
+          default: false
+        videoAnalyticsDuress:
+          type: boolean
+          description: >
+            Indicates that the account supports Duress video analytics feature.
+          default: false
+        floorPlan:
+          type: boolean
+          description: >
+            Indicates that the account supports FloorPlan feature.
+          default: false
+        globalAnalyticsSettings:
+          type: boolean
+          description: >
+            Indicates that the account supports GlobalAnalyticsSettings feature.
+          default: false
+        htmlVideoPlayer:
+          type: boolean
+          description: >
+            Indicates that the account supports HTML video player feature.
+          default: false
+        idpManagement:
+          type: boolean
+          description: >
+            Indicates that the account supports custom SSO.
+          default: false
+        videoAnalyticsV1:
+          type: boolean
+          description: >
+            Indicates that the account supports cloud based video analytics.
+          default: false
+        l2ppBilling:
+          type: boolean
+          description: >
+            Indicates that the account has l2pp billing capability.
+          default: false
+        largeAccountDash:
+          type: boolean
+          description: >
+            Indicates that the account supports large account dashboard.
+          default: false
+        videoAnalyticsLeftRemoved:
+          type: boolean
+          description: >
+            Indicates that the account supports "Left Removed" video analytics feature.
+          default: false
+        listDevicesCache:
+          type: boolean
+          description: >
+            Indicates that the account supports ListDevicesCache feature.
+          default: false
+        locationGroups:
+          type: boolean
+          description: >
+            Indicates that the account supports location grouping feature.
+          default: false
+        videoAnalyticsLoitering:
+          type: boolean
+          description: >
+            Indicates that the account supports loitering analytics.
+          default: false
+        videoAnalyticsLicensePlateRecognition:
+          type: boolean
+          description: >
+            Indicates that the account supports LPR (Licence Plate Recognition) feature.
+          default: false
+        massEdit:
+          type: boolean
+          description: >
+            Indicates that the account supports mass edit feature.
+          default: false
+        mediaShortcut:
+          type: boolean
+          description: >
+            Indicates that the account supports media shortcut feature.
+          default: false
+        motionImageTagging:
+          type: boolean
+          description: >
+            Indicates that the account supports motion image tagging feature.
+          default: false
+        newsletter:
+          type: boolean
+          description: >
+            Indicates that the account supports newsletter feature.
+          default: false
+        passwordManagement:
+          type: boolean
+          description: >
+            Indicates that the account supports password management feature. Allows users to specify password policy for the account.
+          default: false
+        plugins:
+          type: boolean
+          description: >
+            Indicates that the account supports GUI extensions.
+          default: false
+        resellerDashboardAcceleration:
+          type: boolean
+          description: >
+            Indicates that the account supports reseller dashboard acceleration feature.
+          default: false
+        specialCharsInCamPassword:
+          type: boolean
+          description: >
+            Indicates that the account supports special characters in camera password.
+          default: false
+        talkdown:
+          type: boolean
+          description: >
+            Indicates that the account supports talkdown feature.
+          default: false
+        videoAnalyticsTampering:
+          type: boolean
+          description: >
+            Indicates that the account supports tampering analytics feature.
+          default: false
+        tunnels:
+          type: boolean
+          description: >
+            Indicates that the account supports tunnels feature.
+          default: false
+        videoSearchIncidentExplorer:
+          type: boolean
+          description: >
+            Indicates that the account supports video search incident explorer feature.
+          default: false
+        videoSearchGa:
+          type: boolean
+          description: >
+            Indicates that the account supports VideoSearchGA feature.
+          default: false
+        videoSearchReId:
+          type: boolean
+          description: >
+            Indicates that the account supports VideoSearchReId feature.
+          default: false
+        videoSearch:
+          type: boolean
+          description: >
+            Indicates that the account supports VideoSearch feature.
+          default: false
+        websocketImages:
+          type: boolean
+          description: >
+            Indicates that the account supports WebSocketImages feature.
+          default: false
+        videoAnalyticsWrongDirection:
+          type: boolean
+          description: >
+            Indicates that the account supports wrong direction feature.
+          default: false
+        zohoChatbot:
+          type: boolean
+          description: >
+            Indicates that the account supports Zoho chat bot feature.
+          default: false
+        contractRecording:
+          type: boolean
+          description: >
+            Convert end user account to contract recording type.
+          default: false
+        bridgeHealth:
+          type: boolean
+          description: >
+            Prevents the icons that are shown on the Dashboard and within certain Settings windows when the system determines an issue has arisen with your bridges/CMVRs from being shown.
+          default: false
+        videoPrivacy:
+          type: boolean
+          description: >
+            Allow the end user account to hide their video from the reseller.
+          default: false
+        smartLayouts:
+          type: boolean
+          default: false
+        batchSystemNotificationsByBridge:
+          type: boolean
+          default: false
+        videoSearchAlerts:
+          type: boolean
+          default: false
+        webAppV3:
+          type: boolean
+          default: false
+
+    ApiAccountCredentials:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        username:
+          type: string
+          maxLength: 32
+        password:
+          type: string
+          maxLength: 32
+      required:
+        - id
+        - username
+        - password
+
+    ApiAccountPaginatedCredentials:
+      allOf:
+        - $ref: 'https://commonswagger.cameramanager.com/pagination.yaml#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiAccountCredentials'
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []

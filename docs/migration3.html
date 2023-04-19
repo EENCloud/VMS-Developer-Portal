@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        html {
+            margin:0;
+            padding:0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .menu-item {
+            background-color: #dae3ec; 
+            color: #212529;
+            font-size: 1rem;
+            font-weight: bold;
+            line-height: 1.2;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+            box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
+            background-clip: border-box;
+            border: 1px solid rgba(0,0,0,.125);
+            border-radius: 0.25rem;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(24, 102, 152, 0.5);
+        }
+
+        .subpage {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        /* .content {
+            margin-top: 0;
+        } */
+
+        .description {
+            flex: 1;
+            margin-left: 15px;
+            margin-bottom: 10px;
+        }
+
+        .description ul {
+            list-style-type:disc;
+            padding-left: 20px;
+        }
+        .descriptionTable {
+            width: auto; 
+            table-layout: auto; 
+            margin-left: auto; 
+            margin-right: auto;
+            border: 1px solid #dededf;
+            border-collapse: collapse;
+        }
+
+        .descriptionTable td {
+            padding: 0.5em 0.7em;
+        }
+        .descriptionTable thead {
+            background-color:#071d4a !important;
+            color:white;
+        }
+        .descriptionTable thead th{
+            padding:6px;
+        }
+    </style>
+    
+    <script>
+        function toggleSubpage(listItem, subpageId) {
+            const subpages = document.querySelectorAll(".subpage");
+            subpages.forEach(subpage => {
+                if (subpage.id === subpageId) {
+                    if (subpage.style.display === "block") {
+                        subpage.style.display = "none";
+                        listItem.parentElement.removeChild(subpage);
+                        document.body.appendChild(subpage);
+                    } else {
+                        subpage.style.display = "block";
+                        listItem.parentNode.insertBefore(subpage, listItem.nextSibling);
+                    }
+                } else {
+                    subpage.style.display = "none";
+                    if (subpage.parentElement) {
+                        subpage.parentElement.removeChild(subpage);
+                        document.body.appendChild(subpage);
+                    }
+                }
+            });
+        }
+    </script>
+
+</head>
+<body>
+    <ul>
+        <li class="menu-item" onclick="toggleSubpage(this, 'subpage1')">API V3 uses OAuth</li>
+        <li class="menu-item" onclick="toggleSubpage(this, 'subpage3')">API V3 uses "Client Credentials" instead of “API Keys”</li>
+        <li class="menu-item" onclick="toggleSubpage(this, 'subpage4')">API V3 requires migrating authenticated users</li>
+        <li class="menu-item" onclick="toggleSubpage(this, 'subpage5')">API V3 will not affect existing CORS white listing</li>
+        <li class="menu-item" onclick="toggleSubpage(this, 'subpage6')">API V3 cannot be used in parallel with API V3 </li>
+        <li class="menu-item" onclick="toggleSubpage(this, 'subpage2')">API V3 requires to migrate all V1 APIs to API V3</li>
+
+    </ul>
+
+    <!-- SUBPAGE 1 -->
+    <div id="subpage1" class="subpage">
+        <div class="description">
+            <p>In Eagle Eye Networks API V3, the authentication method has been upgraded from using cookie authentication to an OAuth Bearer Access Token. This change brings several advantages, such as: </p>
+                    <b>Improved Security:</b> 
+                    <div class="description ul">
+                        <ul>
+                            <li>Third party systems do not have to store username/passwords in their database, instead it stores a refresh_token which is different then the username/password.</li>
+                            <li>Eagle Eye customers will never enter their username/password in a third party system, it will always be Eagle Eye Networks. </li>
+                            <li>Giving access to a third party system can be done with multi-factor authentication. </li>
+                            <li>In case any OAuth tokens are compromised they can be revoked without affecting the end user, there is no need to change the password.</li>
+                        </ul>
+                    </div>
+                </li>
+                <b>Granular Access Control:</b>
+                    <ul>
+                        <div class="description ul">
+                            <li>OAuth allows fine-grained control for permissions, enabling users to assign specific access rights to different applications and users.</li>
+                        </div>
+                    </ul>
+                </li>
+                <b>Easier Management:</b> 
+                    <div class="description ul">
+                        <ul>
+                            <li>Customers can more easily and securely grant and revoke access to third party apps.</li>
+                            <li>Customers can list/view applications that they granted access.</li>
+                        </ul>
+                    </div>
+                <b>Industry Standard:</b>
+                    <div class="description ul">
+                        <ul> 
+                            <li>OAuth is a widely-accepted authentication standard, which makes it easier for developers to integrate with other services</li>
+                        </ul>
+                    </div>  
+        </div>
+    </div>
+
+
+    <!-- SUBPAGE 2 -->
+    <div id="subpage2" class="subpage">
+        <div class="description">
+            <p>
+                Integrating API V3 requries that all endpoints are migrated to API V3. All existing accounts and data will be available in API V3, only the endpoints are different. Below is a brief overview of common endpoints in API V1 and the corresponding endpoint in API V3.
+            </p>
+            <table border="1" class="descriptionTable">
+                <thead>
+                    <tr>
+                        <th>Use case</th>
+                        <th>API V1/V2</th>
+                        <th>API V3</th>
+                        <th>API V3 Guides</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Login</td>
+                        <td>/g/aaa/authenticate<br>/g/aaa/authorize</br></td>
+                        <td>https://auth.eagleeyenetworks.com/oauth2/authorize</td>
+                        <td><a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client">Login guide</a></a></td>
+                    </tr>
+                    <tr>
+                        <td>Logout</td>
+                        <td>/g/aaa/logout</td>
+                        <td>https://auth.eagleeyenetworks.com/oauth2/revoke</td>
+                        <td><a href="https://developerv3.eagleeyenetworks.com/docs/logout">Logout guide</a></a></td>
+                    </tr>
+                    <tr>
+                        <td>Get cameras</td>
+                        <td>/g/device/list</td>
+                        <td>{BaseURL}/v3.0/cameras</td>
+                        <td><a href="https://developerv3.eagleeyenetworks.com/docs/cameras">Cameras</a></td>
+                    </tr>
+                    <tr>
+                        <td>Get live video</td>
+                        <td>/asset/play/video.flv</td>
+                        <td>{BaseURL}/v3.0/feeds</td>
+                        <td><a href="https://developerv3.eagleeyenetworks.com/docs/watch-live-video">Feeds</a></td>
+                    </tr>
+                    <tr>
+                        <td>Get footage</td>
+                        <td>/asset/list/video</td>
+                        <td>{BaseURL}/v3.0/media</td>
+                        <td><a href="https://developerv3.eagleeyenetworks.com/docs/recorded-video">Media</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SUBPAGE 3 -->
+    <div id="subpage3" class="subpage">
+        <div class="description">
+            <p>In API V3, Eagle Eye Networks has replaced API keys with Client Credentials, offering technology partners improved support and a personalized experience. Partners must obtain separate credentials for each application, as the old API key is not compatible with API V3. To request API client credentials, contact <a href="mailto:api_support@een.com">api_support@een.com</a> . This new approach enhances individual application monitoring and management, resulting in tailored support for partners.</p>
+        </div>
+    </div>
+
+    <!-- SUBPAGE 4 -->
+    <div id="subpage4" class="subpage">
+        <div class="description">
+            <p>One of the benefits of the OAuth system is that an application integrating the Eagle Eye Video API Platform does have to store a username/password of the customers that wants to use the integration. Storing username/passwords is in general not recommended. OAuth replaces the traditional username/password with a refresh_token. The refresh_token can be used to login on behalf of the user without knowing the username/password. The recommended way to obtain refresh_token is by implementing the OAuth “Authorization code” grant type.</p>
+
+            <p>Existing integration might already have a database with username/passwords which should be migrated to refresh_tokens. The OAuth “password” grant type can be used to do this. The Eagle Eye Video API Platform provides the “password” grant type on a case by case basis to facilitate the migration from the traditional username/passwords to refresh_tokens.</p>
+
+            <p>The password grant type in OAuth can and should only be used for migration purposes, as it is officially deprecated by the OAuth standard organization and it does not support modern authentication methods like multi-factor authentication.</p>
+
+            <p>To migrate, securely obtain the first refresh_tokens through the password grant type and store them in your secure backend. Next, remove username/passwords from your databases to prevent security risks. This process ensures that users don't have to log in again. Exercise caution when using the password grant type, as it is not recommended for long-term use.</p>
+        </div>
+    </div>
+
+    <!-- SUBPAGE 5 -->
+    <div id="subpage5" class="subpage">
+        <div class="description">
+            <p>To ensure a seamless transition for technology partners, we have white listed all V1/V2 integration domains in the V3 CORS whitelist. Existing partners can effortlessly begin integrating with API V3 without the need to register their domains again. Experience the enhanced capabilities and improved support of API V3 by starting your integration today. If new domains need to be white listed pls email <a href="mailto:api_support@een.com">api_support@een.com</a></p>
+        </div>
+    </div>
+
+    <!-- SUBPAGE 6 -->
+    <div id="subpage6" class="subpage">
+        <div class="description">
+            <p>We strongly advise against mixing integrations with V1/V2 and V3, as doing so would require two concurrent integrations, complicating development efforts. Additionally, combining these versions may result in decreased response times, affecting your application's performance. For a more efficient and streamlined experience, we recommend focusing solely on API V3 integration</p>
+        </div>
+    </div>
+
+
+</body>
+</html>

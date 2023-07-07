@@ -123,9 +123,9 @@
                     <b>Improved Security:</b> 
                     <div class="description ul">
                         <ul>
-                            <li>Third party systems do not have to store username/passwords in their database, instead it stores a refresh_token which is different then the username/password.</li>
-                            <li>Eagle Eye customers will never enter their username/password in a third party system, it will always be Eagle Eye Networks. </li>
-                            <li>Giving access to a third party system can be done with multi-factor authentication. </li>
+                            <li> Third-party systems do not have to store usernames/passwords in their database, instead, it stores a refresh_token which is different than the username/password.</li>
+                            <li>Eagle Eye customers will never enter their username/password in a third-party system, it will always be Eagle Eye Networks. </li>
+                            <li>Giving access to a third-party system can be done with multi-factor authentication. </li>
                             <li>In case any OAuth tokens are compromised they can be revoked without affecting the end user, there is no need to change the password.</li>
                         </ul>
                     </div>
@@ -140,8 +140,8 @@
                 <b>Easier Management:</b> 
                     <div class="description ul">
                         <ul>
-                            <li>Customers can more easily and securely grant and revoke access to third party apps.</li>
-                            <li>Customers can list/view applications that they granted access.</li>
+                            <li>Customers can more easily and securely grant and revoke access to third-party apps.</li>
+                            <li>Customers can list/view applications to which they are granted access.</li>
                         </ul>
                     </div>
                 <b>Industry Standard:</b>
@@ -158,7 +158,7 @@
     <div id="subpage2" class="subpage">
         <div class="description">
             <p>
-                Integrating API V3 requries that all endpoints are migrated to API V3. All existing accounts and data will be available in API V3, only the endpoints are different. Below is a brief overview of common endpoints in API V1 and the corresponding endpoint in API V3.
+                Integrating API V3 requires that all endpoints are migrated to API V3. All existing accounts and data will be available in API V3, only the endpoints are different. Below is a brief overview of common endpoints in API V1 and the corresponding endpoint in API V3.
             </p>
             <table border="1" class="descriptionTable">
                 <thead>
@@ -208,20 +208,20 @@
     <!-- SUBPAGE 3 -->
     <div id="subpage3" class="subpage">
         <div class="description">
-            <p>In API V3, Eagle Eye Networks has replaced API keys with Client Credentials, offering technology partners improved support and a personalized experience. Partners must obtain separate credentials for each application, as the old API key is not compatible with API V3. To request API client credentials, contact <a href="mailto:api_support@een.com">api_support@een.com</a> . This new approach enhances individual application monitoring and management, resulting in tailored support for partners.</p>
+            <p>In API V3, Eagle Eye Networks has replaced API keys with Client Credentials, offering technology partners improved support and a personalized experience. Partners must obtain separate credentials for each application, as the old API key is not compatible with API V3. To request API client credentials, contact <a href="mailto:api_support@een.com">api_support@een.com</a>. This new approach enhances individual application monitoring and management, resulting in tailored support for partners.</p>
         </div>
     </div>
 
     <!-- SUBPAGE 4 -->
     <div id="subpage4" class="subpage">
         <div class="description">
-            <p>One of the benefits of the OAuth system is that an application integrating the Eagle Eye Video API Platform does have to store a username/password of the customers that wants to use the integration. Storing username/passwords is in general not recommended. OAuth replaces the traditional username/password with a refresh_token. The refresh_token can be used to login on behalf of the user without knowing the username/password. The recommended way to obtain refresh_token is by implementing the OAuth “Authorization code” grant type.</p>
+            <p>One of the benefits of the OAuth system is that an application integrating the Eagle Eye Video API Platform does have to store a username/password of the customers that want to use the integration. Storing usernames/passwords is in general not recommended. OAuth replaces the traditional username/password with a refresh_token. The refresh_token can be used to log in on behalf of the user without knowing the username/password. The recommended way to obtain refresh_token is by implementing the OAuth “Authorization code” grant type.</p>
 
-            <p>Existing integration might already have a database with username/passwords which should be migrated to refresh_tokens. The OAuth “password” grant type can be used to do this. The Eagle Eye Video API Platform provides the “password” grant type on a case by case basis to facilitate the migration from the traditional username/passwords to refresh_tokens.</p>
+            <p>Existing integration might already have a database with usernames/passwords which should be migrated to refresh_tokens. The OAuth “password grant type“ can be used to do this. In the Eagle Eye Networks the "password grant type" is disabled by default and it can be enabled on a case-by-case basis to facilitate the migration from traditional usernames/passwords to refresh_tokens.</p>
 
             <p>The password grant type in OAuth can and should only be used for migration purposes, as it is officially deprecated by the OAuth standard organization and it does not support modern authentication methods like multi-factor authentication.</p>
 
-            <p>To migrate, securely obtain the first refresh_tokens through the password grant type and store them in your secure backend. Next, remove username/passwords from your databases to prevent security risks. This process ensures that users don't have to log in again. Exercise caution when using the password grant type, as it is not recommended for long-term use.</p>
+            <p>To migrate, securely obtain the first refresh_tokens through the password grant type and store them in your secure backend. Next, remove usernames/passwords from your databases to prevent security risks. This process ensures that users don't have to log in again. Exercise caution when using the password grant type, as it is not recommended for long-term use.</p>
         </div>
     </div>
 

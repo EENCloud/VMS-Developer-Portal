@@ -1,0 +1,8 @@
+# Object Detection Example requirements
+# Usage: pip install -r requirements.txt
+
+# Base ------------------------------------------------------------------------
+ultralytics
+requests
+torch
+dotenv

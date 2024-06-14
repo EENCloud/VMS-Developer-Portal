@@ -16,7 +16,7 @@ const hostName = '127.0.0.1';
 const port = 3333;
 
 const getTokens = async (code) => {
-    const url = `https://auth.eagleeyenetworks.com/oauth2/token?grant_type=authorization_code&scope=vms.all&code=${code}&redirect_uri=http://${hostName}:${port}`;
+    const url = `https://auth.eagleeyenetworks.com/oauth2/token?grant_type=authorization_code&scope=vms.all&code=${code}&redirect_uri=https://${hostName}:${port}`;
 
     try {
         const response = await axios.post(url, {}, {
@@ -86,6 +86,28 @@ app.get('/', async (req, res) => {
     }
 });
 
+// Executing step 1, a link is generated to redirect the user to
+// auth.eagleeyenetworks.com
+  app.get('/', (req, res) => {
+    let endpoint = "https://auth.eagleeyenetworks.com/oauth2/authorize";
+    let requestAuthUrl = `${endpoint}?client_id=${clientId}&response_type=code&scope=vms.all&redirect_uri=https://${hostName}:${String(port)}`;
+
+    const page = `
+      <html>
+        <head><title>OAuth Testing(Node.JS)</title></head>
+        <body>
+          <h1>OAuth Testing(Node.JS)</h1>
+          <a href='${requestAuthUrl}'>Login with Eagle Eye Networks</a>
+        </body>
+      </html>
+    `;
+    res.send(page);
+  });
+
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+// I could add a .env file to store the credentials and the refresh token.
+// I could use express.static to serve static html, JavaScript file.

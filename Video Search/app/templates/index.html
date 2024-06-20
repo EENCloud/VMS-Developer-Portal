@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Eagle Eye Video Search</h1>
+        <p>Search for person or video</p>
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.query.label }}<br>
+                {{ form.query }}
+            </p>
+            <p>{{ form.submit() }}</p>
+        </form>
+        {% if results %}
+            <div class="result-block">
+                <h2>Results</h2>
+                {% for result in results %}
+                    <div class="result">
+                        <h3>{{result.actorName}} - {{result.type}}</h2>
+                        <p>{{result.startTimestamp}} to {{result.endTimestamp}}</p>
+                        <p>{{result.data}}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+{% endblock %}

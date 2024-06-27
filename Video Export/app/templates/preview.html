@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Eagle Eye Video Export</h1>
+        <p>Select a video clip to export it to your local machine.</p>
+        {% if camera %}
+            Preview export from camera: {{ camera.name }}
+        {% endif %}
+        {% if clip %}
+            <div class="preview-block">
+                <div class="preview">
+                    <video src="{{clip.mp4Url}}" controls type="video/mp4"></video>
+                </div>
+                <div class="export-form">
+                    <form action="" method="post">
+                        {{ form.hidden_tag() }}
+                        <p>
+                            {{ form.name.label }}<br>
+                            {{ form.name }}
+                        </p>
+                        <p>
+                            {{ form.directory.label }}<br>
+                            {{ form.directory }}
+                        </p>
+                        <p>
+                            {{ form.notes.label }}<br>
+                            {{ form.notes }}
+                        </p>
+                        <p>
+                            {{ form.tags.label }}<br>
+                            {{ form.tags }}
+                        <p>{{ form.submit }}</p>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <p>No footage found.</p>
+        {% endif %}
+
+{% endblock %}

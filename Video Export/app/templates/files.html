@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Eagle Eye Video Export</h1>
+        <p>Select a video clip to export it to your local machine.</p>
+        {% if files %}
+            <div class="file-block">
+                <h2>Select a File to download.</h2>
+                {% for file in files %}
+                    <div class="file">
+                        <h3>{{file.name}}</h3>
+                        <p>{{file.notes}}</p>
+                        <p>{{file.size}} bytes</p>
+                        <a href="{{ url_for('download', file_id=file.id) }}" class="button">Download</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No files found.</p>
+        {% endif %}
+
+{% endblock %}

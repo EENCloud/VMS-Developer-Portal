@@ -2,7 +2,7 @@
 
 {% block content %}
         <h1>Eagle Eye Video Search</h1>
-        <p>Search for person or video</p>
+        <p>Search for person or vehicle.</p>
         <form action="" method="post" novalidate>
             {{ form.hidden_tag() }}
             <p>
@@ -14,11 +14,13 @@
         {% if results %}
             <div class="result-block">
                 <h2>Results</h2>
+                <p>{{img}}</p>
                 {% for result in results %}
                     <div class="result">
                         <h3>{{result.actorName}} - {{result.type}}</h2>
+                        <img src="{{result.data[0].httpsUrl}}" alt="Video Thumbnail">
+                        <p>{{result.data[0].httpsUrl}}</p>
                         <p>{{result.startTimestamp}} to {{result.endTimestamp}}</p>
-                        <p>{{result.data}}</p>
                     </div>
                 {% endfor %}
             </div>

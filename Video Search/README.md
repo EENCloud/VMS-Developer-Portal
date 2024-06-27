@@ -21,11 +21,11 @@ To start the server:
 ```
 python -m flask run
 ```
-This will host a local server on `127.0.0.1:5000`.
+This will host a local server on `127.0.0.1:3333`.
 
 ## Usage
 
-1. Navigate to `http://127.0.0.1:5000` in your web browser.
+1. Navigate to `http://127.0.0.1:3333` in your web browser.
 2. Click on the "Login with Eagle Eye Networks" link to authenticate.
 3. Once you log in, you will be redirected to the search page.
 4. When you search, the application will first [parse your query](https://developer.eagleeyenetworks.com/reference/parsevideoanalytics) and then make a request to the [deep search API](https://developer.eagleeyenetworks.com/reference/listvideoanalyticsevents). The results will be displayed on the page.

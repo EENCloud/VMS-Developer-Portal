@@ -1,5 +1,5 @@
-FLASK_APP=search.py
-CLIENT_ID={Your client id here}
-CLIENT_SECRET={Your client secret here}
-HOST_NAME=127.0.0.1
-PORT=5000
+FLASK_APP=export.py
+FLASK_RUN_PORT=3333
+FLASK_RUN_HOST=127.0.0.1
+CLIENT_ID={your-client-id}
+CLIENT_SECRET={your-client-secret}

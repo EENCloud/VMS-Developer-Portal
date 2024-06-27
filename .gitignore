@@ -1,0 +1,5 @@
+Video Export/vexport/
+__pycache__/
+*/__pychache__/
+.env
+.flaskenv

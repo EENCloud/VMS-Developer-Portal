@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Eagle Eye Video Export</h1>
+        <p>Select a video clip to export it to your local machine.</p>
+        {% if cameras %}
+            <div class="camera-block">
+                <h2>Choose a Camera</h2>
+                {% for camera in cameras %}
+                    <div class="camera">
+                        <a href="{{ url_for('view_clips', camera_id=camera.id) }}" class="button">{{camera.name}}</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No cameras found.</p>
+        {% endif %}
+
+{% endblock %}

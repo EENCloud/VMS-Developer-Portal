@@ -27,6 +27,13 @@
         {% endif %}
     </head>
     <body>
+        <div class="navbar">
+            Menu: 
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('view_files') }}">Files</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+        <hr>
         {% block content %}{% endblock %}
     </body>
 </html>

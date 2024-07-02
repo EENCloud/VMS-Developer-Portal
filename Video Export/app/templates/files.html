@@ -10,7 +10,7 @@
                     <div class="file">
                         <h3>{{file.name}}</h3>
                         <p>{{file.notes}}</p>
-                        <p>{{file.size}} bytes</p>
+                        <p>{{file.size / 1048576 }} MB</p>
                         <a href="{{ url_for('download', file_id=file.id) }}" class="button">Download</a>
                     </div>
                 {% endfor %}

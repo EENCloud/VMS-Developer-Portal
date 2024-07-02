@@ -2,27 +2,34 @@ from app import app
 from app.forms import ExportForm
 from app.exceptions import AuthenticationError
 import os
-from io import BytesIO
 import json
 import requests
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from functools import wraps
 from flask import (
     request, render_template, session,
-    redirect, url_for, send_file
+    redirect, url_for, send_file,
+    Response, stream_with_context
 )
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Hostname and port for the HTTP server
-hostName = os.getenv('FLASK_RUN_HOST')
-port = os.getenv('FLASK_RUN_PORT')
-
 
 # OAuth Code Authentication
 def getTokens(code):
-    url = "https://auth.eagleeyenetworks.com/oauth2/token?grant_type=authorization_code&scope=vms.all&code="+code+"&redirect_uri=http://"+hostName + ":" + str(port)
+    url = "https://auth.eagleeyenetworks.com/oauth2/token"
+    params = {
+        "grant_type": "authorization_code",
+        "scope": "vms.all",
+        "code": code,
+        "redirect_uri": "http://{host}:{port}".format(
+            host=os.getenv('FLASK_RUN_HOST'),
+            port=os.getenv('FLASK_RUN_PORT')
+        )
+    }
+    url += '?' + urllib.parse.urlencode(params)
     response = requests.post(
         url,
         auth=(
@@ -31,11 +38,6 @@ def getTokens(code):
         )
     )
     return response
-    try:
-        json_object = json.loads(response.text)
-        return json_object
-    except ValueError:
-        return None
 
 
 # OAuth Refresh Token Authentication
@@ -60,14 +62,14 @@ def refresh_access(refresh_token):
 # Get the current time and the time exactly 7 days ago
 def get_timestamps():
     # Create a search window of 7 days
-    current_time = datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
     seven_days_ago = current_time - timedelta(days=7)
 
     # Convert both times to ISO 8601 format with millisecond precision
     # Example: 2021-07-01T00:00:00.000+00:00
     # Eagle Eye Networks API requires timestamps to be in this format
-    current_time_iso = current_time.isoformat(timespec='milliseconds') + '+00:00'
-    seven_days_ago_iso = seven_days_ago.isoformat(timespec='milliseconds') + '+00:00'
+    current_time_iso = current_time.isoformat(timespec='milliseconds')
+    seven_days_ago_iso = seven_days_ago.isoformat(timespec='milliseconds')
 
     return current_time_iso, seven_days_ago_iso
 
@@ -80,7 +82,7 @@ def handle_response(
         retry_count=0,
         max_retries=1,
         *args, **kwargs):
-    if response.status_code == 200 or response.status_code == 201:
+    if response.ok or response is None:
         return response.text
     elif response.status_code == 401 and retry_count < max_retries:
         # Refresh the access token
@@ -99,7 +101,8 @@ def handle_response(
 
                 # Retry the original request
                 retry_count += 1
-                return original_request_func(retry_count=retry_count, *args, **kwargs)
+                return original_request_func(
+                    retry_count=retry_count, *args, **kwargs)
             else:
                 print(f"Refresh Failed: {refresh_response.status_code} {refresh_response.text}")
                 raise AuthenticationError
@@ -290,35 +293,49 @@ def getDownloads():
 # Initiate a download
 def downloadFile(file_id):
     endpoint = f"/files/{file_id}:download"
-    return api_call(endpoint)
+    content = api_call(endpoint)
+    for chunk in range(0, len(content), 1024):
+        yield content[chunk:chunk+1024].encode('utf-8')
+
+
+# Check if the user is authenticated
+def is_authenticated():
+    return session.get('access_token') is not None
+
+
+def auth_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not is_authenticated():
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # View Downloads
 # This page will display a list of video clips that the user can download.
-@app.route('/downloads/<file_id>')
+@app.route('/download/<file_id>')
+@auth_required
 def download(file_id):
-    accessToken = session.get('access_token')
-    if not accessToken:
-        return redirect(url_for('login'))
-
-    print('Starting Download')
     try:
         file_info = getFiles(file_id)
         file_info = json.loads(file_info)
+        print(f"File info: {file_info}")
 
+        print('Downloading File')
         file_content = downloadFile(file_id)
 
-        # Create a BytesIO object to send as a file
-        buffer = BytesIO()
-        buffer.write(file_content)
-        buffer.seek(0)
+        # Ensure file_content is bytes-like
+        if isinstance(file_content, str):
+            file_content = file_content.encode('utf-8')
 
-        return send_file(
-            buffer,
-            as_attachment=True,
-            attachment_filename=file_info['name'],
+        response = Response(
+            stream_with_context(file_content),
             mimetype=file_info['mimeType']
         )
+        response.headers['Content-Disposition'] = f"attachment; filename={file_info['name']}"
+
+        return response
     except AuthenticationError:
         return redirect(url_for('login'))
     except Exception as e:
@@ -328,11 +345,8 @@ def download(file_id):
 # View Files
 # This page will display a list of files that the user can download.
 @app.route('/files')
+@auth_required
 def view_files():
-    accessToken = session.get('access_token')
-    if not accessToken:
-        return redirect(url_for('login'))
-
     print('Pulling Files')
     try:
         response = getFiles()
@@ -354,20 +368,15 @@ def view_files():
 # Preview Export View
 # This page will display a video player for a selected video clip.
 @app.route('/preview/<camera_id>', methods=['GET', 'POST'])
+@auth_required
 def preview(camera_id):
     form = ExportForm()
-    accessToken = session.get('access_token')
-    base_url = session.get('baseUrl')
-    if not accessToken:
-        return redirect(url_for('login'))
-
     start = request.args.get('start')
     end = request.args.get('end')
 
     if form.validate_on_submit():
         print('Exporting Clip')
         try:
-
             export_response = exportClip(
                 camera_id,
                 form.name.data,
@@ -385,8 +394,8 @@ def preview(camera_id):
             print(f"API Call failed: {e}")
 
     media = {
-        'access_token': accessToken,
-        'base_url': base_url
+        'access_token': session.get('access_token'),
+        'base_url': session.get('baseUrl')
     }
 
     if start and end:
@@ -417,14 +426,11 @@ def preview(camera_id):
 # Clips View
 # This page will display a list of video clips for a selected camera.
 @app.route('/clips/<camera_id>')
+@auth_required
 def view_clips(camera_id):
-    accessToken = session.get('access_token')
-    base_url = session.get('baseUrl')
-    if not accessToken:
-        return redirect(url_for('login'))
     media = {
-        'access_token': accessToken,
-        'base_url': base_url
+        'access_token': session.get('access_token'),
+        'base_url': session.get('baseUrl')
     }
 
     print('Pulling Clips and Camera Info')
@@ -496,14 +502,31 @@ def login():
             session['access_token'] = auth_response['access_token']
             session['refresh_token'] = auth_response['refresh_token']
             session['baseUrl'] = auth_response['httpsBaseUrl']['hostname']
+            session.permanent = True
 
             return redirect(url_for('index'))
 
         else:
             print("Code Auth failed. Response: "+auth_response)
 
-    endpoint = "https://auth.eagleeyenetworks.com/oauth2/authorize"
-    clientId = os.getenv('CLIENT_ID')
-    requestAuthUrl = endpoint+"?client_id="+clientId+"&response_type=code&scope=vms.all&redirect_uri=http://"+hostName + ":" + str(port)
+    requestAuthUrl = "https://auth.eagleeyenetworks.com/oauth2/authorize"
+    params = {
+        "client_id": os.getenv('CLIENT_ID'),
+        "response_type": "code",
+        "scope": "vms.all",
+        "redirect_uri": "http://{host}:{port}".format(
+            host=os.getenv('FLASK_RUN_HOST'),
+            port=os.getenv('FLASK_RUN_PORT')
+        )
+    }
+    requestAuthUrl += '?' + urllib.parse.urlencode(params)
 
     return render_template('login.html', auth_url=requestAuthUrl)
+
+
+# Logout Page
+# This page will clear the session and redirect the user to the login page.
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))

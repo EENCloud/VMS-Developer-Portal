@@ -11,6 +11,7 @@ This sample Express application demonstrates how to authenticate and obtain an a
 ## Setup
 
 1. Install dependencies:
+      run the following command from the root directory
    ```
    npm install express axios
    ```
@@ -22,6 +23,7 @@ This sample Express application demonstrates how to authenticate and obtain an a
 ## Running the Application
 
 To start the server:
+   Run the following command from src directory
 ```
 node main.js
 ```

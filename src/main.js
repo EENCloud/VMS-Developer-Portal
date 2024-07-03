@@ -1,17 +1,11 @@
-// Get API Credentials using OAuth2
-// Step 1: Redirect the user to auth.eagleeyenetworks.com
-// Step 2: The user will log in to their VMS Account
-// Step 3: The user will be redirected back to your application with a CODE
-// Step 4: Your application backend/server request the Access token.
-
 // We'll use Express.js to create a simple server
 const express = require('express');
 const axios = require('axios');
 const app = express();
 
 const refresh_token = "";
-const clientId = 'yourClientId';
-const clientSecret = 'yourClientSecret';
+const clientId = 'fc16a07605ea4e8780c031f34caafbdc';
+const clientSecret = 'rphPwYX!hLkj$1@43yq$';
 const hostName = '127.0.0.1';
 const port = 3333;
 
@@ -25,8 +19,10 @@ const getTokens = async (code) => {
                 password: clientSecret
             }
         });
+        console.log(response.data);
         return response.data;
     } catch (error) {
+        console.log(error);
         throw error;
     }
 };
@@ -41,8 +37,10 @@ const refreshToken = async (refresh_token) => {
                 password: clientSecret
             }
         });
+        console.log(response.data)
         return response.data;
     } catch (error) {
+        console.log(error);
         throw error;
     }
 };
@@ -50,14 +48,17 @@ const refreshToken = async (refresh_token) => {
 const oauthValid = (oauthObject) => {
     try {
         const json_object = JSON.parse(oauthObject);
+        console.log(json_object);
         return 'access_token' in json_object;
     } catch (error) {
+        console.log(error);
         return false;
     }
 };
 
 app.get('/', async (req, res) => {
     const code = req.query.code;
+    console.log(code);
     if (code) {
         try {
             const tokens = await getTokens(code);
@@ -89,8 +90,9 @@ app.get('/', async (req, res) => {
 // Executing step 1, a link is generated to redirect the user to
 // auth.eagleeyenetworks.com
   app.get('/', (req, res) => {
+    console.log('hit');
     let endpoint = "https://auth.eagleeyenetworks.com/oauth2/authorize";
-    let requestAuthUrl = `${endpoint}?client_id=${clientId}&response_type=code&scope=vms.all&redirect_uri=https://${hostName}:${String(port)}`;
+    let requestAuthUrl = `${endpoint}?client_id=${clientId}&response_type=code&scope=vms.all&redirect_uri=http://${hostName}:${String(port)}`;
 
     const page = `
       <html>

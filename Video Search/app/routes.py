@@ -209,6 +209,27 @@ def deepSearch(searchObject):
         headers=headers)
 
 
+# Parse the deep search response
+# This function will modify the URLs in the deep search response
+# to use the base URL from the session
+def parseDeepSearch(response):
+    base_url = session.get('base_url')
+    results = json.loads(response)['results']
+    for result in results:
+        s = result['data'][0]['httpsUrl'].split('/')
+        s[2] = base_url
+        result['data'][0]['httpsUrl'] = '/'.join(s)
+    return results
+
+
+# Search Logic
+def perform_search(term):
+    response = parseSearch(term)
+    deepSearchResponse = deepSearch(json.loads(response))
+    results = parseDeepSearch(deepSearchResponse)
+    return results
+
+
 # Check if the user is authenticated
 def is_authenticated():
     return session.get('access_token') is not None
@@ -234,19 +255,20 @@ def index():
     if not is_authenticated():
         return redirect(url_for('login'))
 
-    form = SearchForm()
+    term = request.args.get('term')
+    form = SearchForm(term=term)
 
     if form.validate_on_submit():
-        print('Search requested for {}'.format(form.query.data))
+        term = form.term.data
+        return redirect(url_for('index', term=term))
+
+    elif term:
         media = {
             'access_token': session.get('access_token'),
             'base_url': session.get('base_url')
         }
         try:
-            response = parseSearch(form.query.data)
-            deepSearchResponse = deepSearch(json.loads(response))
-            # print(deepSearchResponse)
-            results = json.loads(deepSearchResponse)['results']
+            results = perform_search(term)
             return render_template(
                 'index.html',
                 form=form,
@@ -273,7 +295,8 @@ def login():
             # print(auth_response.text)
             auth_response = json.loads(auth_response.text)
 
-            # Store the access_token, refresh_token, and base_url in the session
+            # Store the access_token, refresh_token,
+            # and base_url in the session
             session['access_token'] = auth_response['access_token']
             session['refresh_token'] = auth_response['refresh_token']
             session['base_url'] = auth_response['httpsBaseUrl']['hostname']

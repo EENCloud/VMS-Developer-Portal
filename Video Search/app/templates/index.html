@@ -2,27 +2,41 @@
 
 {% block content %}
         <h1>Eagle Eye Video Search</h1>
-        <p>Search for person or vehicle.</p>
+        <p>Search for a person or vehicle.</p>
         <form action="" method="post" novalidate>
             {{ form.hidden_tag() }}
             <p>
-                {{ form.query.label }}<br>
-                {{ form.query }}
+                {{ form.term.label }}<br>
+                {{ form.term }}
             </p>
             <p>{{ form.submit() }}</p>
         </form>
         {% if results %}
             <div class="result-block">
                 <h2>Results</h2>
-                <p>{{img}}</p>
+                <div class="result-grid">
                 {% for result in results %}
                     <div class="result">
-                        <h3>{{result.actorName}} - {{result.type}}</h2>
-                        <img src="{{result.data[0].httpsUrl}}" alt="Video Thumbnail">
-                        <p>{{result.data[0].httpsUrl}}</p>
-                        <p>{{result.startTimestamp}} to {{result.endTimestamp}}</p>
+                        <h3>{{result.actorName}} - {{result.type}}</h3>
+                            <p>{{result.startTimestamp}}</p>
+                        <img src="{{result.data[0].httpsUrl}}" id="{{ result.id }}">
                     </div>
                 {% endfor %}
+                </div>
             </div>
         {% endif %}
+        {% if results and media %}
+            <script>
+                const accessToken = '{{ media.access_token }}';
+            </script>
+                {% for result in results %}
+                    <script>
+                        displayProtectedImage(
+                            "{{ result.id }}",
+                            "{{result.data[0].httpsUrl | safe }}",
+                            accessToken
+                        );
+                    </script>
+                {% endfor %}
+            {% endif %}
 {% endblock %}

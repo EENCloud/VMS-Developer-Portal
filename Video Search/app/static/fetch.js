@@ -28,18 +28,7 @@ async function displayProtectedImage(
 }
 
 
-// const getBlobImageURL = (blobData: ArrayBufferLike) => {
-//   const arrayBufferView = new Uint8Array(blobData);
-//   const blob = new Blob([arrayBufferView], { type: 'image/jpeg' });
-//   const urlCreator = window.URL || window.webkitURL;
-
-//   return urlCreator.createObjectURL(blob);
-// };
-
-
-
 // const imageId = 'some-image';
-// const imageUrl = 'https://api.example.com/secret-image.png';
-// const authToken = 'changeme';
+// const imageUrl = 'https://api.c???.eagleeyenetworks.com/secret-image.png';
+// const authToken = 'access_token';
 // displayProtectedImage(imageId, imageUrl, authToken);
-

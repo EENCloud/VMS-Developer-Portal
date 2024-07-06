@@ -44,7 +44,9 @@ def refresh_access(refresh_token):
     url = "https://auth.eagleeyenetworks.com/oauth2/token"
     params = {
         "grant_type": "refresh_token",
-        "scope": "vms.all",
+        "scope": "vms.all"
+    }
+    data = {
         "refresh_token": refresh_token
     }
     url += '?' + urllib.parse.urlencode(params)
@@ -53,13 +55,15 @@ def refresh_access(refresh_token):
         auth=(
             os.getenv('CLIENT_ID'),
             os.getenv('CLIENT_SECRET')
-        )
+        ),
+        data=data
     )
     return response
 
 
 # Handle Response
 # This function will handle the response from an API call
+# while also handling authentication errors.
 def handle_response(
         response,
         original_request_func,

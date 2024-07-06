@@ -15,6 +15,12 @@ This sample Flask application demonstrates how to use the video search API for E
 
 3. Create a copy of `example.flaskenv` and rename it `.flaskenv`. Update the `CLIENT_ID` and `CLIENT_SECRET` in the file with your application's credentials. For more details on obtaining these credentials, visit our [API documentation](https://developer.eagleeyenetworks.com/docs/client-credentials).
 
+4. Update the FLASK_APP environment variable:
+   ```
+   $ export FLASK_APP=search.py
+   ```
+
+
 ## Running the Application
 
 To start the server:

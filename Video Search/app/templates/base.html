@@ -4,10 +4,10 @@
         <title>Video Search</title>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
-        {% if media %}
-        <!-- Loading the Media Cookie here 
-             To access images and videos from the Eagle Eye API,
-             you will need fetch the session cookie before the HTML loads.
+        {% if media and results %}
+        <!-- Loading Fetch API
+             To access images from the Eagle Eye API, you will
+             need fetch them using the an access token.
         -->
         <script src="{{ url_for('static', filename='fetch.js') }}"></script>
         {% endif %}

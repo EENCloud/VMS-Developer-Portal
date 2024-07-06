@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Eagle Eye Video Search</h1>
+        <p>Search for a person or vehicle.</p>
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.term.label }}<br>
+                {{ form.term }}
+            </p>
+            <p>{{ form.submit() }}</p>
+        </form>
+        {% if results %}
+        <div class="result-block">
+            <h2>Results</h2>
+            <div class="result-grid">
+            {% for result in results %}
+                <div class="result">
+                    <h3>{{result.actorName}} - {{result.type}}</h3>
+                        <p>{{result.startTimestamp}}</p>
+                    <img src="{{result.data[0].httpsUrl}}" id="{{ result.id }}">
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% if results and media %}
+        <script type="application/json" id="results-data">
+            {{ results|tojson|safe }}
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const resultsData = JSON.parse(document.getElementById('results-data').textContent);
+                const accessToken = "{{ media.access_token }}";
+                displayProtectedImages(resultsData, accessToken);
+            });
+
+            function displayProtectedImages(results, accessToken) {
+                results.forEach(result => {
+                    displayProtectedImage(result.id, result.data[0].httpsUrl, accessToken);
+                });
+            }
+        </script>
+        {% endif %}
+{% endblock %}

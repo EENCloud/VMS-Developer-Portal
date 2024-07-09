@@ -33,13 +33,18 @@ clientSecret = "{Your Client Secret}"
 # The redirect_uri here must match the redirect_uri sent in step 1.
 def getTokens(code):
     url = "https://auth.eagleeyenetworks.com/oauth2/token"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json"
+    }
     data = {
         "grant_type": "authorization_code",
         "scope": "vms.all",
         "code": code,
         "redirect_uri": "http://"+hostName + ":" + str(port)
     }
-    response = requests.post(url, auth=(clientId, clientSecret), data=data)
+    response = requests.post(
+        url, auth=(clientId, clientSecret), headers=headers, data=data)
     return response.text
 
 
@@ -51,7 +56,12 @@ def refreshToken(refresh_token):
         "scope": "vms.all",
         "refresh_token": refresh_token
     }
-    response = requests.post(url, auth=(clientId, clientSecret), data=data)
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json"
+    }
+    response = requests.post(
+        url, auth=(clientId, clientSecret), headers=headers, data=data)
     return response.text
 
 

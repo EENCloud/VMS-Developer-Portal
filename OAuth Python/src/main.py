@@ -7,6 +7,7 @@
 # We'll use Flask to start an HTTP server to act as your application backend.
 import json
 import requests
+import urllib.parse
 from flask import Flask, request
 
 
@@ -31,15 +32,36 @@ clientSecret = "{Your Client Secret}"
 # It will request the access token and refresh token.
 # The redirect_uri here must match the redirect_uri sent in step 1.
 def getTokens(code):
-    url = "https://auth.eagleeyenetworks.com/oauth2/token?grant_type=authorization_code&scope=vms.all&code="+code+"&redirect_uri=http://"+hostName + ":" + str(port)
-    response = requests.post(url, auth=(clientId, clientSecret))
+    url = "https://auth.eagleeyenetworks.com/oauth2/token"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json"
+    }
+    data = {
+        "grant_type": "authorization_code",
+        "scope": "vms.all",
+        "code": code,
+        "redirect_uri": "http://"+hostName + ":" + str(port)
+    }
+    response = requests.post(
+        url, auth=(clientId, clientSecret), headers=headers, data=data)
     return response.text
 
 
 # Use a refresh token to get a new access token
 def refreshToken(refresh_token):
-    url = "https://auth.eagleeyenetworks.com/oauth2/token?grant_type=refresh_token&scope=vms.all&refresh_token="+refresh_token
-    response = requests.post(url, auth=(clientId, clientSecret))
+    url = "https://auth.eagleeyenetworks.com/oauth2/token"
+    data = {
+        "grant_type": "refresh_token",
+        "scope": "vms.all",
+        "refresh_token": refresh_token
+    }
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json"
+    }
+    response = requests.post(
+        url, auth=(clientId, clientSecret), headers=headers, data=data)
     return response.text
 
 
@@ -100,16 +122,21 @@ def index():
 
     # Executing step 1, a link is generated to redirect the user to
     # auth.eagleeyenetworks.com
-    endpoint = "https://auth.eagleeyenetworks.com/oauth2/authorize"
-    requestAuthUrl = endpoint+"?client_id="+clientId+"&response_type=code&scope=vms.all&redirect_uri=http://"+hostName + ":" + str(port)
-
+    url = "https://auth.eagleeyenetworks.com/oauth2/authorize"
+    params = {
+        "client_id": clientId,
+        "response_type": "code",
+        "scope": "vms.all",
+        "redirect_uri": "http://"+hostName + ":" + str(port)
+    }
+    url += "?" + urllib.parse.urlencode(params)
     page = '''
     <html><head><title>OAuth Testing</title></head>
     <h1>OAuth Testing</h1>
     </br>
     <a href='{url}'>Login with Eagle Eye Networks</a>
     </html>
-    '''.format(url=requestAuthUrl)
+    '''.format(url=url)
     return page
 
 

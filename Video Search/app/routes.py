@@ -19,7 +19,7 @@ load_dotenv()
 # OAuth Authentication
 def code_auth(code):
     url = "https://auth.eagleeyenetworks.com/oauth2/token"
-    params = {
+    data = {
         "grant_type": "authorization_code",
         "scope": "vms.all",
         "code": code,
@@ -28,13 +28,13 @@ def code_auth(code):
             port=os.getenv('FLASK_RUN_PORT')
         )
     }
-    url += '?' + urllib.parse.urlencode(params)
     response = requests.post(
         url,
         auth=(
             os.getenv('CLIENT_ID'),
             os.getenv('CLIENT_SECRET')
-        )
+        ),
+        data=data
     )
     return response
 
@@ -42,14 +42,11 @@ def code_auth(code):
 # OAuth Refresh Token Authentication
 def refresh_access(refresh_token):
     url = "https://auth.eagleeyenetworks.com/oauth2/token"
-    params = {
-        "grant_type": "refresh_token",
-        "scope": "vms.all"
-    }
     data = {
+        "grant_type": "refresh_token",
+        "scope": "vms.all",
         "refresh_token": refresh_token
     }
-    url += '?' + urllib.parse.urlencode(params)
     response = requests.post(
         url,
         auth=(

@@ -4,8 +4,8 @@ const axios = require('axios');
 const app = express();
 
 const refresh_token = "";
-const clientId = 'fc16a07605ea4e8780c031f34caafbdc';
-const clientSecret = 'rphPwYX!hLkj$1@43yq$';
+const clientId = '<Your Client ID>';
+const clientSecret = '<Your Client Secret>';
 const hostName = '127.0.0.1';
 const port = 3333;
 

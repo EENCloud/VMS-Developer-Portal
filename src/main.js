@@ -19,7 +19,6 @@ const getTokens = async (code) => {
                 password: clientSecret
             }
         });
-        console.log(response.data);
         return response.data;
     } catch (error) {
         console.log(error);
@@ -39,7 +38,6 @@ const refreshToken = async (refresh_token) => {
                 password: clientSecret
             }
         });
-        console.log(response.data, "refresh token response ends")
         return response.data;
     } catch (error) {
         console.log(error, "refresh token error");
@@ -57,7 +55,7 @@ const oauthValid = (oauthObject) => {
         } else if(typeof oauthObject === 'object') {
             json_object = oauthObject;
         }
-        console.log(json_object, "OauthValid response ends");
+        // console.log(json_object, "OauthValid response ends");
         return 'access_token' in json_object;
     } catch (error) {
         console.log(error, "oauth Valid error");

@@ -1,15 +1,9 @@
 # Eagle Eye Networks Custom Object Detection Example
 
-This sample Python script connects to an Eagle Eye Networks account and runs an object detection model against one of the live RTSP feeds. To run this script, you will need to have an application registered with the Eagle Eye Networks Developer Program. You will also need to have a valid Eagle Eye Networks account with an IP camera that is connected to a Bridge or the Eagle Eye Cloud using Camera Direct. For more information on how to register an application, review the [API documentation](https://developer.eagleeyenetworks.com/docs/getting-started).
+This sample Flask application connects to an Eagle Eye Networks account and runs an object detection model against one of the live RTSP feeds.  To run this application, you will need to have a valid Eagle Eye Networks account and an application registered with the Eagle Eye Networks Developer Program. For more information on how to register an application, review the [API documentation](https://developer.eagleeyenetworks.com/docs/getting-started).
 
-The script uses the [Ultralytics YOLO](https://docs.ultralytics.com/) object detection model to detect objects in the live video feed. The detected objects are then displayed on the video feed in real time.
+The script uses the [Ultralytics YOLO](https://docs.ultralytics.com/) object detection model to detect objects in the live video feed. The bounding boxes for the objects are then displayed on the video feed in real time.
 
-## Requirements
-
-- Python 3.x
-- Requests
-- Ultralytics
-- dotenv
 
 ## Setup
 
@@ -20,19 +14,28 @@ The script uses the [Ultralytics YOLO](https://docs.ultralytics.com/) object det
 
 2. Clone this repository or copy the sample code into your local environment.
 
-3. Rename example.env to dot env and update the following values:
-   - `CLIENT_ID` - Your Eagle Eye Networks application's client ID. 
-   - `CLIENT_SECRET` - Your Eagle Eye Networks application's client secret.
-   - `CAMERA_ID` - The ID of the camera you want to use for object detection.
-   - `REFRESH_TOKEN` - A valid refresh token for the account you want to access. This can be obtained by running the [OAuth Python example server](https://github.com/EENCloud/VMS-Developer-Portal/tree/main/OAuth%20Python).
+3. Create a copy of `example.flaskenv` and rename it `.flaskenv`. Update the `CLIENT_ID` and `CLIENT_SECRET` in the file with your application's credentials. For more details on obtaining these credentials, visit our [API documentation](https://developer.eagleeyenetworks.com/docs/client-credentials).
+
+4. Update the FLASK_APP environment variable:
+   ```
+   $ export FLASK_APP=detect.py
+   ```
+
 
 ## Running the Application
 
-To start the application:
+To start the server:
 ```
-python een_alert.py
+python -m flask run
 ```
-The application will attamept to connect to a live video feed and run the object detection model. Detected objects will be displayed on the video feed in real-time.
+This will host a local server on `127.0.0.1:3333`.
+
+## Usage
+
+1. Navigate to `http://127.0.0.1:3333` in your web browser.
+2. Click on the "Login with Eagle Eye Networks" link to authenticate.
+3. Once you log in, you will be redirected to the camera select page.
+4. Select a camera view to start the object detection.
 
 
 ## Support

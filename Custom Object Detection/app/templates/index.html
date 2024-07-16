@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Custom Object Detection</h1>
+        <p>Select a camera to observe.</p>
+        {% if cameras %}
+        <div class="result-block">
+            <h2>Cameras</h2>
+            <div class="result-grid">
+            {% for camera in cameras %}
+                <div class="result">
+                    <h3>{{camera.name}}</h3>
+                    <a href="detect/{{ camera.id }}"><img src="{{camera.multipartUrl}}" id="{{ camera.id }}"></a>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+{% endblock %}

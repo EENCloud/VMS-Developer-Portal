@@ -6,6 +6,7 @@ const app = express();
 const refresh_token = "Replace with your refresh token if you have it(keep the single quotes)";
 const clientId = 'Replace with your client ID(keep the single quotes)';
 const clientSecret = 'Replace with your client secret(keep the single quotes)';
+
 const hostName = '127.0.0.1';
 const port = 3333;
 
@@ -119,7 +120,6 @@ app.get('/', async (req, res) => {
         } catch (error) {
             return res.status(500).send(error.toString());
         }
-});
 
 
 app.listen(port, () => {

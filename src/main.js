@@ -3,9 +3,9 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
-const refresh_token = "";
-const clientId = 'fc16a07605ea4e8780c031f34caafbdc';
-const clientSecret = 'rphPwYX!hLkj$1@43yq$';
+const refresh_token = "Replace with your refresh token if you have it(keep the single quotes)";
+const clientId = 'Replace with your client ID(keep the single quotes)';
+const clientSecret = 'Replace with your client secret(keep the single quotes)';
 const hostName = '127.0.0.1';
 const port = 3333;
 
@@ -19,7 +19,6 @@ const getTokens = async (code) => {
                 password: clientSecret
             }
         });
-        console.log(response.data);
         return response.data;
     } catch (error) {
         console.log(error);
@@ -39,7 +38,6 @@ const refreshToken = async (refresh_token) => {
                 password: clientSecret
             }
         });
-        console.log(response.data, "refresh token response ends")
         return response.data;
     } catch (error) {
         console.log(error, "refresh token error");
@@ -57,7 +55,6 @@ const oauthValid = (oauthObject) => {
         } else if(typeof oauthObject === 'object') {
             json_object = oauthObject;
         }
-        console.log(json_object, "OauthValid response ends");
         return 'access_token' in json_object;
     } catch (error) {
         console.log(error, "oauth Valid error");
@@ -65,8 +62,12 @@ const oauthValid = (oauthObject) => {
     }
 };
 
-//Executing #1 after navigating to http://localhost:3333/login, a link is generated to redirect the user to auth.eagleeyenetworks.com so that they can log into their Eagle Eye developer account
-app.get('/login', (req, res) => {
+  //Executing #1 after navigating to http://localhost:3333, a link is generated to redirect the user to auth.eagleeyenetworks.com so that they can log into their Eagle Eye developer account
+  // Execution #2 after logging in the user is redirected back to the server with a code parameter in the query string
+    // If a user visits localhost:3333/login this route will be called.
+    // Execution #1 up above will generate a link that will redirect the user to auth.eagleeyenetworks.com.
+app.get('/', async (req, res) => {
+
     let endpoint = "https://auth.eagleeyenetworks.com/oauth2/authorize";
     let requestAuthUrl = `${endpoint}?client_id=${clientId}&response_type=code&scope=vms.all&redirect_uri=http://${hostName}:${port}`;
 
@@ -90,46 +91,37 @@ app.get('/login', (req, res) => {
         </body>
       </html>
     `;
-    res.send(page);
-  });
 
-  // Execution #2 after logging in the user is redirected back to the server with a code parameter in the query string
-    // If a user visits localhost:3333/login this route will be called.
-    // Execution #1 up above will generate a link that will redirect the user to auth.eagleeyenetworks.com.
-app.get('/', async (req, res) => {
     const code = req.query.code;
-    if (code) {
+    if (!code) {
+        return res.send(page);
+    }
         try {
             // Once the user logs in, they will be redirected back to localhost:3333 with a CODE. The backend can now request the access_token and refresh_token.
             const tokens = await getTokens(code);
             // check if the response is a JSON object and if it contains an access_token
             if (oauthValid(tokens)) {
-                console.log("You're now logged In!");
-                console.log(tokens);
-                res.send("You're now logged In!");
+                console.log("You're now logged In!", tokens);
+                return res.send("You're now logged In!");
             } else if(refresh_token != "") {
                 // If the access_token is expired, the refresh_token can be used to get a new access_token.
                 const tokens = await refreshToken(refresh_token);
                 if (oauthValid(tokens)) {
                     console.log("You're now logged In using your refresh token!");
-                    console.log(tokens);
-                    res.send("You're now logged In using your refresh token!");
+                    return res.send("You're now logged In using your refresh token!");
                 } else {
-                    res.status(400).send('refresh token failed ');
+                    return res.status(400).send('refresh token failed ');
                 }
 
             } else {
-                res.status(400).send('Invalid OAuth refresh token');
+                return res.status(400).send('Invalid OAuth refresh token');
             }
         } catch (error) {
-            res.status(500).send(error.toString());
+            return res.status(500).send(error.toString());
         }
-    } else {
-        res.send('The value of the code parameter is missing.');
-    }
 });
 
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}/login`);
+    console.log(`Server is running on http://localhost:${port}`);
 });

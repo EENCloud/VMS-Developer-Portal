@@ -197,14 +197,20 @@ def yolo_to_cv2(xywh, orig_shape):
 def run_detection(feed_url, access_token):
     print("Running Object Detection")
     auth_url = f"{feed_url}&access_token={access_token}"
-    print(f"Feed URL: {auth_url}")
+    # print(f"Feed URL: {auth_url}")
     try:
+        # Load the YOLO model and generate detections.
+        # The model will return a generator that allows us to
+        # iterate over each frame and its detection results.
         model = YOLO('yolov8s.pt')
         results = model(source=auth_url, show=False, conf=0.40, stream=True)
 
         for i in results:
             frame = i.orig_img
+            print(f"Original Frame Shape: {i.orig_shape}")
             if len(i.boxes.cls) > 0:
+                # For each detected object, draw the bounding boxes
+                # and labels on the frame
                 for n, detection in enumerate(i.boxes.cls):
                     coord = [
                         int(i.boxes.xyxy[n][0]),

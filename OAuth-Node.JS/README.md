@@ -1,4 +1,4 @@
-# Eagle Eye Networks OAuth(Node.JS) Sample
+# Eagle Eye Networks OAuth Node.JS
 
 This sample Express application demonstrates how to authenticate and obtain an access token using the OAuth2 protocol for the Eagle Eye Networks REST API. To run this application, you will need to have a valid Eagle Eye Networks account and an application registered with the Eagle Eye Networks Developer Program. For more information on how to register an application, review the [API documentation](https://developer.eagleeyenetworks.com/docs/getting-started).
 

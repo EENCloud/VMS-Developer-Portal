@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Video Search</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
+        {% if media and results %}
+        <!-- Loading Fetch API
+             To access images from the Eagle Eye API, you will
+             need fetch them using the an access token.
+        -->
+        <script src="{{ url_for('static', filename='fetch.js') }}"></script>
+        {% endif %}
+    </head>
+    <body>
+        {% block content %}{% endblock %}
+    </body>
+</html>

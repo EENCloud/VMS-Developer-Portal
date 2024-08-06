@@ -3,3 +3,5 @@
 .env
 /.lh
 /.vscode
+*vendor/
+*composer.lock

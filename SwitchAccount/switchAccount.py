@@ -6,6 +6,7 @@ import os
 # Load environment variables from a .env file
 load_dotenv()
 
+
 class EagleEyeNetworks:
     def __init__(self):
         # Initialize instance variables
@@ -18,7 +19,7 @@ class EagleEyeNetworks:
         }
         self.account_id = ""
         self.account_name = ""
-        
+
     def list_accounts(self):
         # URL for listing accounts
         url = f"https://{self.base_url}/api/v3.0/accounts"
@@ -33,17 +34,24 @@ class EagleEyeNetworks:
             print(f"Total Size: {data['totalSize']}")
             print("Results:")
             for result in data['results']:
-                print(f"- ID: {result['id']}, Name: {result['name']}, Status: {result['status']}, Type: {result['type']}")
+                print(
+                    "Account: ID: {}, Name: {}, Status: {}, Type: {}".format(
+                        result['id'],
+                        result['name'],
+                        result['status'],
+                        result['type']
+                    )
+                )
             return data['results']
         else:
             # If the request failed, print the error message
             print("Failed to retrieve list of accounts")
             return print(json.dumps(response.json(), indent=4))
-    
+
     def switch_account(self):
         # URL for switching accounts
         url = "https://auth.eagleeyenetworks.com/api/v3.0/authorizationTokens"
-        
+
         # Get the account ID from the user input
         accounts = self.list_accounts()
         self.account_id = input("Enter the account id you want to switch to: ")
@@ -61,11 +69,17 @@ class EagleEyeNetworks:
 
         # Make a POST request to the API to switch accounts
         response = requests.post(url, json=payload, headers=self.headers)
-        
+
         # Print the account switch status
-        print(f"Switching account to: ID: {self.account_id}, Name: {self.account_name} ")
+        print(
+            "Switching account to: ID: {}, Name: {}".format(
+                self.account_id,
+                self.account_name
+            )
+        )
         if response.status_code == 201:
-            # If the response is successful, parse and print the new token details
+            # If the response is successful,
+            # parse and print the new token details
             data = response.json()
             print("Switched to account: results:")
             print(f"- Access_token: {data['accessToken']}")
@@ -75,6 +89,7 @@ class EagleEyeNetworks:
             # If the request failed, print the error message
             print("Failed to switch account")
             return print(json.dumps(response.json(), indent=4))
+
 
 # Main entry point of the script
 if __name__ == "__main__":

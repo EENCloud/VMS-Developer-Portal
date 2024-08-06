@@ -1,5 +1,12 @@
-*.pyc
-.flaskenv
+# Common
 .env
 /.lh
 /.vscode
+
+# Python
+*.pyc
+.flaskenv
+*venv/
+
+# JS
+*node_modules/

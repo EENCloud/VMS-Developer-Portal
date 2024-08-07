@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <div id="loader">
+            <div class="spinner"></div>
+        </div>
+        <h1>Custom Object Detection</h1>
+        {% if camera %}
+        <p>Running Detect on {{ camera.name }}</p>
+        <img src="{{ url_for('video_feed', camera_id=camera['id']) }}" style="width: 60%;" onload="hideLoader()">
+        <div class="button-bar">
+            <button onclick="window.location.href='{{ url_for('index') }}'">Back</button>
+        </div>
+        <script type="text/javascript">
+            // Hide the loader when the video feed is loaded
+            function hideLoader() {
+                document.getElementById('loader').style.display = 'none';
+            }
+            
+            // Fallback to hide the loader after a timeout in case the video feed fails to load
+            setTimeout(hideLoader, 20000);  // Adjust the timeout as needed
+
+            // Drop the stream when the user navigates away from the page
+            const videoStream = document.getElementById('video-stream');
+    
+            window.addEventListener('beforeunload', function () {
+                videoStream.src = ''; // Stop the video stream
+            });
+    
+            window.addEventListener('unload', function () {
+                videoStream.src = ''; // Stop the video stream
+            });
+        </script>
+        {% endif %}
+{% endblock %}

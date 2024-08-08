@@ -15,21 +15,22 @@
                 <div class="export-form">
                     <form action="" method="post">
                         {{ form.hidden_tag() }}
-                        <p>
-                            {{ form.name.label }}<br>
+                        <div class="form-group">
+                            {{ form.name.label }}
                             {{ form.name }}
-                        </p>
-                        <p>
-                            {{ form.directory.label }}<br>
+                        </div>
+                        <div class="form-group">
+                            {{ form.directory.label }}
                             {{ form.directory }}
-                        </p>
-                        <p>
-                            {{ form.notes.label }}<br>
+                        </div>
+                        <div class="form-group">
+                            {{ form.notes.label }}
                             {{ form.notes }}
-                        </p>
-                        <p>
-                            {{ form.tags.label }}<br>
+                        </div>
+                        <div class="form-group">
+                            {{ form.tags.label }}
                             {{ form.tags }}
+                        </div>
                         <p>{{ form.submit }}</p>
                     </form>
                 </div>

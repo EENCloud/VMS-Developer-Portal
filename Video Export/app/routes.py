@@ -416,17 +416,21 @@ def preview(camera_id):
     if form.validate_on_submit():
         print('Exporting Clip')
         try:
+            context = {k: v for k, v in {
+                'directory': form.directory.data,
+                'notes': form.notes.data,
+                'tags': form.tags.data
+            }.items() if v is not None}
             export_response = exportClip(
                 camera_id,
                 form.name.data,
                 start,
                 end,
-                directory=form.directory.data,
-                notes=form.notes.data,
-                tags=form.tags.data
+                **context
             )
             print(export_response)
-            redirect(url_for('view_files'))
+            redirect(
+                url_for('preview', camera_id=camera_id, start=start, end=end))
         except AuthenticationError:
             return redirect(url_for('login'))
         except Exception as e:

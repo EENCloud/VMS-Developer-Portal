@@ -82,7 +82,7 @@ def handle_response(
         retry_count=0,
         max_retries=1,
         *args, **kwargs):
-    if response.ok or response is None:
+    if response.ok:
         return response.text
     elif response.status_code == 401 and retry_count < max_retries:
         # Refresh the access token
@@ -97,14 +97,17 @@ def handle_response(
                 # Store the tokens in the session
                 session['access_token'] = auth_response['access_token']
                 session['refresh_token'] = auth_response['refresh_token']
-                session['baseUrl'] = auth_response['httpsBaseUrl']['hostname']
+                session['base_url'] = auth_response['httpsBaseUrl']['hostname']
 
                 # Retry the original request
                 retry_count += 1
                 return original_request_func(
                     retry_count=retry_count, *args, **kwargs)
             else:
-                print(f"Refresh Failed: {refresh_response.status_code} {refresh_response.text}")
+                print("Refresh Failed: {code} {text}".format(
+                    code=refresh_response.status_code,
+                    text=refresh_response.text
+                ))
                 raise AuthenticationError
         else:
             print("No refresh token found")
@@ -160,31 +163,41 @@ def api_call(
 # Get a list of cameras
 # For more info see:
 # https://developer.eagleeyenetworks.com/reference/listcameras
-def getCameras():
+def get_cameras(camera_id=None):
     endpoint = "/cameras"
+
+    if camera_id:
+        endpoint += f"/{camera_id}"
+
     headers = {
         "accept": "application/json",
         "content-type": "application/json"
     }
-    return api_call(endpoint, headers=headers)
+    return api_call(
+        endpoint,
+        headers=headers
+    )
 
 
-# Get information about a camera
+# Get a list of feeds
 # For more info see:
-# https://developer.eagleeyenetworks.com/reference/getcamera
-def getCameraInfo(cameraId):
-    endpoint = f"/cameras/{cameraId}"
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json"
+# https://developer.eagleeyenetworks.com/reference/listfeeds
+def get_feeds(device_id=None, type="preview", include="multipartUrl"):
+    endpoint = "/feeds"
+
+    params = {
+        "include": include,
+        "type": type
     }
-    return api_call(endpoint, headers=headers)
+    if device_id:
+        params['deviceId'] = device_id
+    return api_call(endpoint, params=params)
 
 
 # Get a list of availible video clips
 # For more info see:
 # https://developer.eagleeyenetworks.com/reference/listmedia
-def getMedia(
+def get_media(
         cameraId,
         start=None,
         end=None,
@@ -207,7 +220,8 @@ def getMedia(
         "type": type,
         "mediaType": mediaType,
         "startTimestamp__gte": start,
-        "include": "multipartUrl,mp4Url"
+        "include": "multipartUrl,mp4Url",
+        "pageSize": "12"
     }
 
     if end:
@@ -401,13 +415,13 @@ def preview(camera_id):
     if start and end:
         print('Pulling Clip and Camera Info')
         try:
-            response = getCameraInfo(camera_id)
+            response = get_cameras(camera_id)
             camera = json.loads(response)
         except Exception as e:
             print(f"Failed to get camera info: {e}")
 
         try:
-            response = getMedia(camera_id, start, end, "main")
+            response = get_media(camera_id, start, end, "main")
             results = json.loads(response)['results']
             clip = results[0]
 
@@ -435,14 +449,27 @@ def view_clips(camera_id):
 
     print('Pulling Clips and Camera Info')
     try:
-        response = getCameraInfo(camera_id)
+        response = get_cameras(camera_id)
         camera = json.loads(response)
     except Exception as e:
         print(f"Failed to get camera info: {e}")
 
     try:
-        response = getMedia(camera_id)
+        response = get_media(camera_id, type='main')
         results = json.loads(response)['results']
+        for i, clip in enumerate(results):
+            url = "https://{}/api/v3.0/media/recordedImage.jpeg".format(
+                session.get('baseUrl')
+            )
+            params = {
+                "timestamp": clip['startTimestamp'],
+                "type": "main",
+                "deviceId": camera_id
+            }
+            url += '?' + urllib.parse.urlencode(params)
+            print(url)
+            clip['imageUrl'] = url
+            clip['id'] = f"camclip{i}"
     except Exception as e:
         print(f"API Call failed: {e}")
 
@@ -451,7 +478,7 @@ def view_clips(camera_id):
             'clips.html',
             media=media,
             camera=camera,
-            clips=results)
+            results=results)
     except Exception as e:
         print(f"Failed to render clips view: {e}")
 
@@ -464,21 +491,39 @@ def index():
     code = request.args.get('code')
     if code:
         return redirect(url_for('login') + '?code=' + code)
-
-    accessToken = session.get('access_token')
-    if not accessToken:
+    if not is_authenticated():
         return redirect(url_for('login'))
+
+    media = {
+        'access_token': session.get('access_token'),
+        'base_url': session.get('base_url')
+    }
 
     print('Pulling Camera List')
     try:
-        response = getCameras()
-        cameras = json.loads(response)['results']
+        cam_response = json.loads(get_cameras())
+        feed_response = json.loads(get_feeds())
+        cam_results = cam_response['results']
+        feed_results = feed_response['results']
+
+        camera_dict = {camera['id']: camera for camera in cam_results}
+        for feed in feed_results:
+            camera_id = feed['deviceId']
+            if camera_id in camera_dict:
+                if 'multipartUrl' not in camera_dict[camera_id]:
+                    camera_dict[camera_id]['multipartUrl'] = feed['multipartUrl']
+
+        cameras = list(camera_dict.values())
+
+        return render_template(
+            'index.html',
+            cameras=cameras[0:12],
+            media=media)
     except AuthenticationError:
         return redirect(url_for('login'))
     except Exception as e:
         print(f"Failed to get cameras: {e}")
-
-    return render_template('index.html', cameras=cameras)
+        return render_template('index.html')
 
 
 # Login Page

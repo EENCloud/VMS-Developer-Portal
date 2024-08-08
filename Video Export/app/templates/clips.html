@@ -6,18 +6,39 @@
         {% if camera %}
             Viewing clips for camera: {{ camera.name }}
         {% endif %}
-        {% if clips %}
-            <div class="camera-block">
+        {% if results %}
+            <div class="result-block">
                 <h2>Select a clip.</h2>
-                {% for clip in clips %}
-                    <div class="clip">
-                        <img src="{{clip.multipartUrl}}">
-                        <a href="{{ url_for('preview', camera_id=camera.id, start=clip.startTimestamp, end=clip.endTimestamp) }}" class="button">Preview</a>
-                    </div>
+                <div class="result-grid">
+                {% for result in results %}
+                    <div class="result">
+                        <h3>{{result.startTimestamp}}</h3>
+                        <a href="{{ url_for('preview', camera_id=camera.id, start=result.startTimestamp, end=result.endTimestamp) }}">
+                            <img src="{{result.imageUrl}}" id="{{ result.id }}">
+                        </a>
+                    </div>                    
                 {% endfor %}
             </div>
         {% else %}
-            <p>No cameras found.</p>
+            <p>No clips found.</p>
+        {% endif %}
+        {% if results and media %}
+        <script type="application/json" id="results-data">
+            {{ results|tojson|safe }}
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const resultsData = JSON.parse(document.getElementById('results-data').textContent);
+                const accessToken = "{{ media.access_token }}";
+                displayProtectedImages(resultsData, accessToken);
+            });
+
+            function displayProtectedImages(results, accessToken) {
+                results.forEach(result => {
+                    displayProtectedImage(result.id, result.imageUrl, accessToken);
+                });
+            }
+        </script>
         {% endif %}
 
 {% endblock %}

@@ -1,6 +1,9 @@
 function fetchWithAuthentication(url, authToken) {
   const headers = new Headers();
-  headers.set('Authorization', `Bearer ${authToken}`);
+  headers.set(
+    'Authorization', `Bearer ${authToken}`,
+    'Accept', 'image/jpeg'
+  );
   return fetch(url, { headers });
 }
 
@@ -17,15 +20,15 @@ async function displayProtectedImage(
   const objectUrl = URL.createObjectURL(blob);
 
   // Update the source of the image.
-  const imageElement = getElementById(imageId);
+  const imageElement = document.getElementById(imageId);
   imageElement.src = objectUrl;
   imageElement.onload = () => {
     URL.revokeObjectURL(objectUrl);
   };
 }
 
-// const imageId = 'some-image';
-// const imageUrl = 'https://api.example.com/secret-image.png';
-// const authToken = 'changeme';
-// displayProtectedImage(imageId, imageUrl, authToken);
 
+// const imageId = 'some-image';
+// const imageUrl = 'https://api.c???.eagleeyenetworks.com/secret-image.png';
+// const authToken = 'access_token';
+// displayProtectedImage(imageId, imageUrl, authToken);

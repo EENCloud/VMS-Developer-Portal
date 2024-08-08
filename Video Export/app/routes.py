@@ -6,6 +6,7 @@ import json
 import requests
 import urllib.parse
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from functools import wraps
 from flask import (
     request, render_template, session,
@@ -57,6 +58,27 @@ def refresh_access(refresh_token):
         )
     )
     return response
+
+
+# Get the unquoted argument
+def get_unquoted_arg(arg_name):
+    value = request.args.get(arg_name)
+    return urllib.parse.unquote(value) if value else None
+
+
+# Format timestamps to ISO 8601 format
+def format_timestamp(timestamp_str, user_timezone='UTC'):
+    if not timestamp_str:
+        return None
+    try:
+        local_dt = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M')
+        local_tz = ZoneInfo(user_timezone)
+        local_dt = local_dt.replace(tzinfo=local_tz)
+        utc_dt = local_dt.astimezone(ZoneInfo('UTC'))
+        # Format with microsecond precision and truncate to milliseconds
+        return utc_dt.isoformat(timespec='milliseconds')
+    except ValueError:
+        return None
 
 
 # Get the current time and the time exactly 7 days ago
@@ -134,7 +156,7 @@ def api_call(
     if params:
         url += '?' + urllib.parse.urlencode(params)
 
-    print(f"URL: {url}")
+    print(f"request: {url}")
 
     if not headers:
         headers = {}
@@ -202,7 +224,8 @@ def get_media(
         start=None,
         end=None,
         type='preview',
-        mediaType='video'
+        mediaType='video',
+        page_token=None
         ):
     endpoint = "/media"
     headers = {
@@ -221,11 +244,13 @@ def get_media(
         "mediaType": mediaType,
         "startTimestamp__gte": start,
         "include": "multipartUrl,mp4Url",
-        "pageSize": "12"
+        "pageSize": "24"
     }
 
     if end:
         params['endTimestamp__lte'] = end
+    if page_token:
+        params['pageToken'] = page_token
 
     return api_call(endpoint, params=params, headers=headers)
 
@@ -454,9 +479,25 @@ def view_clips(camera_id):
     except Exception as e:
         print(f"Failed to get camera info: {e}")
 
+    # Collect the query parameters from the request
+    start = get_unquoted_arg('start')
+    end = get_unquoted_arg('end')
+    timezone = get_unquoted_arg('timezone') or 'UTC'
+    page_token = request.args.get('page_token')
+
+    context = {k: v for k, v in {
+        'start': format_timestamp(start, timezone),
+        'end': format_timestamp(end, timezone),
+        'type': 'main',
+        'page_token': page_token
+    }.items() if v is not None}
+
     try:
-        response = get_media(camera_id, type='main')
-        results = json.loads(response)['results']
+        response = get_media(camera_id, **context)
+        r_json = json.loads(response)
+        results = r_json['results']
+        next_page = r_json['nextPageToken']
+        prev_page = r_json['prevPageToken']
         for i, clip in enumerate(results):
             url = "https://{}/api/v3.0/media/recordedImage.jpeg".format(
                 session.get('baseUrl')
@@ -467,18 +508,22 @@ def view_clips(camera_id):
                 "deviceId": camera_id
             }
             url += '?' + urllib.parse.urlencode(params)
-            print(url)
             clip['imageUrl'] = url
             clip['id'] = f"camclip{i}"
     except Exception as e:
         print(f"API Call failed: {e}")
 
     try:
-        return render_template(
-            'clips.html',
-            media=media,
-            camera=camera,
-            results=results)
+        context = {k: v for k, v in {
+            'media': media,
+            'camera': camera,
+            'results': results,
+            'start': start,
+            'end': end,
+            'next_page': next_page,
+            'prev_page': prev_page
+        }.items() if v is not None}
+        return render_template('clips.html', **context)
     except Exception as e:
         print(f"Failed to render clips view: {e}")
 

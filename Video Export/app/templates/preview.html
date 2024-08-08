@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <a href="{{ url_for('view_clips', camera_id=camera.id) }}">{{ camera.name }}</a> &gt; <b>Preview</b>
+{% endblock %}
+
 {% block content %}
         <h1>Eagle Eye Video Export</h1>
         <p>Select a video clip to export it to your local machine.</p>
-        {% if camera %}
-            Preview export from camera: {{ camera.name }}
-        {% endif %}
         {% if clip %}
             <div class="preview-block">
                 <div class="preview">

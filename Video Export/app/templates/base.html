@@ -35,10 +35,12 @@
     <body>
         {% if not auth_url %}
         <div class="navbar">
-            Menu: 
             <a href="{{ url_for('index') }}">Home</a>
             <a href="{{ url_for('view_files') }}">Files</a>
             <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+        <div class="breadcrumb">
+            {% block breadcrumb %}{% endblock %}
         </div>
         <hr>
         {% endif %}

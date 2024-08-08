@@ -1,12 +1,36 @@
 {% extends "base.html" %}
 
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <b>{{ camera.name }}</b>
+{% endblock %}
+
 {% block content %}
         <h1>Eagle Eye Video Export</h1>
         <p>Select a video clip to export it to your local machine.</p>
-        {% if camera %}
-            Viewing clips for camera: {{ camera.name }}
-        {% endif %}
+
+        <!-- Time Selection Form -->
+        <form class="time-select" method="get" action="{{ url_for('view_clips', camera_id=camera.id) }}">
+            <div class="time-select-group">
+                <label for="start">Start Time:</label>
+                <input type="datetime-local" id="start" name="start" value="{{ request.args.get('start', '') }}">
+            </div>
+            <div class="time-select-group">
+                <label for="end">End Time:</label>
+                <input type="datetime-local" id="end" name="end" value="{{ request.args.get('end', '') }}">
+            </div>
+            <input type="hidden" id="timezone" name="timezone">
+            <button type="submit">Filter</button>
+        </form>
+
         {% if results %}
+        <div class="pagination-controls">
+            {% if prev_page %}
+                <a href="{{ url_for('view_clips', camera_id=camera.id, page_token=prev_page, start=start, end=end) }}" class="pagination-button">Previous</a>
+            {% endif %}
+            {% if next_page %}
+                <a href="{{ url_for('view_clips', camera_id=camera.id, page_token=next_page, start=start, end=end) }}" class="pagination-button">Next</a>
+            {% endif %}
+        </div>
             <div class="result-block">
                 <h2>Select a clip.</h2>
                 <div class="result-grid">
@@ -28,6 +52,8 @@
         </script>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+                const timezoneInput = document.getElementById('timezone');
+                timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 const resultsData = JSON.parse(document.getElementById('results-data').textContent);
                 const accessToken = "{{ media.access_token }}";
                 displayProtectedImages(resultsData, accessToken);

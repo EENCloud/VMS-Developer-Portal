@@ -256,7 +256,7 @@ def get_media(
 
 
 # Export video clip
-def exportClip(
+def export_clip(
         camera_id,
         name,
         start, end,
@@ -287,7 +287,8 @@ def exportClip(
         "deviceId": camera_id,
         "type": type,
         "info": info,
-        "period": period
+        "period": period,
+        "autoDelete": False
     }
 
     api_call(endpoint, method='POST', data=json.dumps(data), headers=headers)
@@ -304,18 +305,30 @@ def getExports():
 
 
 # Get a list of files
-def getFiles(file_id=None):
-    if file_id:
-        endpoint = f"/files/{file_id}"
-    else:
-        endpoint = "/files"
+def get_files(
+        file_id=None,
+        include="size,createTimestamp",
+        directory=None,
+        mime_type=None):
+
     headers = {
         "accept": "application/json",
         "content-type": "application/json"
     }
-    params = {
-        "include": "notes,size"
-    }
+
+    if file_id:
+        endpoint = f"/files/{file_id}"
+        params = {
+            "include": include
+        }
+    else:
+        endpoint = "/files"
+        params = {k: v for k, v in {
+            "include": include,
+            "directory": directory,
+            "mimeType": mime_type
+        }.items() if v is not None}
+
     return api_call(endpoint, headers=headers, params=params)
 
 
@@ -351,13 +364,13 @@ def auth_required(f):
     return decorated_function
 
 
-# View Downloads
-# This page will display a list of video clips that the user can download.
+# Download File
+# This page will initiate a download.
 @app.route('/download/<file_id>')
 @auth_required
 def download(file_id):
     try:
-        file_info = getFiles(file_id)
+        file_info = get_files(file_id)
         file_info = json.loads(file_info)
         print(f"File info: {file_info}")
 
@@ -383,22 +396,38 @@ def download(file_id):
 
 # View Files
 # This page will display a list of files that the user can download.
-@app.route('/files')
+@app.route('/files/', defaults={'directory': ''})
+@app.route('/files/<path:directory>')
 @auth_required
-def view_files():
+def view_files(directory):
     print('Pulling Files')
     try:
-        response = getFiles()
+
+        response = get_files(directory=f"/{urllib.parse.unquote(directory)}")
         results = json.loads(response)['results']
+        print(f"Files: {json.dumps(results)}")
     except AuthenticationError:
         return redirect(url_for('login'))
     except Exception as e:
         print(f"API Call failed: {e}")
 
+    # Create breadcrumbs for the directory path
+    current_path = directory
+    if current_path == '/':
+        current_path = ''
+        breadcrumbs = []
+    else:
+        breadcrumbs = [crumb for crumb in current_path.split('/') if crumb]
+    dir_info = {
+        "current": current_path,
+        "breadcrumbs": breadcrumbs
+    }
+
     try:
         return render_template(
             'files.html',
-            files=results
+            dir_info=dir_info,
+            results=results
         )
     except Exception as e:
         print(f"Failed to render files view: {e}")
@@ -421,7 +450,7 @@ def preview(camera_id):
                 'notes': form.notes.data,
                 'tags': form.tags.data
             }.items() if v is not None}
-            export_response = exportClip(
+            export_response = export_clip(
                 camera_id,
                 form.name.data,
                 start,

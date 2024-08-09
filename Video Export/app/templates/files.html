@@ -1,22 +1,54 @@
 {% extends "base.html" %}
 
-{% block content %}
-        <h1>Eagle Eye Video Export</h1>
-        <p>Select a video clip to export it to your local machine.</p>
-        {% if files %}
-            <div class="file-block">
-                <h2>Select a File to download.</h2>
-                {% for file in files %}
-                    <div class="file">
-                        <h3>{{file.name}}</h3>
-                        <p>{{file.notes}}</p>
-                        <p>{{file.size / 1048576 }} MB</p>
-                        <a href="{{ url_for('download', file_id=file.id) }}" class="button">Download</a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>No files found.</p>
-        {% endif %}
+{% block breadcrumb %}
+    <a href="{{ url_for('view_files') }}">Archive</a>
+    {% for crumb in dir_info.breadcrumbs %}
+    {% if loop.last %}
+    &gt; <a>{{ crumb }}</a>
+    {% else %}
+    &gt; <a href="{{ url_for('view_files', directory=crumb) }}">{{ crumb }}</a>
+    {% endif %}
+    {% endfor %}
+{% endblock %}
 
+{% block content %}
+    <h1>Eagle Eye Video Export</h1>
+    <p>Select a video clip to export it to your local machine.</p>
+    {% if results %}
+        <div class="file-block">
+            <h2>Select a File to download.</h2>
+            <table class="file-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Created</th>
+                        <th>Size (MB)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                        <tr>
+                            <td>{{ result.name }}</td>
+                            <td>{{ result.createTimestamp }}</td>
+                            {% if result.size == 0 %}
+                            <td>-</td>
+                            {% else %}
+                            <td>{{ (result.size / 1048576) | round(2) }} MB</td>
+                            {% endif %}
+                            <td>
+                                {% if result.mimeType == 'application/directory' %}
+                                    <a href="{{ url_for('view_files', directory=dir_info.current+"/"+result.name) }}" class="button">View</a>
+                                {% else %}
+                                    <a href="{{ url_for('download', file_id=result.id) }}" class="button">Download</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No files found.</p>
+    {% endif %}
 {% endblock %}

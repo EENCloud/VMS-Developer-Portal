@@ -416,3 +416,48 @@ input[type="submit"]:hover {
         margin-bottom: 0; /* Remove bottom margin for the last group */
     }
 }
+
+/* Files View */
+.file-block {
+    width: 100%;
+    overflow-x: auto; /* Ensure the table is scrollable on small screens */
+    margin-top: 20px;
+}
+
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.file-table th, .file-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.file-table th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+}
+
+.file-table td {
+    background-color: #fff;
+}
+
+.file-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.file-table .button {
+    background-color: #238fce;
+    color: #fff;
+    padding: 8px 12px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.file-table .button:hover {
+    background-color: #23b2ce;
+}

@@ -101,6 +101,7 @@ def get_timestamps():
 def handle_response(
         response,
         original_request_func,
+        endpoint,
         retry_count=0,
         max_retries=1,
         *args, **kwargs):
@@ -126,7 +127,10 @@ def handle_response(
                 # Retry the original request
                 retry_count += 1
                 return original_request_func(
-                    retry_count=retry_count, *args, **kwargs)
+                    endpoint,
+                    retry_count=retry_count,
+                    *args, **kwargs
+                )
             else:
                 print("Refresh Failed: {code} {text}".format(
                     code=refresh_response.status_code,
@@ -178,11 +182,12 @@ def api_call(
     return handle_response(
         response,
         api_call,
-        retry_count=retry_count,
-        url=url,
+        endpoint,
         method=method,
+        params=params,
         data=data,
         headers=headers,
+        retry_count=retry_count,
         stream=stream
     )
 

@@ -297,8 +297,7 @@ def export_clip(
         "deviceId": camera_id,
         "type": type,
         "info": info,
-        "period": period,
-        "autoDelete": False
+        "period": period
     }
 
     api_call(endpoint, method='POST', data=json.dumps(data), headers=headers)
@@ -469,12 +468,26 @@ def preview(camera_id):
                 **context
             )
             print(export_response)
-            redirect(
-                url_for('preview', camera_id=camera_id, start=start, end=end))
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # Return a JSON response for AJAX requests
+                return json.dumps({'success': True}), 200, {
+                    'ContentType': 'application/json'
+                }
+            else:
+                redirect(url_for(
+                    'preview', camera_id=camera_id, start=start, end=end))
         except AuthenticationError:
             return redirect(url_for('login'))
         except Exception as e:
             print(f"API Call failed: {e}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return json.dumps({
+                    'success': False,
+                    'message': 'Error exporting clip.'
+                }), 500, {'ContentType': 'application/json'}
+            else:
+                return "API Call failed", 500            
 
     media = {
         'access_token': session.get('access_token'),

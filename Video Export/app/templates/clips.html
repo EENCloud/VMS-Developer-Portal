@@ -46,6 +46,9 @@
         {% else %}
             <p>No clips found.</p>
         {% endif %}
+{% endblock %}
+
+{% block script %}
         {% if results and media %}
         <script type="application/json" id="results-data">
             {{ results|tojson|safe }}
@@ -66,5 +69,4 @@
             }
         </script>
         {% endif %}
-
 {% endblock %}

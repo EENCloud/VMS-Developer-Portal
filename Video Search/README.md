@@ -6,12 +6,12 @@ This sample Flask application demonstrates how to use the video search API for E
 
 ## Setup
 
-1. Install dependencies:
+1. Clone this repository or copy the sample code into your local environment.
+   
+2. Install dependencies:
    ```
    $ pip install -r requirements.txt
    ```
-
-2. Clone this repository or copy the sample code into your local environment.
 
 3. Create a copy of `example.flaskenv` and rename it `.flaskenv`. Update the `CLIENT_ID` and `CLIENT_SECRET` in the file with your application's credentials. For more details on obtaining these credentials, visit our [API documentation](https://developer.eagleeyenetworks.com/docs/client-credentials).
 

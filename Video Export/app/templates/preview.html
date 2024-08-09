@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <a href="{{ url_for('view_clips', camera_id=camera.id) }}">{{ camera.name }}</a> &gt; <b>Preview</b>
+{% endblock %}
+
+{% block content %}
+        <h1>Eagle Eye Video Export</h1>
+        <p>Select a video clip to export it to your local machine.</p>
+        {% if clip %}
+            <div class="preview-block">
+                <div class="preview">
+                    <video src="{{clip.mp4Url}}" controls type="video/mp4"></video>
+                </div>
+                <div class="export-form">
+                    <form action="" method="post">
+                        {{ form.hidden_tag() }}
+                        <div class="form-group">
+                            {{ form.name.label }}
+                            {{ form.name }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.directory.label }}
+                            {{ form.directory }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.notes.label }}
+                            {{ form.notes }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.tags.label }}
+                            {{ form.tags }}
+                        </div>
+                        <p>{{ form.submit }}</p>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <p>No footage found.</p>
+        {% endif %}
+
+{% endblock %}

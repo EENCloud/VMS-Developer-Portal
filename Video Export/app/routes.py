@@ -10,8 +10,8 @@ from zoneinfo import ZoneInfo
 from functools import wraps
 from flask import (
     request, render_template, session,
-    redirect, url_for, send_file,
-    Response, stream_with_context
+    redirect, url_for, Response,
+    stream_with_context
 )
 from dotenv import load_dotenv
 
@@ -105,6 +105,8 @@ def handle_response(
         max_retries=1,
         *args, **kwargs):
     if response.ok:
+        if kwargs.get('stream'):
+            return response
         return response.text
     elif response.status_code == 401 and retry_count < max_retries:
         # Refresh the access token
@@ -146,7 +148,8 @@ def api_call(
         params=None,
         data=None,
         headers=None,
-        retry_count=0):
+        retry_count=0,
+        stream=False):
     # print(f"Making API call to {endpoint}")
     # print(f"Params: {params}")
     access_token = session.get('access_token')
@@ -164,9 +167,10 @@ def api_call(
 
     if method == 'GET':
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, stream=stream)
         except Exception as e:
             print(f"Failed to make request: {e}")
+            raise e
     elif method == 'POST':
         print(f"Payload: {data}")
         response = requests.post(url, headers=headers, data=data)
@@ -178,7 +182,8 @@ def api_call(
         url=url,
         method=method,
         data=data,
-        headers=headers
+        headers=headers,
+        stream=stream
     )
 
 
@@ -345,9 +350,15 @@ def getDownloads():
 # Initiate a download
 def downloadFile(file_id):
     endpoint = f"/files/{file_id}:download"
-    content = api_call(endpoint)
-    for chunk in range(0, len(content), 1024):
-        yield content[chunk:chunk+1024].encode('utf-8')
+    response = api_call(endpoint, stream=True)
+
+    if isinstance(response, str):
+        response = response.encode('utf-8')
+
+    # Yield chunks from the streamed response
+    for chunk in response.iter_content(chunk_size=1024):
+        if chunk:
+            yield chunk
 
 
 # Check if the user is authenticated
@@ -370,28 +381,23 @@ def auth_required(f):
 @auth_required
 def download(file_id):
     try:
+        # Fetch file metadata
         file_info = get_files(file_id)
         file_info = json.loads(file_info)
-        print(f"File info: {file_info}")
-
-        print('Downloading File')
-        file_content = downloadFile(file_id)
-
-        # Ensure file_content is bytes-like
-        if isinstance(file_content, str):
-            file_content = file_content.encode('utf-8')
 
         response = Response(
-            stream_with_context(file_content),
+            stream_with_context(downloadFile(file_id)),
             mimetype=file_info['mimeType']
         )
-        response.headers['Content-Disposition'] = f"attachment; filename={file_info['name']}"
+        disposition = f"attachment; filename={file_info['name']}"
+        response.headers['Content-Disposition'] = disposition
 
         return response
     except AuthenticationError:
         return redirect(url_for('login'))
     except Exception as e:
         print(f"Download failed: {e}")
+        return "Download failed", 500
 
 
 # View Files
@@ -588,8 +594,9 @@ def index():
         for feed in feed_results:
             camera_id = feed['deviceId']
             if camera_id in camera_dict:
-                if 'multipartUrl' not in camera_dict[camera_id]:
-                    camera_dict[camera_id]['multipartUrl'] = feed['multipartUrl']
+                cam = camera_dict[camera_id]
+                if 'multipartUrl' not in cam:
+                    cam['multipartUrl'] = feed['multipartUrl']
 
         cameras = list(camera_dict.values())
 

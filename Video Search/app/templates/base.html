@@ -13,6 +13,12 @@
         {% endif %}
     </head>
     <body>
+        {% if not auth_url %}
+        <div class="navbar">
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+        <hr>
+        {% endif %}
         {% block content %}{% endblock %}
     </body>
 </html>

@@ -111,3 +111,25 @@ input[type="submit"]:hover {
     display: block;
     margin: 10px auto;
 }
+
+/* Add styles for the navbar */
+.navbar {
+    background-color: #238fce;
+    overflow: hidden;
+    padding: 10px 0;
+}
+
+.navbar a {
+    float: right;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.navbar a:hover {
+    background-color: #ddd;
+    color: black;
+}

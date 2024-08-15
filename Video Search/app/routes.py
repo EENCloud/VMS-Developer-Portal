@@ -64,10 +64,13 @@ def refresh_access(refresh_token):
 def handle_response(
         response,
         original_request_func,
+        endpoint,
         retry_count=0,
         max_retries=1,
         *args, **kwargs):
     if response.ok:
+        if kwargs.get('stream'):
+            return response
         return response.text
     elif response.status_code == 401 and retry_count < max_retries:
         # Refresh the access token
@@ -87,7 +90,10 @@ def handle_response(
                 # Retry the original request
                 retry_count += 1
                 return original_request_func(
-                    retry_count=retry_count, *args, **kwargs)
+                    endpoint,
+                    retry_count=retry_count,
+                    *args, **kwargs
+                )
             else:
                 print("Refresh Failed: {code} {text}".format(
                     code=refresh_response.status_code,
@@ -109,7 +115,8 @@ def api_call(
         params=None,
         data=None,
         headers=None,
-        retry_count=0):
+        retry_count=0,
+        stream=False):
     # print(f"Making API call to {endpoint}")
     # print(f"Params: {params}")
     access_token = session.get('access_token')
@@ -119,7 +126,7 @@ def api_call(
     if params:
         url += '?' + urllib.parse.urlencode(params)
 
-    print(f"URL: {url}")
+    print(f"request: {url}")
 
     if not headers:
         headers = {}
@@ -127,9 +134,10 @@ def api_call(
 
     if method == 'GET':
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, stream=stream)
         except Exception as e:
             print(f"Failed to make request: {e}")
+            raise e
     elif method == 'POST':
         print(f"Payload: {data}")
         response = requests.post(url, headers=headers, data=data)
@@ -137,11 +145,13 @@ def api_call(
     return handle_response(
         response,
         api_call,
-        retry_count=retry_count,
-        url=url,
+        endpoint,
         method=method,
+        params=params,
         data=data,
-        headers=headers
+        headers=headers,
+        retry_count=retry_count,
+        stream=stream
     )
 
 
@@ -174,7 +184,7 @@ def parseSearch(searchString):
     }
     headers = {
         "accept": "application/json",
-        "content-type": "application/json"
+        "content-type": "application/json; charset=utf-8"
     }
     return api_call(
         endpoint,

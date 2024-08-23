@@ -1,0 +1,12 @@
+# dependencies
+node_modules/
+jspm_packages/
+
+# Angular build cache and temp files
+.angular/
+.angular/cache/
+.angular/cache/*
+
+# Environment
+environment.ts
+!example.environment.ts

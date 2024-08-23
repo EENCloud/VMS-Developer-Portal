@@ -1,0 +1,19 @@
+<h1>Eagle Eye Live View</h1>
+<p>Select a camera to open the high resolution view.</p>
+<div *ngIf="cameras && cameras.length; else noCameras">
+  <div class="result-block">
+    <h2>Choose a Camera</h2>
+    <div class="result-grid">
+      <div *ngFor="let camera of cameras" class="result">
+        <h3>{{ camera.name }}</h3>
+        <a [routerLink]="['/view', camera.id]">
+          <img [src]="camera.multipartUrl" [id]="camera.id">
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noCameras>
+  <p>No cameras found.</p>
+</ng-template>

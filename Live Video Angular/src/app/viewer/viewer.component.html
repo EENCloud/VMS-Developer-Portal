@@ -1,0 +1,20 @@
+<div #loader id="loader">
+  <div class="spinner"></div>
+</div>
+<h1>Eagle Eye Live View</h1>
+<br />
+<div *ngIf="camera; else noCameras">
+  <div class="viewer-block">
+    <div class="viewer">
+        <video #videoElement id="video" autoplay muted></video>
+    </div>
+    <div class="stream-buttons">
+        <button id="hlsBtn" class="stream-btn active" (click)="switchStream('hls')">HLS Stream</button>
+        <button id="multipartBtn" class="stream-btn" (click)="switchStream('multipart')">Multipart Stream</button>
+    </div>
+  </div>
+</div>
+
+<ng-template #noCameras>
+  <p>No cameras found.</p>
+</ng-template>

@@ -10,3 +10,5 @@ jspm_packages/
 # Environment
 environment.ts
 !example.environment.ts
+
+.DS_Store

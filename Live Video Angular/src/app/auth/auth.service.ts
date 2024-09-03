@@ -48,9 +48,11 @@ export class AuthService {
     };
 
     if (type === 'authorization_code') {
+      console.log('Exchanging code for token.')
       bodyParams['code'] = token;
       bodyParams['redirect_uri'] = this.redirectUri;
     } else if (type === 'refresh_token') {
+      console.log('Refreshing authorization')
       bodyParams['refresh_token'] = token;
     }
     
@@ -86,6 +88,28 @@ export class AuthService {
 
   getBaseUrl(): string {
     return localStorage.getItem('base_url') || '';
+  }
+
+  getSessionCookie(): Observable<string> {
+    const accessToken = this.getAccessToken();
+    const baseUrl = this.getBaseUrl();
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${accessToken}`
+    });
+
+    return this.http.get<any>(`https://${baseUrl}/api/v3.0/media/session`, { headers, withCredentials: true })
+      .pipe(map(response => response.url));
+  }
+
+  authenticateStream(url: string): Observable<any> {
+    const accessToken = this.getAccessToken();
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${accessToken}`
+    });
+
+    return this.http.get(url, { headers, withCredentials: true });
   }
 
   logout() {

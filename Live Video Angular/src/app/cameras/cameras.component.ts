@@ -2,11 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { ApiService } from '../api.service';
+import { AuthService } from '../auth/auth.service';
+import { MenubarComponent } from '../menubar/menubar.component'
+import { of } from 'rxjs'
+import { catchError, retryWhen, delay, take } from 'rxjs';
 
 @Component({
   selector: 'app-cameras',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MenubarComponent],
   templateUrl: './cameras.component.html',
   styles: ``
 })
@@ -18,7 +22,8 @@ export class CamerasComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -52,6 +57,7 @@ export class CamerasComponent implements OnInit {
               const camera = cameraDict[feed.deviceId];
               if (camera && !camera.multipartUrl) {
                 camera.multipartUrl = feed.multipartUrl;
+                this.setupMediaSession(camera.multipartUrl);
               }
             });
 
@@ -67,6 +73,24 @@ export class CamerasComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to get cameras', error);
+      }
+    });
+  }
+
+  private setupMediaSession(streamUrl: string) {
+    this.authService.getSessionCookie().subscribe({
+      next: (sessionUrl) => {
+        this.authService.authenticateStream(sessionUrl).subscribe({
+          next: (response) => {
+            console.log('Stream authenticated');
+          },
+          error: (error) => {
+            console.error('Failed to authenticate stream.', error);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Failed to get session cookie.', error);
       }
     });
   }

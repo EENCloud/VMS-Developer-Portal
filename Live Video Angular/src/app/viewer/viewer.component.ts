@@ -2,13 +2,14 @@ import { Component, ElementRef, OnInit, AfterViewInit, ViewChild } from '@angula
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../api.service';
+import { MenubarComponent } from '../menubar/menubar.component';
 import LivePlayer from '@een/live-video-web-sdk'
 import Hls from 'hls.js';
 
 @Component({
   selector: 'app-viewer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MenubarComponent],
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.css']
 })

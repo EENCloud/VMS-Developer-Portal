@@ -15,10 +15,11 @@
                 <div class="viewer">
                     <video id="video" autoplay muted></video>
                 </div>
+<!--            Stream Switching Coming Soon     
                 <div class="stream-buttons">
                     <button id="hlsBtn" class="stream-btn active">HLS Stream</button>
                     <button id="multipartBtn" class="stream-btn">Multipart Stream</button>
-                </div>
+                </div> -->
             </div>
         {% else %}
             <p>No footage found.</p>
@@ -37,7 +38,7 @@
     // Fallback to hide the loader after a timeout in case the video feed fails to load
     setTimeout(hideLoader, 20000);  // Adjust the timeout as needed
 
-    // Function to switch streams
+/*     // Function to switch streams
     function switchStream(type) {
         var videoSrc;
         if (type === 'hls') {
@@ -68,7 +69,7 @@
         document.getElementById('multipartBtn').classList.add('active');
         document.getElementById('hlsBtn').classList.remove('active');
     });
-
+ */
     // Video player
     var video = document.getElementById('video');
     var videoSrc = '{{ results.hlsUrl | safe }}';

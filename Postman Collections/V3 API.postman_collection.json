@@ -111,24 +111,27 @@
 								"oauth2",
 								"token"
 							],
-							"body": [
-								{
-									"key": "grant_type",
-									"value": "authorization_code"
-								},
-								{
-									"key": "client_id",
-									"value": "{{client_id}}"
-								},
-								{
-									"key": "code",
-									"value": "{{code}}"
-								},
-								{
-									"key": "redirect_uri",
-									"value": "http://127.0.0.1:3333"
-								}
-							]
+							"body": {
+								"mode": "x-www-form-urlencoded",
+								"x-www-form-encoded": [
+									{
+										"key": "grant_type",
+										"value": "authorization_code"
+									},
+									{
+										"key": "client_id",
+										"value": "{{client_id}}"
+									},
+									{
+										"key": "code",
+										"value": "{{code}}"
+									},
+									{
+										"key": "redirect_uri",
+										"value": "http://127.0.0.1:3333"
+									}
+								]
+							}
 						}
 					},
 					"response": []
@@ -193,16 +196,19 @@
 								"oauth2",
 								"token"
 							],
-							"body": [
-								{
-									"key": "grant_type",
-									"value": "refresh_token"
-								},
-								{
-									"key": "refresh_token",
-									"value": "{{refresh_token}}"
-								}
-							]
+							"body": {
+								"mode": "x-www-form-urlencoded",
+								"x-www-form-encoded": [
+									{
+										"key": "grant_type",
+										"value": "refresh_token"
+									},
+									{
+										"key": "refresh_token",
+										"value": "{{refresh_token}}"
+									}
+								]
+							}
 						}
 					},
 					"response": []

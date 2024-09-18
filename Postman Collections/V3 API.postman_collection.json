@@ -87,7 +87,18 @@
 							]
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "https://auth.eagleeyenetworks.com/oauth2/token?grant_type=authorization_code&client_id={{client_id}}&code={{code}}&redirect_uri=http://127.0.0.1:3333",
 							"protocol": "https",
@@ -100,7 +111,7 @@
 								"oauth2",
 								"token"
 							],
-							"query": [
+							"body": [
 								{
 									"key": "grant_type",
 									"value": "authorization_code"
@@ -158,7 +169,18 @@
 							]
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "https://auth.eagleeyenetworks.com/oauth2/token?grant_type=refresh_token&refresh_token={{refresh_token}}",
 							"protocol": "https",
@@ -171,7 +193,7 @@
 								"oauth2",
 								"token"
 							],
-							"query": [
+							"body": [
 								{
 									"key": "grant_type",
 									"value": "refresh_token"

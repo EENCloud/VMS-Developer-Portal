@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='view.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <a>{{ camera.name }}</a>
+{% endblock %}
+
+{% block content %}
+        <div id="loader">
+            <div class="spinner"></div>
+        </div>
+        <br />
+        {% if results %}
+            <div class="viewer-block">
+                <div class="viewer">
+                    <video id="video" autoplay muted></video>
+                </div>   
+                <div class="stream-buttons">
+                    <a href="{{ url_for('events', camera_id=camera.id) }}"><button class="stream-btn">View Events</button></a>
+                    <a href="{{ url_for('view_clips', camera_id=camera.id) }}"><button class="stream-btn">Publish Event</button></a>
+                </div>
+            </div>
+        {% else %}
+            <p>No footage found.</p>
+        {% endif %}
+
+{% endblock %}
+
+{% if results and media %}
+{% block script %}
+<script>
+    // Hide the loader when the video feed is loaded
+    function hideLoader() {
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    // Fallback to hide the loader after a timeout in case the video feed fails to load
+    setTimeout(hideLoader, 20000);  // Adjust the timeout as needed
+
+/*     // Function to switch streams
+    function switchStream(type) {
+        var videoSrc;
+        if (type === 'hls') {
+            videoSrc = '{{ results.hlsUrl | safe }}';  // Your HLS stream URL
+        } else if (type === 'multipart') {
+            videoSrc = '{{ results.multipartUrl | safe }}';  // Your Multipart stream URL
+        }
+
+        if (Hls.isSupported() && type === 'hls') {
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            video.play();
+        } else {
+            video.src = videoSrc;
+            video.play();
+        }
+    }
+
+    // Button event listeners
+    document.getElementById('hlsBtn').addEventListener('click', function() {
+        switchStream('hls');
+        document.getElementById('hlsBtn').classList.add('active');
+        document.getElementById('multipartBtn').classList.remove('active');
+    });
+
+    document.getElementById('multipartBtn').addEventListener('click', function() {
+        switchStream('multipart');
+        document.getElementById('multipartBtn').classList.add('active');
+        document.getElementById('hlsBtn').classList.remove('active');
+    });
+ */
+    // Video player
+    var video = document.getElementById('video');
+    var videoSrc = '{{ results.hlsUrl | safe }}';
+    if (Hls.isSupported()) {
+        var hls = new Hls({
+        xhrSetup: xhr => {
+        xhr.setRequestHeader('Authorization', 'Bearer {{ media.access_token }}');
+        }
+    });
+    hls.loadSource(videoSrc);
+    hls.attachMedia(video);
+    }
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = videoSrc;
+    }
+
+    // Listen for the 'canplay' event to hide the loader
+    video.addEventListener('canplay', hideLoader);
+</script>
+{% endblock %}
+{% endif %}

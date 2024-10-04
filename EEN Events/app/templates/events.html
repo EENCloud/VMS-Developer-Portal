@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <a href="{{ url_for('view', camera_id=camera.id)}}">{{ camera.name }}</a> &gt; <a>View Events</a>
+{% endblock %}
+
+{% block content %}
+        <p>Review the events that have been recorded by your VMS.</p>
+        <!-- Event Filter Form -->
+        <form method="get" action="{{ url_for('events', camera_id=camera.id) }}">
+            {{ form.hidden_tag() }}
+        
+            <!-- Time Selection Fields -->
+            <div class="time-select">
+                <div class="time-select-group">
+                    {{ form.start.label }}
+                    {{ form.start(id="start", value=request.args.get('start', '')) }}
+                </div>
+                <div class="time-select-group">
+                    {{ form.end.label }}
+                    {{ form.end(id="end", value=request.args.get('end', '')) }}
+                </div>
+            </div>
+        
+            <!-- Event Types Dropdown 
+            <div class="type-select">
+                {{ form.type.label }}
+                {{ form.type }}
+            </div>
+            -->
+        
+            <!-- Submit Button -->
+            <div class="submit-group">
+                {{ form.submit() }}
+            </div>
+        </form>        
+
+        {% if results %}
+        <div class="pagination-controls">
+            {% if prev_page %}
+                <a href="{{ url_for('events', camera_id=camera.id, page_token=prev_page, start=start, end=end) }}" class="pagination-button">Previous</a>
+            {% endif %}
+            {% if next_page %}
+                <a href="{{ url_for('events', camera_id=camera.id, page_token=next_page, start=start, end=end) }}" class="pagination-button">Next</a>
+            {% endif %}
+        </div>
+        <div class="result-block">
+            <h2>Events</h2>
+            <div class="result-grid">
+            {% for result in results %}
+                <div class="result">
+                    <h3>{{result.type}}</h3>
+                    <p>{{result.startTimestamp}}</p>
+                    <img src="{{result.data[0].httpsUrl}}" id="{{ result.id }}">
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% if results and media %}
+        <script type="application/json" id="results-data">
+            {{ results|tojson|safe }}
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const resultsData = JSON.parse(document.getElementById('results-data').textContent);
+                const accessToken = "{{ media.access_token }}";
+                displayProtectedImages(resultsData, accessToken);
+            });
+
+            function displayProtectedImages(results, accessToken) {
+                results.forEach(result => {
+                    if (result.data.type != "placeholderImage") {
+                        displayProtectedImage(result.id, result.data[0].httpsUrl, accessToken);
+                    }
+                });
+            }
+        </script>
+        {% endif %}
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='preview.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt;
+    <a href="{{ url_for('view_clips', camera_id=camera.id) }}">{{ camera.name }}</a> &gt;
+    <b>Create Event</b>
+{% endblock %}
+
+{% block content %}
+        <p>Create an Event from this clip.</p>
+        {% if clip %}
+            <div class="preview-block">
+                <div class="preview">
+                    <video id="video-player" controls>
+                        <source src="{{clip.mp4Url}}" controls type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p id="frame-info">Paused at timestamp: <span id="time-display">0</span></p>
+                </div>
+                <div class="create-form">
+                    <form id="create-form" action="" method="post">
+                        {{ form.hidden_tag() }}
+                        <div class="form-group">
+                            {{ form.body.label }}
+                            {{ form.body }}
+                        </div>
+                        <p>{{ form.submit }}</p>
+                    </form>
+                    <button id="detectBtn">Detect Objects</button>
+                </div>
+            </div>
+        {% else %}
+            <p>No footage found.</p>
+        {% endif %}
+
+{% endblock %}
+
+{% block script %}
+<script>
+    const video = document.getElementById('video-player');
+    const timeDisplay = document.getElementById('time-display');
+
+    video.addEventListener('pause', () => {
+        const currentTime = video.currentTime;
+        timeDisplay.textContent = currentTime.toFixed(3);
+        console.log('Paused at:', currentTime);
+    })
+
+    async function detect_frame() {
+        const current = (video.currentTime * 1000).toFixed(0)
+        const start = new Date("{{ clip.startTimestamp }}");
+        const timestamp = new Date(start.getTime() + parseInt(current));
+        const formatted_timestamp = timestamp.toISOString().replace('Z', '+00:00');
+        const camera_id = "{{ camera.id }}";
+        console.log('Timestamp:', formatted_timestamp);
+
+        try {
+            const response = await fetch('{{ url_for("analyze_frame") }}', {
+                method: 'POST',
+                body: JSON.stringify({
+                    camera_id: camera_id,
+                    timestamp: formatted_timestamp 
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (response.ok) {
+                data = await response.json();
+                console.log('Response:', data);
+
+                const detectionDetails = JSON.stringify(data['events'][0]);
+
+                document.querySelector('textarea[name="body"]').value = detectionDetails;
+            } else {
+                const data = await response.json();
+                alert('Error detecting objects: ' + data.message);
+            }
+        } catch (error) {
+            alert('There was aproblem with the detection request.');
+            console.error('Error:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('create-form');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent the default form submission
+
+            const formData = new FormData(form); // Collect form data
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Identify the request as AJAX
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show a success notification
+                    alert('Event created successfully!');
+                    form.reset(); // Optionally reset the form
+                } else {
+                    return response.json().then(data => {
+                        alert('Error creating event: ' + data.message);
+                    });
+                }
+            })
+            .catch(error => {
+                alert('There was a problem processing your request.');
+                console.error('Error:', error);
+            });
+        });
+
+        // Button event listeners
+        document.getElementById('detectBtn').addEventListener('click', function() {
+            detect_frame();
+        });
+    });
+</script>
+{% endblock %}

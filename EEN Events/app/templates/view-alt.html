@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <a>{{ camera.name }}</a>
+{% endblock %}
+
+{% block content %}
+        <br />
+        {% if results %}
+            <div class="viewer-block">
+                <div class="viewer">
+                    <iframe
+                        id="test-iframe"
+                        height="500"
+                        width="800"
+                        title="History Browser"
+                        src="https://iframe.eagleeyenetworks.com/#/history?ids={{ camera.id }}"
+                    ></iframe>
+                </div>
+<!--            Stream Switching Coming Soon     
+                <div class="stream-buttons">
+                    <button id="hlsBtn" class="stream-btn active">HLS Stream</button>
+                    <button id="multipartBtn" class="stream-btn">Multipart Stream</button>
+                </div> -->
+            </div>
+        {% else %}
+            <p>No footage found.</p>
+        {% endif %}
+
+{% endblock %}
+
+{% if results and media %}
+{% block script %}
+<script>
+    const viewFrame = document.getElementById("test-iframe").contentWindow;
+    window.addEventListener("message", event => {
+        if (event.data === 'een-iframe-loaded' || event.data === 'een-iframe-token-expired') {
+            viewFrame.postMessage({
+                type: "een-token",
+                token: "{{ media.access_token }}"
+            }, "https://iframe.eagleeyenetworks.com/");
+        }
+    });
+    // Hide the loader when the video feed is loaded
+
+/*     // Function to switch streams
+    function switchStream(type) {
+        var videoSrc;
+        if (type === 'hls') {
+            videoSrc = '{{ results.hlsUrl | safe }}';  // Your HLS stream URL
+        } else if (type === 'multipart') {
+            videoSrc = '{{ results.multipartUrl | safe }}';  // Your Multipart stream URL
+        }
+
+        if (Hls.isSupported() && type === 'hls') {
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            video.play();
+        } else {
+            video.src = videoSrc;
+            video.play();
+        }
+    }
+
+    // Button event listeners
+    document.getElementById('hlsBtn').addEventListener('click', function() {
+        switchStream('hls');
+        document.getElementById('hlsBtn').classList.add('active');
+        document.getElementById('multipartBtn').classList.remove('active');
+    });
+
+    document.getElementById('multipartBtn').addEventListener('click', function() {
+        switchStream('multipart');
+        document.getElementById('multipartBtn').classList.add('active');
+        document.getElementById('hlsBtn').classList.remove('active');
+    });
+ */
+    // Video player
+    var video = document.getElementById('video');
+    var videoSrc = '{{ results.hlsUrl | safe }}';
+    if (Hls.isSupported()) {
+        var hls = new Hls({
+        xhrSetup: xhr => {
+        xhr.setRequestHeader('Authorization', 'Bearer {{ media.access_token }}');
+        }
+    });
+    hls.loadSource(videoSrc);
+    hls.attachMedia(video);
+    }
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = videoSrc;
+    }
+
+    // Listen for the 'canplay' event to hide the loader
+    video.addEventListener('canplay', hideLoader);
+</script>
+{% endblock %}
+{% endif %}

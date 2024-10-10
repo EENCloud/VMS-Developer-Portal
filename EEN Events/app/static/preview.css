@@ -41,8 +41,8 @@
     box-sizing: border-box;
 }
 
-.create-form textarea {
-    resize: vertical; /* Allow vertical resizing only */
+.create-form select {
+    width: 80%;
 }
 
 .create-form .form-group {
@@ -58,6 +58,18 @@
 
 .create-form .form-group:last-child {
     margin-bottom: 0; /* Remove margin for the last group */
+}
+
+.create-form button {
+    width: auto;
+    background-color: #238fce;
+    padding: .5rem 2rem;
+    border-radius: .5rem;
+    margin: 1rem;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 /* Flexbox layout for medium to large screens */
@@ -78,4 +90,15 @@
         flex: 1;
         margin-top: 0;
     }
+}
+
+/* Video container */
+.video-container {
+    position: relative;
+    display: inline-block;
+}
+.bounding-box {
+    position: absolute;
+    border: 2px solid;
+    pointer-events: none;
 }

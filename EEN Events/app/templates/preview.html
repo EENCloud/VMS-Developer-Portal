@@ -11,44 +11,49 @@
 {% endblock %}
 
 {% block content %}
-        <p>Create an Event from this clip.</p>
-        {% if clip %}
-            <div class="preview-block">
-                <div class="preview">
+    <p>Create an Event from this clip.</p>
+    {% if clip %}
+        <div class="preview-block">
+            <div class="preview">
+                <div class="video-container" id="video-container">
                     <video id="video-player" controls>
                         <source src="{{clip.mp4Url}}" controls type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
-                    <p id="frame-info">Paused at timestamp: <span id="time-display">0</span></p>
                 </div>
-                <div class="create-form">
-                    <form id="create-form" action="" method="post">
-                        {{ form.hidden_tag() }}
-                        <div class="form-group">
-                            {{ form.body.label }}
-                            {{ form.body }}
-                        </div>
-                        <p>{{ form.submit }}</p>
-                    </form>
-                    <button id="detectBtn">Detect Objects</button>
+                <p id="frame-info">Paused at timestamp: <span id="time-display">0</span></p>
+            </div>
+            <div class="create-form">
+                <button id="detectBtn">Detect Events</button>
+                <div id="eventSelection" style="display: none;">
+                    <h3>Select an event to create</h3>
+                    <select id="eventSelect"></select>
+                    <button id="createEventBtn">Create Event</button>
                 </div>
             </div>
-        {% else %}
-            <p>No footage found.</p>
-        {% endif %}
-
+        </div>
+    {% else %}
+        <p>No footage found.</p>
+    {% endif %}
 {% endblock %}
 
 {% block script %}
 <script>
     const video = document.getElementById('video-player');
+    const videoContainer = document.getElementById('video-container');
     const timeDisplay = document.getElementById('time-display');
+    const detectBtn = document.getElementById('detectBtn');
+    const eventSelection = document.getElementById('eventSelection');
+    const eventSelect = document.getElementById('eventSelect');
+    const createEventBtn = document.getElementById('createEventBtn');
+
+    let detectedEvents = [];
 
     video.addEventListener('pause', () => {
         const currentTime = video.currentTime;
         timeDisplay.textContent = currentTime.toFixed(3);
         console.log('Paused at:', currentTime);
-    })
+    });
 
     async function detect_frame() {
         const current = (video.currentTime * 1000).toFixed(0)
@@ -71,58 +76,108 @@
                 }
             });
             if (response.ok) {
-                data = await response.json();
+                const data = await response.json();
                 console.log('Response:', data);
-
-                const detectionDetails = JSON.stringify(data['events'][0]);
-
-                document.querySelector('textarea[name="body"]').value = detectionDetails;
+                detectedEvents = data['events'];
+                try {
+                    populateEventSelect(detectedEvents);
+                    eventSelection.style.display = 'block';
+                    drawBoundingBoxes(detectedEvents);
+                } catch (error) {
+                    alert('There was a problem populating the event selection.');
+                    console.error('Error:', error);
+                }
             } else {
                 const data = await response.json();
                 alert('Error detecting objects: ' + data.message);
             }
         } catch (error) {
-            alert('There was aproblem with the detection request.');
+            alert('There was a problem with the detection request.');
             console.error('Error:', error);
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('create-form');
+    function populateEventSelect(events) {
+        eventSelect.innerHTML = '';
+        events.forEach((event, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `Event ${index + 1}: ${event.type}`;
+            eventSelect.appendChild(option);
+        });
+        eventSelect.addEventListener('change', highlightSelectedObject);
+    }
 
-        form.addEventListener('submit', (event) => {
-            event.preventDefault(); // Prevent the default form submission
+    function drawBoundingBoxes(events) {
+        clearBoundingBoxes();
+        events.forEach((event, index) => {
+            try {
+                const boundingBox = event.data.find(schema => schema.type === "een.objectDetection.v1").boundingBox;            
+                drawBox(boundingBox, `rgba(255, 0, 0, 0.5)`, index);
+            } catch (error) {
+                console.error('Error drawing bounding box:', error);
+                console.log('Event:', event);
+            }
+        });
+    }
 
-            const formData = new FormData(form); // Collect form data
+    function drawBox(boundingBox, color, index) {
+        const [x1, y1, x2, y2] = boundingBox;
+        const box = document.createElement('div');
+        box.className = 'bounding-box';
+        box.id = `box-${index}`;
+        box.style.left = `${x1 * 100}%`;
+        box.style.top = `${y1 * 100}%`;
+        box.style.width = `${(x2 - x1) * 100}%`;
+        box.style.height = `${(y2 - y1) * 100}%`;
+        box.style.borderColor = color;
+        videoContainer.appendChild(box);
+    }
 
-            fetch(form.action, {
+    function clearBoundingBoxes() {
+        const boxes = videoContainer.querySelectorAll('.bounding-box');
+        boxes.forEach(box => box.remove());
+    }
+
+    function highlightSelectedObject() {
+        const selectedIndex = eventSelect.value;
+        drawBoundingBoxes(detectedEvents);
+        const selectedEvent = detectedEvents[selectedIndex];
+        const boundingBox = selectedEvent.data.find(schema => schema.type === "een.objectClassification.v1").boundingBox;
+        const selectedBox = document.getElementById(`box-${selectedIndex}`);
+        if (selectedBox) {
+            selectedBox.style.borderColor = 'rgba(0, 255, 0, 0.8)';
+        }
+    }
+
+    async function createEvent() {
+        const selectedEventIndex = eventSelect.value;
+        const selectedEvent = detectedEvents[selectedEventIndex];
+
+        try {
+            const response = await fetch('{{ url_for("create_event") }}', {
                 method: 'POST',
-                body: formData,
+                body: JSON.stringify(selectedEvent),
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Identify the request as AJAX
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Show a success notification
-                    alert('Event created successfully!');
-                    form.reset(); // Optionally reset the form
-                } else {
-                    return response.json().then(data => {
-                        alert('Error creating event: ' + data.message);
-                    });
-                }
-            })
-            .catch(error => {
-                alert('There was a problem processing your request.');
-                console.error('Error:', error);
             });
-        });
+            if (response.ok) {
+                alert('Event created successfully!');
+                eventSelection.style.display = 'none';
+                clearBoundingBoxes();
+            } else {
+                const data = await response.json();
+                alert('Error creating event: ' + data.message);
+            }
+        } catch (error) {
+            alert('There was a problem creating the event.');
+            console.error('Error:', error);
+        }
+    }
 
-        // Button event listeners
-        document.getElementById('detectBtn').addEventListener('click', function() {
-            detect_frame();
-        });
-    });
+    detectBtn.addEventListener('click', detect_frame);
+    createEventBtn.addEventListener('click', createEvent);
 </script>
 {% endblock %}

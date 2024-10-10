@@ -9,6 +9,7 @@ import cv2
 import json
 import urllib.parse
 import torch
+from pydantic import ValidationError
 
 from functools import wraps
 from app.een_client import (
@@ -54,7 +55,9 @@ def run_detection(feed_url, access_token):
 
 
 # Construct Detection Event
-def construct_detection_event(camera_id, type, timestamp, box, img_url, confidence):
+def construct_detection_event(
+        camera_id, type, timestamp, box,
+        img_url, confidence):
     """
     Construct a detection event object.
 
@@ -76,30 +79,30 @@ def construct_detection_event(camera_id, type, timestamp, box, img_url, confiden
     user_info = json.loads(client.current_user())
 
     if type == 'person':
-        data = [
+        dataSchemas = [
             "een.fullFrameImageUrl.v1",
             "een.objectClassification.v1",
             "een.objectClassification.v1",
             "een.creatorDetails.v1",
         ]
-        dataSchemas = []
-        dataSchemas.append(FullFrameImageData(
+        data = []
+        data.append(FullFrameImageData(
             type="een.fullFrameImageUrl.v1",
             timestamp=timestamp,
             httpsUrl=img_url,
             feedType="main"
         ))
-        # dataSchemas.append(ObjectClassificationData(
-        #     type="een.objectClassification.v1",
-        #     class_="person",
-        #     confidence=confidence
-        # ))
-        dataSchemas.append(ObjectDetectionData(
+        data.append(ObjectClassificationData(
             type="een.objectClassification.v1",
+            **{"class": "person"},
+            confidence=confidence
+        ))
+        data.append(ObjectDetectionData(
+            type="een.objectDetection.v1",
             timestamp=timestamp,
             boundingBox=box
         ))
-        dataSchemas.append(CreatorDetailsData(
+        data.append(CreatorDetailsData(
             type="een.creatorDetails.v1",
             id=os.getenv('CREATOR_ID'),
             vendor=os.getenv('CREATOR_VENDOR'),
@@ -115,7 +118,6 @@ def construct_detection_event(camera_id, type, timestamp, box, img_url, confiden
             actorId=camera_id,
             actorAccountId=camera_info.get('accountId'),
             actorType="camera",
-            actorName=camera_info.get('name'),
             creatorId=os.getenv('CREATOR_ID'),
             data=data,
             dataSchemas=dataSchemas
@@ -145,6 +147,65 @@ def auth_required(f):
     return decorated_function
 
 
+# Create Event
+# This route will create an event based on the provided JSON body.
+@app.route('/event', methods=['POST'])
+@auth_required
+def create_event():
+    content_type = request.headers.get('Content-Type')
+    if content_type != 'application/json':
+        return "Invalid Content-Type", 400
+    print('Creating Event')
+    json_r = request.json
+    print(f"Body JSON: {json.dumps(json_r)}")
+
+    # Convert the data list to the appropriate Pydantic models
+    data_schemas = []
+    for item in json_r.get('data', []):
+        schema_type = item.get('type')
+        if schema_type == 'een.objectDetection.v1':
+            data_schemas.append(ObjectDetectionData(**item))
+        elif schema_type == 'een.fullFrameImageUrl.v1':
+            data_schemas.append(FullFrameImageData(**item))
+        elif schema_type == 'een.objectClassification.v1':
+            data_schemas.append(ObjectClassificationData(**item))
+        elif schema_type == 'een.creatorDetails.v1':
+            data_schemas.append(CreatorDetailsData(**item))
+        elif schema_type == 'een.objectRegionMapping.v1':
+            data_schemas.append(ObjectRegionmappingData(**item))
+        else:
+            return jsonify({"error": f"Unsupported data schema type: {schema_type}"}), 400
+
+    try:
+        event_data = CreateEvent(**json_r)
+    except ValidationError as e:
+        print(f"Invalid data: {e}")
+        return jsonify({"error": "Invalid data", "details": e.errors()}), 422
+
+    print("Request validated. Sending to EEN...")
+    try:
+        create_response = client.post_event(event_data.dict())
+        print(f"Create Response: {create_response}")
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return json.dumps({'success': True}), 200, {
+                'ContentType': 'application/json'
+            }
+        else:
+            return redirect(url_for('events', camera_id=event_data.actorId))
+    except Exception as e:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return json.dumps({
+                'success': False,
+                'error': str(e)
+                }), 500, {
+                'ContentType': 'application/json'
+            }
+        else:
+            return redirect(url_for('events', camera_id=event_data.actorId))
+
+
+
 # Analyze Frame
 # This route will analyze a single frame from a camera feed.
 @app.route('/analyze', methods=['POST'])
@@ -154,9 +215,9 @@ def analyze_frame():
     if content_type != 'application/json':
         return "Invalid Content-Type", 400
     try:
-        json = request.json
-        camera_id = json.get('camera_id')
-        timestamp = json.get('timestamp')
+        json_r = request.json
+        camera_id = json_r.get('camera_id')
+        timestamp = json_r.get('timestamp')
         response = client.get_recorded_image(camera_id, timestamp, "main")
         img_url = client.get_recorded_image(
             camera_id, timestamp, "main", construct_url=True)
@@ -198,7 +259,10 @@ def analyze_frame():
                             img_url,
                             r.boxes.conf[n].item()
                         ))
-        print(f"Events: {events}")
+        for e in events:
+            if e is None:
+                events.remove(e)
+        print(f"Events: {json.dumps(events)}")
         return jsonify({
             "status": "success",
             "events": events
@@ -278,31 +342,13 @@ def view_clips(camera_id):
 
 # Preview Export View
 # This page will display a video player for a selected video clip.
-@app.route('/preview/<camera_id>', methods=['GET', 'POST'])
+@app.route('/preview/<camera_id>', methods=['GET'])
 @auth_required
 def preview(camera_id):
     print('Creating Preview')
     form = EventCreateForm()
     start = request.args.get('start')
     end = request.args.get('end')
-
-    if form.validate_on_submit():
-        print('Creating Event')
-        try:
-            body = form.body.data
-            print(f"Raw Body: {body}")
-            body_json = json.loads(body)
-            print(f"Body JSON: {body_json}")
-
-            create_response = client.post_event(body_json)
-            print(f"Create Response: {create_response}")
-
-            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                return json.dumps({'success': True}), 200, {
-                    'ContentType': 'application/json'
-                }
-        except Exception as e:
-            print(f"Failed to create event: {e}")
 
     media = {
         'access_token': session.get('access_token'),

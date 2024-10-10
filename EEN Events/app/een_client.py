@@ -194,7 +194,9 @@ class EENClient:
                 raise e
         elif method == 'POST':
             print(f"Payload: {data}")
-            response = requests.post(url, headers=headers, data=data)
+
+            response = requests.post(
+                url, headers=headers, data=json.dumps(data))
 
         return self.__handle_response(
             response,

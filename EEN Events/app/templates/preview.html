@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='preview.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt;
+    <a href="{{ url_for('view_clips', camera_id=camera.id) }}">{{ camera.name }}</a> &gt;
+    <b>Create Event</b>
+{% endblock %}
+
+{% block content %}
+    <p>Create an Event from this clip.</p>
+    {% if clip %}
+        <div class="preview-block">
+            <div class="preview">
+                <div class="video-container" id="video-container">
+                    <video id="video-player" controls>
+                        <source src="{{clip.mp4Url}}" controls type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <p id="frame-info">Paused at timestamp: <span id="time-display">0</span></p>
+            </div>
+            <div class="create-form">
+                <button id="detectBtn">Detect Events</button>
+                <div id="eventSelection" style="display: none;">
+                    <h3>Select an event to create</h3>
+                    <select id="eventSelect"></select>
+                    <button id="createEventBtn">Create Event</button>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No footage found.</p>
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+    const video = document.getElementById('video-player');
+    const videoContainer = document.getElementById('video-container');
+    const timeDisplay = document.getElementById('time-display');
+    const detectBtn = document.getElementById('detectBtn');
+    const eventSelection = document.getElementById('eventSelection');
+    const eventSelect = document.getElementById('eventSelect');
+    const createEventBtn = document.getElementById('createEventBtn');
+
+    let detectedEvents = [];
+
+    video.addEventListener('pause', () => {
+        const currentTime = video.currentTime;
+        timeDisplay.textContent = currentTime.toFixed(3);
+        console.log('Paused at:', currentTime);
+    });
+
+    async function detect_frame() {
+        const current = (video.currentTime * 1000).toFixed(0)
+        const start = new Date("{{ clip.startTimestamp }}");
+        const timestamp = new Date(start.getTime() + parseInt(current));
+        const formatted_timestamp = timestamp.toISOString().replace('Z', '+00:00');
+        const camera_id = "{{ camera.id }}";
+        console.log('Timestamp:', formatted_timestamp);
+
+        try {
+            const response = await fetch('{{ url_for("analyze_frame") }}', {
+                method: 'POST',
+                body: JSON.stringify({
+                    camera_id: camera_id,
+                    timestamp: formatted_timestamp 
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Response:', data);
+                detectedEvents = data['events'];
+                try {
+                    populateEventSelect(detectedEvents);
+                    eventSelection.style.display = 'block';
+                    drawBoundingBoxes(detectedEvents);
+                } catch (error) {
+                    alert('There was a problem populating the event selection.');
+                    console.error('Error:', error);
+                }
+            } else {
+                const data = await response.json();
+                alert('Error detecting objects: ' + data.message);
+            }
+        } catch (error) {
+            alert('There was a problem with the detection request.');
+            console.error('Error:', error);
+        }
+    }
+
+    function populateEventSelect(events) {
+        eventSelect.innerHTML = '';
+        events.forEach((event, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `Event ${index + 1}: ${event.type}`;
+            eventSelect.appendChild(option);
+        });
+        eventSelect.addEventListener('change', highlightSelectedObject);
+    }
+
+    function drawBoundingBoxes(events) {
+        clearBoundingBoxes();
+        events.forEach((event, index) => {
+            try {
+                const boundingBox = event.data.find(schema => schema.type === "een.objectDetection.v1").boundingBox;            
+                drawBox(boundingBox, `rgba(255, 0, 0, 0.5)`, index);
+            } catch (error) {
+                console.error('Error drawing bounding box:', error);
+                console.log('Event:', event);
+            }
+        });
+    }
+
+    function drawBox(boundingBox, color, index) {
+        const [x1, y1, x2, y2] = boundingBox;
+        const box = document.createElement('div');
+        box.className = 'bounding-box';
+        box.id = `box-${index}`;
+        box.style.left = `${x1 * 100}%`;
+        box.style.top = `${y1 * 100}%`;
+        box.style.width = `${(x2 - x1) * 100}%`;
+        box.style.height = `${(y2 - y1) * 100}%`;
+        box.style.borderColor = color;
+        videoContainer.appendChild(box);
+    }
+
+    function clearBoundingBoxes() {
+        const boxes = videoContainer.querySelectorAll('.bounding-box');
+        boxes.forEach(box => box.remove());
+    }
+
+    function highlightSelectedObject() {
+        const selectedIndex = eventSelect.value;
+        drawBoundingBoxes(detectedEvents);
+        const selectedEvent = detectedEvents[selectedIndex];
+        const boundingBox = selectedEvent.data.find(schema => schema.type === "een.objectClassification.v1").boundingBox;
+        const selectedBox = document.getElementById(`box-${selectedIndex}`);
+        if (selectedBox) {
+            selectedBox.style.borderColor = 'rgba(0, 255, 0, 0.8)';
+        }
+    }
+
+    async function createEvent() {
+        const selectedEventIndex = eventSelect.value;
+        const selectedEvent = detectedEvents[selectedEventIndex];
+
+        try {
+            const response = await fetch('{{ url_for("create_event") }}', {
+                method: 'POST',
+                body: JSON.stringify(selectedEvent),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (response.ok) {
+                alert('Event created successfully!');
+                eventSelection.style.display = 'none';
+                clearBoundingBoxes();
+            } else {
+                const data = await response.json();
+                alert('Error creating event: ' + data.message);
+            }
+        } catch (error) {
+            alert('There was a problem creating the event.');
+            console.error('Error:', error);
+        }
+    }
+
+    detectBtn.addEventListener('click', detect_frame);
+    createEventBtn.addEventListener('click', createEvent);
+</script>
+{% endblock %}

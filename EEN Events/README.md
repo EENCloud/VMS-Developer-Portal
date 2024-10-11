@@ -2,7 +2,11 @@
 
 This example demonstrates the process for creating and managing Eagle Eye Networks events. To run this application, you will need to have a valid Eagle Eye Networks account and an application registered with the Eagle Eye Networks Developer Program. For more information on how to register an application, review the [API documentation](https://developer.eagleeyenetworks.com/docs/getting-started).
 
+## Before You Begin
 
+Before you can use the event insertion function, you will need to request a Creator ID. This ID indicates with which account the events will be associated with and will also determine which events you are able to send to the API. To request a Creator ID, please contact the [API platform team](mailto:api_support@een.com).
+
+This example demonstrates the creation of [Person Detection events](https://developer.eagleeyenetworks.com/docs/example-events#person-detection-event). To see a list of all available event types, refer to the [API documentation](https://developer.eagleeyenetworks.com/docs/example-events).
 
 ## Setup
 

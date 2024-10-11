@@ -1,5 +1,5 @@
 from app import app
-from app.forms import TimeSelectForm, EventCreateForm
+from app.forms import TimeSelectForm
 from app.schemas import (
     CreateEvent, CreatorDetailsData,
     FullFrameImageData, ObjectClassificationData,
@@ -8,7 +8,6 @@ import os
 import cv2
 import json
 import urllib.parse
-import torch
 from pydantic import ValidationError
 
 from functools import wraps
@@ -22,7 +21,7 @@ from ultralytics import YOLO
 import numpy as np
 from flask import (
     request, render_template, session,
-    redirect, url_for, Response, jsonify
+    redirect, url_for, jsonify
 )
 from dotenv import load_dotenv
 
@@ -34,24 +33,8 @@ client = EENClient(
     os.getenv('CLIENT_SECRET')
 )
 
-# Load the YOLO model and generate detections.
-# The model will return a generator that allows us to
-# iterate over each frame and its detection results.
+# Load the YOLO model.
 model = YOLO('yolov8s.pt')
-
-
-# Run Object Detection
-def run_detection(feed_url, access_token):
-    print("Running Object Detection")
-    auth_url = f"{feed_url}&access_token={access_token}"
-    # print(f"Feed URL: {auth_url}")
-    try:
-        results = model(source=auth_url, show=False, conf=0.40, stream=False)
-
-        return results
-    except Exception as e:
-        print(f"Error running object detection: {e}")
-        return None
 
 
 # Construct Detection Event
@@ -71,10 +54,6 @@ def construct_detection_event(
         dict: The detection event object.
     """
     print(f"Constructing {type} Detection Event")
-    print(f"Box: {box}")
-    print(f"Image URL: {img_url}")
-    print(f"Timestamp: {timestamp}")
-    print(f"Confidence: {confidence}")
     camera_info = json.loads(client.get_cameras(camera_id))
     user_info = json.loads(client.current_user())
 
@@ -157,7 +136,6 @@ def create_event():
         return "Invalid Content-Type", 400
     print('Creating Event')
     json_r = request.json
-    print(f"Body JSON: {json.dumps(json_r)}")
 
     # Convert the data list to the appropriate Pydantic models
     data_schemas = []
@@ -174,7 +152,8 @@ def create_event():
         elif schema_type == 'een.objectRegionMapping.v1':
             data_schemas.append(ObjectRegionmappingData(**item))
         else:
-            return jsonify({"error": f"Unsupported data schema type: {schema_type}"}), 400
+            return jsonify(
+                {"error": f"Unsupported data schema type: {schema_type}"}), 400
 
     try:
         event_data = CreateEvent(**json_r)
@@ -182,10 +161,9 @@ def create_event():
         print(f"Invalid data: {e}")
         return jsonify({"error": "Invalid data", "details": e.errors()}), 422
 
-    print("Request validated. Sending to EEN...")
     try:
         create_response = client.post_event(event_data.dict())
-        print(f"Create Response: {create_response}")
+        print(f"Event Created: {create_response}")
 
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return json.dumps({'success': True}), 200, {
@@ -203,7 +181,6 @@ def create_event():
             }
         else:
             return redirect(url_for('events', camera_id=event_data.actorId))
-
 
 
 # Analyze Frame
@@ -232,7 +209,6 @@ def analyze_frame():
         results = model(
             [img]
         )
-        # print("Results: ", results)
         events = []
         for r in results:
             if len(r.boxes.cls) > 0:
@@ -346,7 +322,6 @@ def view_clips(camera_id):
 @auth_required
 def preview(camera_id):
     print('Creating Preview')
-    form = EventCreateForm()
     start = request.args.get('start')
     end = request.args.get('end')
 
@@ -372,7 +347,6 @@ def preview(camera_id):
             return render_template(
                 'preview.html',
                 media=media,
-                form=form,
                 camera=camera,
                 clip=clip)
         except Exception as e:
@@ -430,7 +404,6 @@ def events(camera_id):
         events = r_json['results']
         next_page = r_json['nextPageToken']
         prev_page = r_json['prevPageToken']
-        # print(f"Events: {response}")
 
         for event in events:
             event['type'] = camel_to_title(
@@ -483,8 +456,7 @@ def view(camera_id):
             camera_id, type="main", include="multipartUrl,hlsUrl")
         r_json = json.loads(response)
         results = r_json['results']
-        feeds = results[0]
-        print(f"Feeds: {results}")
+        print(f"Feeds: {results[0]}")
     except Exception as e:
         print(f"API Call failed: {e}")
 
@@ -493,7 +465,7 @@ def view(camera_id):
             'view.html',
             camera=camera,
             media=media,
-            results=feeds)
+            results=results[0])
     except Exception as e:
         print(f"Failed to render live view: {e}")
 
@@ -557,7 +529,6 @@ def login():
         print("Attempting Code Auth")
         auth_response = client.auth_een(code)
         if auth_response.status_code == 200:
-            # print(auth_response.text)
             auth_response = json.loads(auth_response.text)
 
             # Store the access_token, refresh_token,

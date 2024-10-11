@@ -1,9 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms.fields import (
     SelectMultipleField, SubmitField,
-    DateTimeLocalField, HiddenField,
-    BooleanField, SelectField,
-    TextAreaField)
+    DateTimeLocalField, HiddenField)
 
 
 class TimeSelectForm(FlaskForm):
@@ -15,8 +13,3 @@ class TimeSelectForm(FlaskForm):
         'End Time', format='%Y-%m-%dT%H:%M')
     timezone = HiddenField()
     submit = SubmitField('Filter')
-
-
-class EventCreateForm(FlaskForm):
-    body = TextAreaField('Event JSON')
-    submit = SubmitField('Create')

@@ -282,7 +282,8 @@ class EENClient:
         }
         print(f"Data type: {data['type']}")
 
-        return self.__api_call(endpoint, headers=headers, data=data, method='POST')
+        return self.__api_call(
+            endpoint, headers=headers, data=data, method='POST')
 
     # Retrieve a recorded image
     # For more info see:

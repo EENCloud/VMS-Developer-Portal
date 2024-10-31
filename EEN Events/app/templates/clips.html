@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> 
+    &gt; <a href="{{ url_for('view', camera_id=camera.id) }}">{{ camera.name }}</a> 
+    &gt; <b>Select Clip</b>
+{% endblock %}
+
+{% block content %}
+        <p>Select a video clip to create an new event.</p>
+        <form method="get" action="{{ url_for('view_clips', camera_id=camera.id) }}">
+            {{ form.hidden_tag() }}
+
+            <!-- Time Selection Fields -->
+            <div class="time-select">
+                <div class="time-select-group">
+                    {{ form.start.label }}
+                    {{ form.start(id="start", value=request.args.get('start', '')) }}
+                </div>
+                <div class="time-select-group">
+                    {{ form.end.label }}
+                    {{ form.end(id="end", value=request.args.get('end', '')) }}
+                </div>
+            </div>
+            <!-- Submit Button -->
+            <div class="submit-group">
+                {{ form.submit() }}
+            </div>
+        </form>  
+
+        {% if results %}
+        <div class="pagination-controls">
+            {% if prev_page %}
+                <a href="{{ url_for('view_clips', camera_id=camera.id, page_token=prev_page, start=start, end=end) }}" class="pagination-button">Previous</a>
+            {% endif %}
+            {% if next_page %}
+                <a href="{{ url_for('view_clips', camera_id=camera.id, page_token=next_page, start=start, end=end) }}" class="pagination-button">Next</a>
+            {% endif %}
+        </div>
+            <div class="result-block">
+                <h2>Select a clip.</h2>
+                <div class="result-grid">
+                {% for result in results %}
+                    <div class="result">
+                        <h3>{{result.startTimestamp}}</h3>
+                        <a href="{{ url_for('preview', camera_id=camera.id, start=result.startTimestamp, end=result.endTimestamp) }}">
+                            <img src="{{result.imageUrl}}" id="{{ result.id }}">
+                        </a>
+                    </div>                    
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No clips found.</p>
+        {% endif %}
+{% endblock %}
+
+{% block script %}
+        {% if results and media %}
+        <script type="application/json" id="results-data">
+            {{ results|tojson|safe }}
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const timezoneInput = document.getElementById('timezone');
+                timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const resultsData = JSON.parse(document.getElementById('results-data').textContent);
+                const accessToken = "{{ media.access_token }}";
+                displayProtectedImages(resultsData, accessToken);
+            });
+
+            function displayProtectedImages(results, accessToken) {
+                results.forEach(result => {
+                    displayProtectedImage(result.id, result.imageUrl, accessToken);
+                });
+            }
+        </script>
+        {% endif %}
+{% endblock %}

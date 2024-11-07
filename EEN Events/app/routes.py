@@ -17,6 +17,7 @@ from app.een_client import (
     format_timestamp,
     camel_to_title
 )
+from app.session import SessionTokenStorage
 from ultralytics import YOLO
 import numpy as np
 from flask import (
@@ -27,10 +28,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Set the session token storage
+token_storage = SessionTokenStorage()
+
 # Load the API Client
 client = EENClient(
     os.getenv('CLIENT_ID'),
-    os.getenv('CLIENT_SECRET')
+    os.getenv('CLIENT_SECRET'),
+    "http://{host}:{port}".format(
+        host=os.getenv('FLASK_RUN_HOST'),
+        port=os.getenv('FLASK_RUN_PORT')
+    ),
+    token_storage
 )
 
 # Load the YOLO model.
@@ -114,7 +123,7 @@ def get_unquoted_arg(arg_name):
 
 # Check if the user is authenticated
 def is_authenticated():
-    return session.get('access_token') is not None
+    return token_storage.get('access_token') is not None
 
 
 def auth_required(f):
@@ -254,8 +263,8 @@ def analyze_frame():
 @auth_required
 def view_clips(camera_id):
     media = {
-        'access_token': session.get('access_token'),
-        'base_url': session.get('base_url')
+        'access_token': token_storage.get('access_token'),
+        'base_url': token_storage.get('base_url')
     }
     form = TimeSelectForm()
 
@@ -287,7 +296,7 @@ def view_clips(camera_id):
         prev_page = r_json['prevPageToken']
         for i, clip in enumerate(results):
             url = "https://{}/api/v3.0/media/recordedImage.jpeg".format(
-                session.get('base_url')
+                token_storage.get('base_url')
             )
             params = {
                 "timestamp__gte": clip['startTimestamp'],
@@ -326,8 +335,8 @@ def preview(camera_id):
     end = request.args.get('end')
 
     media = {
-        'access_token': session.get('access_token'),
-        'base_url': session.get('base_url')
+        'access_token': token_storage.get('access_token'),
+        'base_url': token_storage.get('base_url')
     }
 
     if start and end:
@@ -361,8 +370,8 @@ def preview(camera_id):
 @auth_required
 def events(camera_id):
     media = {
-        'access_token': session.get('access_token'),
-        'base_url': session.get('base_url')
+        'access_token': token_storage.get('access_token'),
+        'base_url': token_storage.get('base_url')
     }
     form = TimeSelectForm()
     exclude = [
@@ -440,8 +449,8 @@ def events(camera_id):
 @auth_required
 def view(camera_id):
     media = {
-        'access_token': session.get('access_token'),
-        'base_url': session.get('base_url')
+        'access_token': token_storage.get('access_token'),
+        'base_url': token_storage.get('base_url')
     }
 
     print('Pulling Feeds and Camera Info')
@@ -482,8 +491,8 @@ def index():
         return redirect(url_for('login'))
 
     media = {
-        'access_token': session.get('access_token'),
-        'base_url': session.get('base_url')
+        'access_token': token_storage.get('access_token'),
+        'base_url': token_storage.get('base_url')
     }
 
     print('Pulling Camera List')
@@ -533,9 +542,11 @@ def login():
 
             # Store the access_token, refresh_token,
             # and base_url in the session
-            session['access_token'] = auth_response['access_token']
-            session['refresh_token'] = auth_response['refresh_token']
-            session['base_url'] = auth_response['httpsBaseUrl']['hostname']
+            token_storage.set('access_token', auth_response['access_token'])
+            token_storage.set('refresh_token', auth_response['refresh_token'])
+            token_storage.set(
+                'base_url', auth_response['httpsBaseUrl']['hostname'])
+
             session.permanent = True
 
             return redirect(url_for('index'))

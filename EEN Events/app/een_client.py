@@ -1,11 +1,17 @@
-import os
 import re
 import json
+import time
 import requests
+import logging
 import urllib.parse
-from flask import session
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+from requests.exceptions import RequestException
+
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 # Format timestamps to ISO 8601 format
@@ -66,12 +72,31 @@ class AuthenticationError(Exception):
     pass
 
 
-class EENClient:
-    auth_url = "https://auth.eagleeyenetworks.com/oauth2/authorize"
+class TokenStorage(ABC):
+    @abstractmethod
+    def get(self, key):
+        pass
 
-    def __init__(self, client_id, client_secret):
+    @abstractmethod
+    def set(self, key, value):
+        pass
+
+    @abstractmethod
+    def __contains__(self, key):
+        pass
+
+
+class EENClient:
+    auth_url = "https://auth.eagleeyenetworks.com/oauth/authorize"
+
+    def __init__(self, client_id, client_secret, redirect_uri, token_storage):
+        if not isinstance(token_storage, TokenStorage):
+            raise TypeError(
+                "token_storage must implement the TokenStorage interface.")
         self.client_id = client_id
         self.client_secret = client_secret
+        self.redirect_uri = redirect_uri
+        self.token_storage = token_storage
 
     # OAuth Authentication
     def auth_een(self, token, type="code"):
@@ -80,15 +105,13 @@ class EENClient:
             "accept": "application/json",
             "content-type": "application/x-www-form-urlencoded"
         }
+
         if type == "code":
             data = {
                 "grant_type": "authorization_code",
                 "scope": "vms.all",
                 "code": token,
-                "redirect_uri": "http://{host}:{port}".format(
-                    host=os.getenv('FLASK_RUN_HOST'),
-                    port=os.getenv('FLASK_RUN_PORT')
-                )
+                "redirect_uri": self.redirect_uri
             }
         elif type == "refresh":
             data = {
@@ -101,64 +124,56 @@ class EENClient:
         response = requests.post(
             url,
             auth=(
-                os.getenv('CLIENT_ID'),
-                os.getenv('CLIENT_SECRET')
+                self.client_id,
+                self.client_secret
             ),
             data=data,
             headers=headers
         )
         return response
 
-    # Handle Response
-    # This function will handle the response from an API call
-    # while also handling authentication errors.
-    def __handle_response(
-            self,
-            response,
-            original_request_func,
-            endpoint,
-            retry_count=0,
-            max_retries=1,
-            *args, **kwargs):
-        if response.ok:
-            if kwargs.get('stream'):
-                return response
-            return response.text
-        elif response.status_code == 401 and retry_count < max_retries:
-            # Refresh the access token
-            print("Auth failed. Refreshing Access Token.")
-            refresh_token = session.get('refresh_token')
-            if refresh_token:
-                refresh_response = self.auth_een(refresh_token, type="refresh")
-                if refresh_response.status_code == 200:
-                    # print(auth_response.text)
-                    auth_response = json.loads(refresh_response.text)
+    def refresh_access_token(self):
+        refresh_token = self.token_storage.get('refresh_token')
+        if not refresh_token:
+            raise AuthenticationError("No refresh token found.")
 
-                    # Store the tokens in the session
-                    session['access_token'] = auth_response['access_token']
-                    session['refresh_token'] = auth_response['refresh_token']
-                    session[
-                        'base_url'] = auth_response['httpsBaseUrl']['hostname']
+        refresh_response = self.auth_een(refresh_token, type="refresh")
+        if refresh_response.status_code == 200:
+            auth_response = json.loads(refresh_response.text)
 
-                    # Retry the original request
-                    retry_count += 1
-                    return original_request_func(
-                        endpoint,
-                        retry_count=retry_count,
-                        *args, **kwargs
-                    )
-                else:
-                    print("Refresh Failed: {code} {text}".format(
-                        code=refresh_response.status_code,
-                        text=refresh_response.text
-                    ))
-                    raise AuthenticationError
-            else:
-                print("No refresh token found")
-                raise AuthenticationError
+            # Store the tokens in the token storage
+            self.storage_token.set(
+                'access_token', auth_response['access_token'])
+            self.storage_token.set(
+                'refresh_token', auth_response['refresh_token'])
+            self.storage_token.set(
+                'base_url', auth_response['httpsBaseUrl']['hostname'])
         else:
-            raise Exception(
-                f"{response.status_code} Response: {response.text}")
+            raise AuthenticationError(
+                "Refresh Failed: {code} {text}".format(
+                    code=refresh_response.status_code,
+                    text=refresh_response.text
+                ))
+
+    def __retry_request(self, request_func, max_retries=1, *args, **kwargs):
+        retry_count = 0
+        while retry_count <= max_retries:
+            try:
+                response = request_func(*args, **kwargs)
+                if response.ok:
+                    return response
+                elif response.status_code == 401:
+                    logger.info("Auth failed. Refreshing Access Token.")
+                    self.refresh_access_token()
+                else:
+                    raise Exception(
+                        f"{response.status_code} Response: {response.text}")
+            except (AuthenticationError, RequestException) as e:
+                logger.error(f"Request failed: {e}")
+                if retry_count == max_retries:
+                    raise
+                retry_count += 1
+                time.sleep(2 ** retry_count)
 
     # API Call
     # This function will make an API call to the Eagle Eye Networks API
@@ -169,46 +184,35 @@ class EENClient:
             params=None,
             data=None,
             headers=None,
-            retry_count=0,
-            stream=False):
-        # print(f"Making API call to {endpoint}")
-        # print(f"Params: {params}")
-        access_token = session.get('access_token')
-        base_url = session.get('base_url')
+            stream=False
+            ):
+        access_token = self.token_storage.get('access_token')
+        base_url = self.token_storage.get('base_url')
 
         url = f"https://{base_url}/api/v3.0{endpoint}"
         if params:
             url += '?' + urllib.parse.urlencode(params)
 
-        print(f"request: {url}")
+        logger.info(f"request: {url}")
 
         if not headers:
-            headers = {}
+            headers = {
+                "accept": "application/json",
+                "content-type": "application/json"
+            }
         headers['Authorization'] = f'Bearer {access_token}'
 
-        if method == 'GET':
-            try:
-                response = requests.get(url, headers=headers, stream=stream)
-            except Exception as e:
-                print(f"Failed to make request: {e}")
-                raise e
-        elif method == 'POST':
-            print(f"Payload: {data}")
+        def request_func():
+            if method == 'GET':
+                return requests.get(url, headers=headers, stream=stream)
+            elif method == 'POST':
+                return requests.post(
+                    url, headers=headers, data=json.dumps(data))
 
-            response = requests.post(
-                url, headers=headers, data=json.dumps(data))
-
-        return self.__handle_response(
-            response,
-            self.__api_call,
-            endpoint,
-            method=method,
-            params=params,
-            data=data,
-            headers=headers,
-            retry_count=retry_count,
-            stream=stream
-        )
+        response = self.__retry_request(request_func, max_retries=3)
+        if stream:
+            return response
+        return response.text
 
     # Get the current user
     # For more info see:
@@ -280,8 +284,7 @@ class EENClient:
             "accept": "application/json",
             "content-type": "application/json"
         }
-        print(f"Data type: {data['type']}")
-
+        logger.info(f"Data type: {data['type']}")
         return self.__api_call(
             endpoint, headers=headers, data=data, method='POST')
 
@@ -290,8 +293,7 @@ class EENClient:
     # https://developer.eagleeyenetworks.com/reference/getrecordedimage
     def get_recorded_image(
             self, device_id, timestamp,
-            type="preview",
-            construct_url=False):
+            type="preview", construct_url=False):
         endpoint = "/media/recordedImage.jpeg"
         params = {
             "deviceId": device_id,
@@ -299,7 +301,10 @@ class EENClient:
             "timestamp__gte": timestamp
         }
         if construct_url:
-            url = f"https://{session.get('base_url')}/api/v3.0{endpoint}"
+            url = "https://{base}/api/v3.0{endpoint}".format(
+                base=self.token_storage.get('base_url'),
+                endpoint=endpoint
+            )
             url += f"?{urllib.parse.urlencode(params)}"
             return url
         return self.__api_call(endpoint, params=params, stream=True)
@@ -317,10 +322,6 @@ class EENClient:
             page_token=None
             ):
         endpoint = "/media"
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json"
-        }
 
         # Set the query parameters for the media request
         if not start:
@@ -341,7 +342,7 @@ class EENClient:
         if page_token:
             params['pageToken'] = page_token
 
-        return self.__api_call(endpoint, params=params, headers=headers)
+        return self.__api_call(endpoint, params=params)
 
     # Get a list of cameras
     # For more info see:
@@ -352,13 +353,8 @@ class EENClient:
         if camera_id:
             endpoint += f"/{camera_id}"
 
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json"
-        }
         return self.__api_call(
-            endpoint,
-            headers=headers
+            endpoint
         )
 
     # Get a list of feeds

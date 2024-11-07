@@ -536,25 +536,12 @@ def login():
 
     if (code):
         print("Attempting Code Auth")
-        auth_response = client.auth_een(code)
-        if auth_response.status_code == 200:
-            auth_response = json.loads(auth_response.text)
-
-            # Store the access_token, refresh_token,
-            # and base_url in the session
-            token_storage.set('access_token', auth_response['access_token'])
-            token_storage.set('refresh_token', auth_response['refresh_token'])
-            token_storage.set(
-                'base_url', auth_response['httpsBaseUrl']['hostname'])
-
+        try:
+            client.auth_een(code)
             session.permanent = True
-
             return redirect(url_for('index'))
-        else:
-            print("Code Auth failed. {status_code} Response: {text}".format(
-                status_code=auth_response.status_code,
-                text=auth_response.text
-            ))
+        except AuthenticationError as e:
+            print(f"Code Auth failed. {e}")
 
     requestAuthUrl = "https://auth.eagleeyenetworks.com/oauth2/authorize"
     params = {

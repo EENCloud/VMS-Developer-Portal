@@ -89,17 +89,29 @@ class TokenStorage(ABC):
 class EENClient:
     auth_url = "https://auth.eagleeyenetworks.com/oauth/authorize"
 
-    def __init__(self, client_id, client_secret, redirect_uri, token_storage):
+    def __init__(
+            self, client_id, client_secret,
+            redirect_uri, token_storage, max_retries=3):
         if not isinstance(token_storage, TokenStorage):
             raise TypeError(
                 "token_storage must implement the TokenStorage interface.")
         self.client_id = client_id
         self.client_secret = client_secret
+        self.max_retries = max_retries
         self.redirect_uri = redirect_uri
         self.token_storage = token_storage
 
     # OAuth Authentication
     def auth_een(self, token, type="code"):
+        """
+        Authenticate with the Eagle Eye Networks API
+        and store the access token, refresh token,
+        and base URL in the token storage.
+
+        :param token: The authorization code or refresh token.
+        :param type: The type of token being used. Either 'code' or 'refresh'.
+        :return: The response from the authentication request.
+        """
         url = "https://auth.eagleeyenetworks.com/oauth2/token"
         headers = {
             "accept": "application/json",
@@ -130,32 +142,30 @@ class EENClient:
             data=data,
             headers=headers
         )
+        if response.ok:
+            auth_response = json.loads(response.text)
+            self.token_storage.set(
+                'access_token', auth_response['access_token'])
+            self.token_storage.set(
+                'refresh_token', auth_response['refresh_token'])
+            self.token_storage.set(
+                'base_url', auth_response['httpsBaseUrl']['hostname'])
+        else:
+            raise AuthenticationError(
+                "Authentication Failed: {code} {text}".format(
+                    code=response.status_code,
+                    text=response.text
+                ))
         return response
 
     def refresh_access_token(self):
         refresh_token = self.token_storage.get('refresh_token')
         if not refresh_token:
             raise AuthenticationError("No refresh token found.")
+        self.auth_een(refresh_token, type="refresh")
 
-        refresh_response = self.auth_een(refresh_token, type="refresh")
-        if refresh_response.status_code == 200:
-            auth_response = json.loads(refresh_response.text)
-
-            # Store the tokens in the token storage
-            self.storage_token.set(
-                'access_token', auth_response['access_token'])
-            self.storage_token.set(
-                'refresh_token', auth_response['refresh_token'])
-            self.storage_token.set(
-                'base_url', auth_response['httpsBaseUrl']['hostname'])
-        else:
-            raise AuthenticationError(
-                "Refresh Failed: {code} {text}".format(
-                    code=refresh_response.status_code,
-                    text=refresh_response.text
-                ))
-
-    def __retry_request(self, request_func, max_retries=1, *args, **kwargs):
+    def __retry_request(self, request_func, *args, **kwargs):
+        max_retries = self.max_retries
         retry_count = 0
         while retry_count <= max_retries:
             try:
@@ -169,7 +179,8 @@ class EENClient:
                     raise Exception(
                         f"{response.status_code} Response: {response.text}")
             except (AuthenticationError, RequestException) as e:
-                logger.error(f"Request failed: {e}")
+                logger.error(
+                    f"Request failed: {e}. {retry_count}/{max_retries}")
                 if retry_count == max_retries:
                     raise
                 retry_count += 1
@@ -209,7 +220,7 @@ class EENClient:
                 return requests.post(
                     url, headers=headers, data=json.dumps(data))
 
-        response = self.__retry_request(request_func, max_retries=3)
+        response = self.__retry_request(request_func)
         if stream:
             return response
         return response.text

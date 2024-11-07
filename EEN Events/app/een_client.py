@@ -9,8 +9,6 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from requests.exceptions import RequestException
 
-
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

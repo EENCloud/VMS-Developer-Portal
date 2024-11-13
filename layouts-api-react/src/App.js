@@ -116,9 +116,30 @@ function App() {
   const createLayout = () => {
     //Insert Layout creation here
   };
-  const deleteLayout = () => {
-    //Insert Layout deletion here
-  };
+  const deleteLayout = async (layoutId) => {
+    const options = {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    };
+  
+    try {
+      const response = await fetch(`https://api.c001.eagleeyenetworks.com/api/v3.0/layouts/${layoutId}`, options);
+      if (response.ok) {
+        // Layout deleted successfully
+        setLayouts(layouts.filter(layout => layout.id !== layoutId));
+        setLayout(null); // Clear the selected layout
+        setSettings({});
+        setPanes([]);
+      } else {
+        console.error('Failed to delete layout:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting layout:', error);
+    }
+  };  
   const editLayout = async () => {
     const options = {
       method: 'PATCH',
@@ -328,7 +349,7 @@ function App() {
       {showOptions && (
         <div className="menu">
           <button onClick={createLayout}>Create Layout</button>
-          <button onClick={deleteLayout}>Delete Layout</button>
+          <button onClick={() => deleteLayout(layout.id)}>Delete Layout</button>
         </div>
       )}
     </div>

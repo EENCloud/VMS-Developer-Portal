@@ -11,11 +11,19 @@ function App() {
   //Add any additional states you think are needed
   const [token, setToken] = useState('');
   const [layouts, setLayouts] = useState([]);
-  const [layout, setLayout] = useState(null);
+  const [layout, setLayout] = useState({
+    name: '',
+    settings: {
+      showCameraBorder: false,
+      showCameraName: false,
+      cameraAspectRatio: '16x9',
+      paneColumns: 1,
+    },
+    panes: [],
+  });  
   const [panes, setPanes] = useState([]);
   const [pane, setPane] = useState([]);
   const [settings, setSettings] = useState([]);
-  const [layoutName, setLayoutName] = useState([]);
   const [cameras, setCameras] = useState([]);
   const [feeds, setFeeds] = useState({});
 
@@ -227,7 +235,7 @@ function App() {
     getToken();
   }, []);
   useEffect(() => {
-    if (layout) {
+    if (layout && Array.isArray(layout.panes)) {
       setSettings(layout.settings);
       setPanes(layout.panes);
   
@@ -239,7 +247,7 @@ function App() {
         }));
       });
     }
-  }, [layout]);
+  }, [layout]);  
   useEffect(() => {
     if (token) {
       fetchLayouts(token);
@@ -275,10 +283,12 @@ function App() {
           </select>
           <div className="spacer"/>
           <label>or</label>
+          <div className="spacer"/>
+          Layout Name:
+          <input 
+            value={layout?.name || ''} onChange={(e) => handleLayoutNameChange(e)}>
+          </input>
           <button onClick={() => createLayout()}>Create Layout</button>
-          <div className="spacer"/>
-          <div className="spacer"/>
-          <div className="spacer"/>
           <div>
             <h3>Layout Settings</h3>
             <div className="spacer"/>
@@ -329,6 +339,7 @@ function App() {
                 <option key={index} value={pane.id}>Pane {index + 1}</option>
               ))}
             </select>
+            <button onClick="">Add Pane</button>
             <div className="spacer"/>
             Pane Name: 
             <input 
@@ -355,9 +366,8 @@ function App() {
             </select>
             <div className="spacer"/>
             Feed Type: Preview
+            <button onClick={() => editPane()}>Update Pane</button>
             <div className="spacer"/>
-            <button onClick="">Add Pane</button>
-            <button onClick={() => editPane()}>Edit Pane</button>
             <div className="spacer"/>
             <button onClick={() => editLayout()}>Update Layout</button>
             <button onClick={() => deleteLayout(layout.id)}>Delete Layout</button>

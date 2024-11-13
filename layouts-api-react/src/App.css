@@ -19,7 +19,7 @@
   background-color: rgb(240, 240, 240);
   position: fixed;
   top: 75px;
-  left: 220px;
+  left: 265px;
   right: 20px;
   bottom: 20px;
   padding: 25px;
@@ -33,10 +33,13 @@
 
 .panel {
   position: fixed;
-  top: 60px;
+  top: 70px;
   width: 220px;
   height: 100vh;
   padding: 15px;
+  border-radius: 8px;
+  box-shadow: black 0px 10px 10px;
+  overflow-y: auto;
 }
 
 .panel select {
@@ -51,7 +54,7 @@
 }
 
 .panel button {
-  width: auto;
+  width: 150px;
   padding: 5px;
   border-radius: 4px;
   margin: 5px;
@@ -63,12 +66,20 @@
 }
 
 .panel button:hover {
-  width: 100%;
+  width: 150px;
   padding: 5px;
   background-color: rgb(179, 179, 179);
   border-color: rgb(70, 70, 70);
   border-bottom-color: rgb(70, 70, 70);
   color:rgb(41, 41, 41);
+}
+
+.panel button:first-of-type {
+  margin-bottom: 20px;
+}
+
+.panel button:last-child {
+  margin-bottom: 120px;
 }
 
 .spacer {

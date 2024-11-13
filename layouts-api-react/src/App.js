@@ -18,7 +18,6 @@ function App() {
   const [layoutName, setLayoutName] = useState([]);
   const [cameras, setCameras] = useState([]);
   const [feeds, setFeeds] = useState({});
-  const [showOptions, setShowOptions] = useState(false);
 
   //Data Fetches
   const fetchTokens = async (authCode) => {
@@ -106,16 +105,30 @@ function App() {
   };   
 
   //Layout Editing
-  const handleOptions = () => {
-    if (!showOptions) {
-      setShowOptions(true);
-    } else {
-      setShowOptions(false);
+  const createLayout = async () => {
+    const options = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: layout.name,
+        settings,
+        panes,
+      }),
+    };
+  
+    try {
+      const response = await fetch('https://api.c001.eagleeyenetworks.com/api/v3.0/layouts', options);
+      const data = await response.json();
+      setLayouts([...layouts, data]);
+      setLayout(data);
+    } catch (error) {
+      console.error('Error creating layout:', error);
     }
-  };
-  const createLayout = () => {
-    //Insert Layout creation here
-  };
+  };  
   const deleteLayout = async (layoutId) => {
     const options = {
       method: 'DELETE',
@@ -238,7 +251,6 @@ function App() {
     <div className="App">
       <nav className="nav">
         <h1>Layouts API Test</h1>
-        <button onClick={handleOptions}>Options</button>
       </nav>
       <main>
         <section className="layouts">
@@ -261,6 +273,11 @@ function App() {
               <option key={layout.id} value={layout.id}>{layout.name}</option>
             ))}
           </select>
+          <div className="spacer"/>
+          <label>or</label>
+          <button onClick={() => createLayout()}>Create Layout</button>
+          <div className="spacer"/>
+          <div className="spacer"/>
           <div className="spacer"/>
           <div>
             <h3>Layout Settings</h3>
@@ -343,15 +360,10 @@ function App() {
             <button onClick={() => editPane()}>Edit Pane</button>
             <div className="spacer"/>
             <button onClick={() => editLayout()}>Update Layout</button>
+            <button onClick={() => deleteLayout(layout.id)}>Delete Layout</button>
           </div>
         </aside>
       </main>
-      {showOptions && (
-        <div className="menu">
-          <button onClick={createLayout}>Create Layout</button>
-          <button onClick={() => deleteLayout(layout.id)}>Delete Layout</button>
-        </div>
-      )}
     </div>
   );  
 }

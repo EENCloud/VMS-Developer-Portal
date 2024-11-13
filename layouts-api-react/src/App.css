@@ -15,47 +15,6 @@
   box-shadow: black 0px 0px 10px;
 }
 
-.nav button {
-  position: fixed;
-  top: 25px;
-  right: 25px;
-  padding: 5px;
-  background-color: rgba(95, 95, 95, 0);
-  border-color: rgba(201, 201, 201, 0);
-}
-
-.menu {
-  position: fixed;
-  top: 60px;
-  right: 25px;
-  width: 150px;
-  border-style: solid;
-  border-width: 1px;
-  background-color: rgb(233, 232, 232);
-  border-color: rgba(201, 201, 201);
-  box-shadow: black 0px 0px 10px;
-  color:rgb(120, 120, 120);
-  z-index: 1000;
-}
-
-.menu button {
-  width: 100%;
-  padding: 5px;
-  background-color: rgba(95, 95, 95, 0);
-  border-color: rgba(201, 201, 201, 0);
-  border-bottom-color: rgba(201, 201, 201);
-  color:rgb(120, 120, 120);
-}
-
-.menu button:hover {
-  width: 100%;
-  padding: 5px;
-  background-color: rgb(179, 179, 179);
-  border-color: rgb(70, 70, 70);
-  border-bottom-color: rgb(70, 70, 70);
-  color:rgb(41, 41, 41);
-}
-
 .layouts {
   background-color: rgb(240, 240, 240);
   position: fixed;
@@ -101,6 +60,15 @@
   border-color: rgb(201, 201, 201);
   box-shadow: black 0px 0px 2px;
   color: rgb(95, 95, 95);
+}
+
+.panel button:hover {
+  width: 100%;
+  padding: 5px;
+  background-color: rgb(179, 179, 179);
+  border-color: rgb(70, 70, 70);
+  border-bottom-color: rgb(70, 70, 70);
+  color:rgb(41, 41, 41);
 }
 
 .spacer {

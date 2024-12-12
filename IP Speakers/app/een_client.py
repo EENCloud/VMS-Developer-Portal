@@ -365,38 +365,32 @@ class EENClient:
     # For more info see:
     # https://developer.eagleeyenetworks.com/reference/listfeeds
     def get_feeds(
-            self, device_id=None, type="preview", include="multipartUrl"):
+            self, device_id=None, type=None, include="multipartUrl"):
         endpoint = "/feeds"
 
-        params = {
-            "include": include,
-            "type": type
-        }
-        if device_id:
-            params['deviceId'] = device_id
+        params = {k: v for k, v in {
+            'include': include,
+            'deviceId': device_id,
+            'type': type
+        }.items() if v is not None}
+
         return self.__api_call(endpoint, params=params)
 
     # Play an audio file
     # For more info see:
     # https://developer.eagleeyenetworks.com/docs/audio-push-via-http
-    def play_audio(self, camera_id):
-        endpoint = "/feeds"
+    def play_audio(self, camera_id, url):
+        """
+        Play an audio file to the selected camera.
 
-        params = {
-            'deviceId': camera_id,
-            'type': "talkdown",
-            'include': 'audioPushHttpsUrl'
-        }
+        :param camera_id: The ID of the camera to play the audio to.
+        :param url: The audioPushHttpsUrl to send the audio to.
 
-        resp = json.loads(self.__api_call(endpoint, params=params))
+        :return: True if the audio was successfully played, False otherwise.
+        """
 
-        results = resp.get('results', [])
-        if len(results) != 1:
-            return False
-        url = results[0].get('audioPushHttpsUrl', None)
         if url is None:
             return False
-
         access_token = session.get('access_token')
 
         headers = {

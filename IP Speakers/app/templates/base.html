@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Eagle Eye Events</title>
+        <title>Eagle Eye Audio</title>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
         {% block css %}{% endblock %}
 
@@ -29,7 +29,7 @@
              To access recorded images from the Eagle Eye API, you will
              need fetch them using the an access token.
         -->
-        <script src="{{ url_for('static', filename='fetch.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/fetch.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
         {% endif %}
         
@@ -45,7 +45,7 @@
         </div>
         <hr>
         {% endif %}
-        <h1>Eagle Eye Events</h1>
+        <h1>Eagle Eye Audio</h1>
         {% block content %}{% endblock %}
     </body>
     {% block script %}{% endblock %}

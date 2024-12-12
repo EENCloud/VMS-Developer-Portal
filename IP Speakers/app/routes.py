@@ -29,6 +29,16 @@ def get_unquoted_arg(arg_name):
     return urllib.parse.unquote(value) if value else None
 
 
+# Grabs the WebRTC, HLS, and Multipart URLs for the view function
+# and places them in a dictionary
+def label_feeds(results, device_id):
+    feeds = {}
+    for result in results:
+        if result['deviceId'] == device_id:
+            feeds[result['type']] = result
+    return feeds
+
+
 # Check if the user is authenticated
 def is_authenticated():
     return session.get('access_token') is not None
@@ -48,11 +58,19 @@ def auth_required(f):
 @app.route('/talkdown/<camera_id>', methods=['POST'])
 @auth_required
 def play_audio(camera_id):
-    print('Retreiving Audio Push URL')
+    # Get audioPushHttpsUrl from the POST request
+    data = request.get_json()
+    audio_push_url = data.get('audioPushHttpsUrl')
+    if not audio_push_url:
+        return jsonify({
+            "status": "fail",
+            "message": "audioPushHttpsUrl is required"
+        }), 400
+    print('Recieved Audio Push URL: '+audio_push_url)
     try:
-        response = client.play_audio(camera_id)
+        response = client.play_audio(camera_id, audio_push_url)
     except Exception as e:
-        print(f"Failed to get the url: {e}")
+        print(f"Audio Push request failed: {e}")
         return jsonify({
             "status": "fail"
         }), 500
@@ -85,19 +103,23 @@ def view(camera_id):
 
     try:
         response = client.get_feeds(
-            camera_id, type="main", include="multipartUrl,hlsUrl")
+            camera_id,
+            include="multipartUrl,hlsUrl,webRtcUrl")
         r_json = json.loads(response)
         results = r_json['results']
-        print(f"Feeds: {results[0]}")
+        print(f"Response: {json.dumps(results)}")
     except Exception as e:
         print(f"API Call failed: {e}")
+
+    feeds = label_feeds(results, camera_id)
+    print(f"Feeds:\n{json.dumps(feeds)}")
 
     try:
         return render_template(
             'view.html',
             camera=camera,
             media=media,
-            results=results[0])
+            results=feeds)
     except Exception as e:
         print(f"Failed to render live view: {e}")
 
@@ -121,7 +143,7 @@ def index():
     print('Pulling Camera List')
     try:
         cam_response = json.loads(client.get_cameras())
-        feed_response = json.loads(client.get_feeds())
+        feed_response = json.loads(client.get_feeds(type="preview"))
         cam_results = cam_response['results']
         feed_results = feed_response['results']
     except AuthenticationError:

@@ -19,6 +19,10 @@ This example demonstrates the process for adding and employing IP Speakers throu
    $ export FLASK_APP=main.py
    ```
 
+> [!NOTE]
+> This example leverages the Eagle Eye Networks 2-Way Audio SDK to create an intercom between the web user and the IP Speaker. This SDK has been packaged for browser usage and is included in the `static` directory. If you would like to use the SDK in your own application, you can refer to the [2-Way Audio SDK documentation](https://developer.eagleeyenetworks.com/docs/two-way-audio-web-sdk).
+
+## Packaging the 2-Way Audio SDK
 
 ## Running the Application
 

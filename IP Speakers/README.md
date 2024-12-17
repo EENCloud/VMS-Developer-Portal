@@ -24,6 +24,42 @@ This example demonstrates the process for adding and employing IP Speakers throu
 
 ## Packaging the 2-Way Audio SDK
 
+To package the 2-Way Audio SDK for use in your own application, you can use the following steps:
+
+1. Install Webpack (or any other bundler of your choice):
+   ```
+   $ npm install --save-dev webpack webpack-cli
+   ```
+
+2. Create a `webpack.config.js` file in the root of your project with the following content:
+   ```javascript
+   const path = require('path');
+
+   module.exports = {
+      mode: 'production',
+      entry: './index.js',
+      output: {
+         filename: 'bundle.js',
+         path: path.resolve(__dirname, 'app/static/js'), // Output directory
+      },
+   };
+   ```
+
+3. Create an `index.js` file in the root of your project with the following content:
+   ```javascript
+   const EENWebRTC = require('@een/two-way-audio-web-sdk');
+   ```
+
+4. Run Webpack to bundle the SDK:
+   ```
+   $ npx webpack
+   ```
+
+5. Include the bundled `bundle.js` file in your template or HTML file:
+   ```html
+   <script src="static/js/bundle.js"></script>
+   ```
+
 ## Running the Application
 
 To start the server:

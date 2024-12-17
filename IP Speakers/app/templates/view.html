@@ -18,7 +18,7 @@
                 <div class="viewer">
                     <video id="video" autoplay muted></video>
                 </div>
-                {% if camera.speakerId is not none %}
+                {% if results.talkdown %}
                 <div class="stream-buttons">
                     {% if results.talkdown.audioPushHttpsUrl %}
                     <button id="playAudioBtn" class="stream-btn">Play Audio</button>
@@ -69,6 +69,7 @@
 
     video.addEventListener('canplay', hideLoader);
 </script>
+{% if results.talkdown %}
 {% if results.talkdown.webRtcUrl %}
 <script>
     const openIntercomBtn = document.getElementById('openIntercomBtn');
@@ -163,6 +164,7 @@
     }
     playAudioBtn.addEventListener('click', playAudio);
 </script>
+{% endif %}
 {% endif %}
 {% endblock %}
 {% endif %}

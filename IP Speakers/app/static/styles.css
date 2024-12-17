@@ -1,0 +1,268 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    color: #238fce;
+}
+
+p {
+    color: #666;
+}
+
+/* Add styles for the result block */
+.result-block {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.result-block h2 {
+    text-align: center;
+    color: #333;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.result {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.result h3 {
+    margin: 0;
+    color: #555;
+}
+
+.result p {
+    color: #888;
+    margin: 5px 0 10px 0;
+}
+
+.result img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px auto;
+}
+
+/* Add styles for the navbar */
+.navbar {
+    background-color: #238fce;
+    overflow: hidden;
+    padding: 10px 0;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.navbar a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+/* Add styles for the breadcrumb */
+.breadcrumb {
+    margin: 20px 0;
+    padding: 10px 0;
+    text-align: left;
+}
+
+.breadcrumb a {
+    color: #238fce;
+    text-decoration: none;
+    padding: 0 10px;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.pagination-controls {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-button {
+    background-color: #238fce;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-button:hover {
+    background-color: #23b2ce;
+}
+
+/* General form styles */
+form {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 75%;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    margin: auto;
+}
+
+form p {
+    margin: 15px 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: bold;
+}
+
+.time-select label {
+    margin-right: 10px;
+}
+
+input[type="text"],
+input[type="submit"],
+input[type="datetime-local"],
+select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Input styling */
+input[type="text"] {
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+input[type="text"]:focus,
+input[type="datetime-local"]:focus,
+select:focus {
+    border-color: #238fce;
+    outline: none;
+}
+
+/* Style for the time selection form */
+.time-select {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem auto;
+    gap: 1rem; /* Adjust the gap between inputs and button */
+}
+
+.time-select-group {
+    display: flex;
+    margin-right: 2rem;
+    align-items: center;
+}
+
+.time-select-group:last-child {
+    margin-right: 0;
+}
+
+.time-select label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.time-select input[type="datetime-local"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.time-select button {
+    background-color: #238fce;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.time-select button:hover {
+    background-color: #23b2ce;
+}
+
+@media (max-width: 1000px) {
+    .time-select-group {
+        margin-right: 1rem; /* Smaller margin on smaller screens */
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .time-select {
+        flex-direction: column; /* Stack elements vertically on very small screens */
+        align-items: center; /* Center align the elements */
+    }
+
+    .time-select-group {
+        margin-right: 0; /* No right margin when stacked */
+    }
+
+    .time-select-group:last-child {
+        margin-bottom: 0; /* Remove bottom margin for the last group */
+    }
+}
+
+/* Button styles */
+input[type="submit"] {
+    width: auto; /* Allow the submit button to size based on content */
+    background-color: #238fce;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #23b2ce;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .time-select {
+        flex-direction: column; /* Stack elements vertically on smaller screens */
+        align-items: center;
+    }
+}

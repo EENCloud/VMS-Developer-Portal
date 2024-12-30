@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles API Code Sample</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Navbar for navigation -->
+    <div class="navbar">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('get_roles') }}">Roles</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+    <!-- Content Container -->
+    <div style="text-align: center;">
+        <h1>Eagle Eye Networks Roles API Code Sample</h1>
+        <p>This page provides a code sample for using the Eagle Eye Networks Roles API to manage roles and role assignments.</p>
+        <p>The functionality demonstrated in this sample includes:</p>
+        <!-- Aligned Content Block -->
+        <div class="result-block" style="text-align: left; max-width: 800px; margin: 0 auto;">
+            <p><strong>View Roles:</strong> Retrieve a list of roles with details such as name, ID, and permissions.</p>
+            <p><strong>Create Roles:</strong> Add new roles with custom permissions.</p>
+            <p><strong>Update Roles:</strong> Modify existing roles to change their details or permissions.</p>
+            <p><strong>Delete Roles:</strong> Remove roles from the system that are no longer needed.</p>
+            <p><strong>Role Assignments:</strong> View and manage which users are assigned to specific roles.</p>
+            <p><strong>Bulk Role Assignments:</strong> Assign or remove roles for multiple users in a single operation.</p>
+        </div>
+        <p>To get started, explore the links in the navigation bar or refer to the API documentation for more details.</p>
+    </div>
+</body>
+</html>

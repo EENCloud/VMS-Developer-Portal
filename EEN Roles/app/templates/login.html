@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="navbar" style="margin-bottom: 20px;">
+        <a href="{{ url_for('index') }}" style="text-decoration: none; color: #007bff;">Home</a>
+    </div>
+    <div style="text-align: center;">
+        <h1>Login</h1>
+        <p>Please login using the link below:</p>
+        {% if auth_url %}
+            <a href="{{ auth_url }}" class="stream-btn" target="_blank" title="Login using Eagle Eye Networks">Login with Eagle Eye Networks</a>
+        {% else %}
+            <p>Login link is currently unavailable. Please try again later.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

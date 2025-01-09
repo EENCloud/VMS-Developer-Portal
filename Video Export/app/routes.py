@@ -329,17 +329,7 @@ def login():
                 text=auth_response.text
             ))
 
-    requestAuthUrl = "https://auth.eagleeyenetworks.com/oauth2/authorize"
-    params = {
-        "client_id": os.getenv('CLIENT_ID'),
-        "response_type": "code",
-        "scope": "vms.all",
-        "redirect_uri": "http://{host}:{port}".format(
-            host=os.getenv('FLASK_RUN_HOST'),
-            port=os.getenv('FLASK_RUN_PORT')
-        )
-    }
-    requestAuthUrl += '?' + urllib.parse.urlencode(params)
+    requestAuthUrl = client.get_auth_url()
 
     return render_template('login.html', auth_url=requestAuthUrl)
 

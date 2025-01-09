@@ -1,3 +1,7 @@
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function fetchWithAuthentication(url, authToken) {
   const headers = new Headers();
   headers.set(
@@ -7,24 +11,44 @@ function fetchWithAuthentication(url, authToken) {
   return fetch(url, { headers });
 }
 
-async function displayProtectedImage(
-  imageId, imageUrl, authToken
-) {
-  // Fetch the image.
-  const response = await fetchWithAuthentication(
-    imageUrl, authToken
-  );
+async function displayProtectedImage(imageId, imageUrl, authToken, retries = 5, backoff = 500) {
+  try {
+      const response = await fetchWithAuthentication(imageUrl, authToken);
 
-  // Create an object URL from the data.
-  const blob = await response.blob();
-  const objectUrl = URL.createObjectURL(blob);
+      if (!response.ok) {
+          // If we got a 429 status and we still have retries left, wait and retry
+          if (response.status === 429 && retries > 0) {
+              const retryAfter = parseInt(response.headers.get('Retry-After')) || backoff;
+              console.warn(`Rate-limited: Retrying image ${imageId} in ${retryAfter}ms`);
+              await delay(retryAfter);
+              return await displayProtectedImage(imageId, imageUrl, authToken, retries - 1, backoff * 2);
+          }
 
-  // Update the source of the image.
-  const imageElement = document.getElementById(imageId);
-  imageElement.src = objectUrl;
-  imageElement.onload = () => {
-    URL.revokeObjectURL(objectUrl);
-  };
+          // Any other error or no more retries left
+          throw new Error(`Error fetching image ${imageId}: ${response.status} ${response.statusText}`);
+      }
+
+      // Successfully fetched the image; display it
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const imageElement = document.getElementById(imageId);
+      imageElement.src = objectUrl;
+      imageElement.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+  } catch (error) {
+      // If the error is a network error or something else where we can try again
+      // treat it similarly to the 429 scenario if applicable.
+      if (retries > 0 && error instanceof Response && error.status === 429) {
+          const retryAfter = parseInt(error.headers.get('Retry-After')) || backoff;
+          console.warn(`Rate-limited (fetch error): Retrying image ${imageId} in ${retryAfter}ms`);
+          await delay(retryAfter);
+          return await displayProtectedImage(imageId, imageUrl, authToken, retries - 1, backoff * 2);
+      } else {
+          console.error(`Error displaying image ${imageId}:`, error);
+      }
+  }
 }
 
 

@@ -552,3 +552,8 @@ input:checked + .slider:before {
     font-size: 14px;
     width: 100px;
 }
+button:disabled {
+    background-color: #ccc; /* Grey background */
+    color: #666; /* Grey text */
+    cursor: not-allowed; /* Change cursor to indicate disabled state */
+}

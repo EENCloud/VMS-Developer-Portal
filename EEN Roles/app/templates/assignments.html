@@ -11,6 +11,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const roleId = urlParams.get('roleId');
             const tableContainer = document.getElementById('table-container');
+            const roleNameSpan = document.getElementById('role-name');
 
             if (!roleId) {
                 tableContainer.innerHTML = `<p class="error">No Role ID provided.</p>`;
@@ -45,7 +46,7 @@
                     userId,
                     roleId,
                 }));
-                const url = action === 'assign' ? '/roleassignments/bulkcreate' : '/roleassignments/bulkdelete';
+                const url = action === 'assign' ? '/api/roleassignments/bulkcreate' : '/api/roleassignments/bulkdelete';
 
                 fetch(url, {
                     method: 'POST',
@@ -68,52 +69,45 @@
             }
 
             function toggleAssignment(userId, roleId, assign) {
-                const url = assign ? '/roleassignments/bulkcreate' : '/roleassignments/bulkdelete';
-                const method = 'POST';
+                const url = assign ? '/api/roleassignments/bulkcreate' : '/api/roleassignments/bulkdelete';
                 const body = JSON.stringify([{ userId, roleId }]);
-
+            
                 fetch(url, {
-                    method: method,
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
                     },
-                    body: body
+                    body: body,
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to update role assignment.');
-                    }
-                    if (response.status === 204) {
-                        return {}; // Return an empty object for 204 No Content responses
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Role assignment updated:', data);
-                })
-                .catch(error => {
-                    console.error('Error updating role assignment:', error);
-                    alert(`Failed to update role assignment: ${error.message}`);
-                });
+                    .then(response => {
+                        if (!response.ok && response.status !== 204) {
+                            throw new Error(`Failed to update role assignment. Status: ${response.status}`);
+                        }
+                        console.log('Role assignment updated.');
+                        location.reload(); // Reload the page to reflect changes.
+                    })
+                    .catch(error => {
+                        console.error('Error updating role assignment:', error);
+                        alert(`Error: ${error.message}`);
+                    });
             }
 
-            function renderAssignments(assignments, users) {
+            function renderAssignments(assignments, users, roleName) {
                 const rows = users.map(user => {
                     // Check if the user is assigned to the current role
-                    const isAssigned = assignments.some(a => a.userId === user.userId && a.roleId === roleId);
+                    const isAssigned = assignments.some(a => a.userId === user.id && a.roleId === roleId);
 
                     return `
                         <tr>
-                            <td><input type="checkbox" class="user-selector" data-userid="${user.userId}" onchange="toggleSelection('${user.userId}', this.checked)"></td>
+                            <td><input type="checkbox" class="user-selector" data-userid="${user.id}" onchange="toggleSelection('${user.id}', this.checked)"></td>
                             <td>${user.name || '-'}</td>
-                            <td>${user.email || '-'}</td>
-                            <td>${user.status || '-'}</td>
-                            <td>${user.lastLogin || '-'}</td>
+                            <td>${user.status?.loginStatus || '-'}</td>
+                            <td>${user.loginDetails?.lastLogin || '-'}</td>
                             <td>
                                 <label class="toggle">
                                     <input type="checkbox" ${isAssigned ? 'checked' : ''} 
-                                        onchange="toggleAssignment('${user.userId}', '${roleId}', this.checked)">
+                                        onchange="toggleAssignment('${user.id}', '${roleId}', this.checked)">
                                     <span class="slider round"></span>
                                 </label>
                             </td>
@@ -121,9 +115,10 @@
                     `;
                 }).join('');
                 document.getElementById('users-container').innerHTML = rows;
+                roleNameSpan.textContent = roleName;
             }
 
-            fetch(`/roleassignments/json?roleId=${roleId}`, {
+            fetch(`/api/roleassignments?roleId=${roleId}`, {
                 headers: {
                     'Accept': 'application/json',
                 }
@@ -135,7 +130,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    renderAssignments(data.roles, data.users);
+                    renderAssignments(data.assignments.results, data.users.results, data.roleName);
                 })
                 .catch(error => {
                     console.error('Error fetching role assignments:', error);
@@ -173,7 +168,6 @@
                 <tr>
                     <th><input type="checkbox" id="select-all" onchange="toggleAllSelection(this.checked)"></th>
                     <th>Name</th>
-                    <th>Email</th>
                     <th>Status</th>
                     <th>Last Login</th>
                     <th>Assign Role</th>
@@ -181,7 +175,7 @@
             </thead>
             <tbody id="users-container">
                 <tr>
-                    <td colspan="6">Loading...</td>
+                    <td colspan="5">Loading...</td>
                 </tr>
             </tbody>
         </table>

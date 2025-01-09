@@ -73,7 +73,7 @@ This will host a local server on `127.0.0.1:3333`.
 1. Navigate to `http://127.0.0.1:3333` in your web browser.
 2. Click on the "Login with Eagle Eye Networks" link to authenticate.
 3. Once you log in, you will be redirected to the camera select page.
-4. When you select a camera, you'll be taken to the high resolution live stream view of that camera.
+4. When you select a camera, you'll be taken to the high resolution live stream view of that camera. From here, you will be able to activate an intercom to the IP Speaker associated with the camera if one is available.
 
 
 ## Support

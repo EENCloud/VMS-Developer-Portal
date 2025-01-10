@@ -15,12 +15,14 @@
             }
 
             // Fetch initial roles data
+            // Fetch initial roles data
             fetch('/api/roles', {
-                headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' }
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Failed to fetch roles.');
+                    window.location.href = '/login';
+                    throw new Error('Redirecting to login.');
                 }
                 return response.json();
             })
@@ -51,7 +53,7 @@
             })
             .catch(error => {
                 console.error('Error loading roles:', error);
-                showError('An error occurred while loading roles.');
+                showError('An error occurred while loading roles. Please <a href=/login>login</a> and try again.');
             });
 
             // Add event listener to enable/disable the create button based on role name input

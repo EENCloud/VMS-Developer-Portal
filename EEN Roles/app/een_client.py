@@ -1,13 +1,15 @@
+""" EEN Client Library"""
 import json
-import requests
 import logging
-import urllib.parse
 import re
+import time
+import urllib.parse
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-from abc import ABC, abstractmethod
+
+import requests
 from requests.exceptions import RequestException
-import time
 
 
 class AuthenticationError(Exception):
@@ -56,9 +58,9 @@ class EENClient:
                     self.logger.info("Auth failed. Refreshing Access Token.")
                     self.refresh_access_token()
                 else:
-                    raise Exception(f"{response.status_code} Response: {response.text}")
+                    raise RequestException(f"{response.status_code} Response: {response.text}")
             except (AuthenticationError, RequestException) as e:
-                self.logger.error(f"Request failed: {e}. {retry_count}/{self.max_retries}")
+                self.logger.error("Request failed: %s. %d/%d", e, retry_count, self.max_retries)
                 if retry_count == self.max_retries:
                     raise
                 retry_count += 1
@@ -79,6 +81,7 @@ class EENClient:
                 "content-type": "application/json"
             }
         headers['Authorization'] = f'Bearer {access_token}'
+
         def request_func():
             if method == 'GET':
                 return requests.get(url, headers=headers, stream=stream)
@@ -92,6 +95,7 @@ class EENClient:
         if stream:
             return response
         return response
+
 
     def get_auth_url(self):
         params = {
@@ -121,7 +125,8 @@ class EENClient:
             url,
             auth=(self.client_id, self.client_secret),
             data=data,
-            headers=headers
+            headers=headers,
+            timeout=10  # 10 seconds timeout
         )
         if response.ok:
             auth_response = response.json()
@@ -189,7 +194,9 @@ class EENClient:
         return self._api_call(f"/roles/{role_id}", "GET", params=params)
 
     def update_role(self, role_id, body):
-        return self._api_call(f"/roles/{role_id}", "PATCH", data=body)
+        return self._api_call(
+            f"/roles/{role_id}", "PATCH", data=body
+        )
 
     # Role Assignments
     def get_role_assignments(self, roleId__in=None):
@@ -212,13 +219,13 @@ class EENClient:
         return self._api_call("/users", "GET", params=params)
 
     def create_user(self, body):
-        return self._api_call("/users", "POST", data=body)
+        return self._api_call("/users", "POST", data=body )
 
     def get_user(self, user_id, include=None):
         params = {}
         if include:
             params['include'] = ','.join(include)
-        return self._api_call(f"/users/{user_id}", "GET", params=params)
+        return self._api_call(f"/users/{user_id}", "GET", params=params )
 
     def delete_user(self, user_id):
         return self._api_call(f"/users/{user_id}", "DELETE")
@@ -233,7 +240,7 @@ class EENClient:
         return self._api_call("/users/self", "GET", params=params)
 
     def update_current_user(self, body):
-        return self._api_call("/users/self", "PATCH", data=body)
+        return self._api_call("/users/self", "PATCH",data=body)
 
     def get_trusted_clients(self, include=None):
         params = {}

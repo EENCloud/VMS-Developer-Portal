@@ -1,9 +1,8 @@
-from app import create_app
-import flask
-from flask import jsonify, send_from_directory
-import os
+"""Main function to run the Flask application."""
 import os
 import logging
+from flask import jsonify, send_from_directory
+from app import create_app
 
 app = create_app()
 
@@ -13,15 +12,13 @@ logger = logging.getLogger(__name__)
 
 @app.errorhandler(Exception)
 def handle_error(e):
-    logger.error("An error occurred", exc_info=e)  # Log the stack trace for debugging
+    logger.error("An error occurred", exc_info=e) 
     response = {"error": "An internal error occurred. Please try again later."}
     return jsonify(response), 500
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                            'favicon.ico',
-                            mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     # Use environment variables for configuration

@@ -8,16 +8,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="navbar" style="margin-bottom: 20px;">
-        <a href="{{ url_for('api.index') }}" style="text-decoration: none; color: #007bff;">Home</a>
-    </div>
+        <!-- Navbar for navigation -->
+        <div class="navbar">
+            <a href="{{ url_for('api.index') }}">Home</a>
+            <a href="{{ url_for('api.roles_page') }}">Roles</a>
+            <a href="{{ url_for('api.logout') }}">Logout</a>
+        </div>
     <div style="text-align: center;">
         <h1>Login</h1>
-        <p>Please login using the link below:</p>
-        {% if auth_url %}
-            <a href="{{ auth_url }}" class="stream-btn" target="_blank" title="Login using Eagle Eye Networks">Login with Eagle Eye Networks</a>
+        {% if success %}
+            <p class="success">{{ success }}</p>
         {% else %}
-            <p>Login link is currently unavailable. Please try again later.</p>
+            <p>Please login using the link below:</p>
+            {% if auth_url %}
+                <a href="{{ auth_url }}" class="stream-btn" target="_blank" title="Login using Eagle Eye Networks">Login with Eagle Eye Networks</a>
+            {% else %}
+                <p><a href="/login">Login</a></p>
+            {% endif %}
+        {% endif %}
+        {% if error %}
+            <p class="error">{{ error }}</p>
         {% endif %}
     </div>
 </body>

@@ -43,7 +43,7 @@ def login():
             session['access_token'] = auth_response.get('access_token')
             session['base_url'] = auth_response.get('httpsBaseUrl', {}).get('hostname')
             current_app.logger.info("User authenticated successfully.")
-            return redirect(url_for('api.index'))
+            return render_template('login.html', success="Login Successful")
         except Exception as e:
             current_app.logger.error(f"Login failed: {e}")
             return render_template('login.html', error="Authentication Failed")

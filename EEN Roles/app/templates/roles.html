@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const rolesContainer = document.getElementById('roles-container');
+
+            function showError(message) {
+                rolesContainer.innerHTML = `<tr><td colspan="6" class="error">${message}</td></tr>`;
+            }
+
+            // Fetch initial roles data
+            // Fetch initial roles data
+            fetch('/api/roles', {
+        headers: { 'Accept': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    window.location.href = '/login';
+                    throw new Error('Redirecting to login.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data || typeof data !== 'object' || !Array.isArray(data.results)) {
+                    throw new Error('Invalid roles data format.');
+                }
+                if (data.results.length === 0) {
+                    showError('No roles found.');
+                    return;
+                }
+                rolesContainer.innerHTML = '';
+                data.results.forEach(role => {
+                    const roleRow = document.createElement('tr');
+                    roleRow.innerHTML = `
+                        <td>${role.name}</td>
+                        <td>${role.notes || '-'}</td>
+                        <td>${role.userCount || '0'}</td>
+                        <td>${role.default ? '✔️' : '-'}</td>
+                        <td>
+                            <button class="edit-btn" onclick="openSettings('${role.id}')">Settings</button>
+                            <button class="users-btn" onclick="openUsers('${role.id}')">Users</button>
+                            <button class="delete-btn" onclick="deleteRole('${role.id}')">Delete</button>
+                        </td>
+                    `;
+                    rolesContainer.appendChild(roleRow);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading roles:', error);
+                showError('An error occurred while loading roles. Please <a href=/login>login</a> and try again.');
+            });
+
+            // Add event listener to enable/disable the create button based on role name input
+            const roleNameInput = document.getElementById('create-role-name');
+            const createRoleSaveBtn = document.getElementById('create-role-save-btn');
+
+            roleNameInput.addEventListener('input', function () {
+                createRoleSaveBtn.disabled = !roleNameInput.value.trim();
+            });
+        });
+
+        function openSettings(roleId) {
+            fetch(`/api/roles/${roleId}`, {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch role settings.');
+                }
+                return response.json();
+            })
+            .then(role => {
+                console.log('Role Data:', role);
+    
+                document.getElementById('settings-role-id').value = role.id;
+                document.getElementById('settings-role-name').value = role.name || '';
+                document.getElementById('settings-role-description').value = role.notes || '';
+                document.getElementById('settings-default-role').checked = role.default || false;
+    
+                const permissions = role.permissions || {};
+                console.log('Permissions:', permissions);
+    
+                const permissionsContainer = document.getElementById('permissions-container');
+                permissionsContainer.innerHTML = '';
+    
+                const categories = {
+                    'Administrator': ['administrator'],
+                    'Bridges and Cameras': [
+                        'addEditBridgesCameras', 'editSharing', 'controlPTZ', 'editPTZStations',
+                        'addEditSpeakers', 'editSpeakers', 'turnCamerasOnOff', 'editMotionAreas', 'editAllCameraSettings'
+                    ],
+                    'Accounts and Users': [
+                        'editAccounts', 'editNoBillingDeviceSettings', 'editUsers', 'upgradeEdition',
+                        'viewPlugins', 'editPlugins', 'exportUsers', 'editMap'
+                    ],
+                    'View and Downloads': [
+                        'viewLiveVideo', 'viewHistoricVideo', 'downloadVideo', 'viewPreviewVideo', 'talkDown'
+                    ],
+                    'Layouts': ['layoutAdministrator', 'createLayouts'],
+                    'AuditLog': ['viewAuditLog'],
+                    'Archive': ['viewArchive', 'editArchive']
+                };
+    
+                Object.keys(categories).forEach(category => {
+                    const categoryElement = document.createElement('div');
+                    categoryElement.className = 'permission-category';
+                    categoryElement.textContent = category;
+    
+                    const itemsContainer = document.createElement('div');
+                    itemsContainer.className = 'permission-items';
+    
+                    categories[category].forEach(permission => {
+                        const isChecked = permissions[permission] === true;
+                        const item = document.createElement('div');
+                        item.innerHTML = `
+                            <label>
+                                <input type="checkbox" name="${permission}" ${isChecked ? 'checked' : ''}>
+                                ${permission}
+                            </label>
+                        `;
+                        itemsContainer.appendChild(item);
+                    });
+    
+                    categoryElement.addEventListener('click', () => {
+                        itemsContainer.classList.toggle('visible');
+                        categoryElement.classList.toggle('expanded');
+                    });
+    
+                    permissionsContainer.appendChild(categoryElement);
+                    permissionsContainer.appendChild(itemsContainer);
+                });
+    
+                document.getElementById('settings-modal').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching role settings:', error);
+                alert('Failed to load role settings.');
+            });
+        }
+
+        function openUsers(roleId) {
+            window.location.href = `/assignments?roleId=${roleId}`;
+        }
+
+        function saveSettings() {
+            const roleId = document.getElementById('settings-role-id').value;
+            const roleName = document.getElementById('settings-role-name').value.trim();
+            const roleDescription = document.getElementById('settings-role-description').value.trim();
+            const isDefault = document.getElementById('settings-default-role').checked;
+    
+            const permissions = {};
+            const permissionCheckboxes = document.querySelectorAll('#permissions-container input[type="checkbox"]');
+            permissionCheckboxes.forEach(checkbox => {
+                const permissionName = checkbox.getAttribute('name');
+                if (permissionName) {
+                    permissions[permissionName] = checkbox.checked;
+                }
+            });
+    
+            const updatedRole = {
+                name: roleName,
+                notes: roleDescription,
+                default: isDefault,
+                permissions: permissions,
+            };
+    
+            fetch(`/api/roles/${roleId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(updatedRole)
+            })
+            .then(response => {
+                if (response.status === 204) {
+                    location.reload();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to save role updates.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error saving role:', error);
+                alert(`Failed to save role updates: ${error.message}`);
+            });
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function deleteRole(roleId) {
+            fetch(`/api/roles/${roleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || 'Failed to delete role');
+                        });
+                    }
+                    console.log('Role deleted successfully.');
+                    location.reload(); // Reload the page to reflect changes.
+                })
+                .catch(error => {
+                    console.error('Error deleting role:', error);
+                    alert(`Error: ${error.message}`);
+                });
+        }
+
+        function openCreateRoleModal() {
+            document.getElementById('create-role-name').value = '';
+            document.getElementById('create-role-description').value = '';
+            document.getElementById('create-default-role').checked = false;
+
+            // Get the container for permissions in the create role modal
+            const createPermissionsContainer = document.getElementById('create-permissions-container');
+            createPermissionsContainer.innerHTML = ''; // Clear the container
+
+            // Define the categories and their corresponding permissions
+            const categories = {
+                'Administrator': ['administrator'],
+                'Bridges and Cameras': [
+                    'addEditBridgesCameras', 'editSharing', 'controlPTZ', 'editPTZStations',
+                    'addEditSpeakers', 'editSpeakers', 'turnCamerasOnOff', 'editMotionAreas', 'editAllCameraSettings'
+                ],
+                'Accounts and Users': [
+                    'editAccounts', 'editNoBillingDeviceSettings', 'editUsers', 'upgradeEdition',
+                    'viewPlugins', 'editPlugins', 'exportUsers', 'editMap'
+                ],
+                'View and Downloads': [
+                    'viewLiveVideo', 'viewHistoricVideo', 'downloadVideo', 'viewPreviewVideo', 'talkDown'
+                ],
+                'Layouts': ['layoutAdministrator', 'createLayouts'],
+                'AuditLog': ['viewAuditLog'],
+                'Archive': ['viewArchive', 'editArchive']
+            };
+
+            // Iterate over the categories
+            Object.keys(categories).forEach(category => {
+                // Create a category element
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'permission-category';
+                categoryElement.textContent = category;
+
+                // Create a container for the permission items
+                const itemsContainer = document.createElement('div');
+                itemsContainer.className = 'permission-items';
+
+                // Iterate over the permissions within the category
+                categories[category].forEach(permission => {
+                    // Create a permission item with a checkbox
+                    const item = document.createElement('div');
+                    item.innerHTML = `
+                        <label>
+                            <input type="checkbox" name="${permission}">
+                            ${permission}
+                        </label>
+                    `;
+                    itemsContainer.appendChild(item);
+                });
+
+                // Add an event listener to toggle visibility of permission items
+                categoryElement.addEventListener('click', () => {
+                    itemsContainer.classList.toggle('visible');
+                    categoryElement.classList.toggle('expanded');
+                });
+
+                // Append the category and items container to the permissions container
+                createPermissionsContainer.appendChild(categoryElement);
+                createPermissionsContainer.appendChild(itemsContainer);
+            });
+
+            document.getElementById('create-role-modal').style.display = 'block';
+        }
+
+        function saveNewRole() {
+            const roleName = document.getElementById('create-role-name').value.trim();
+            const roleDescription = document.getElementById('create-role-description').value.trim();
+            const isDefault = document.getElementById('create-default-role').checked;
+    
+            const permissions = {};
+            const permissionCheckboxes = document.querySelectorAll('#create-permissions-container input[type="checkbox"]');
+            permissionCheckboxes.forEach(checkbox => {
+                const permissionName = checkbox.getAttribute('name');
+                if (permissionName) {
+                    permissions[permissionName] = checkbox.checked;
+                }
+            });
+    
+            const newRole = {
+                name: roleName,
+                notes: roleDescription,
+                default: isDefault,
+                permissions: permissions,
+            };
+    
+            fetch('/api/roles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(newRole)
+            })
+            .then(response => {
+                if (response.status === 201) {
+                    location.reload();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to create role.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error creating role:', error);
+                alert(`Failed to create role: ${error.message}`);
+            });
+        }
+    
+        function closeCreateRoleModal() {
+            document.getElementById('create-role-modal').style.display = 'none';
+        }
+    </script>
+</head>
+
+<body>
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/roles">Roles</a>
+        <a href="/logout">Logout</a>
+    </div>
+    <h1>Roles</h1>
+    <button class="create-role-btn" onclick="openCreateRoleModal()">+ Create Role</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Users</th>
+                <th>Default Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="roles-container">
+            <tr><td colspan="5">Loading roles...</td></tr>
+        </tbody>
+    </table>
+
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Edit Role</h2>
+            <input type="hidden" id="settings-role-id">
+            <div>
+                <label>Role Name: <span class="required">*</span></label>
+                <input type="text" id="settings-role-name" required>
+            </div>
+            <div>
+                <label>Description:</label>
+                <input type="text" id="settings-role-description">
+            </div>
+            <div>
+                <label>Default Role:</label>
+                <input type="checkbox" id="settings-default-role">
+            </div>
+            <div id="permissions-container"></div>
+            <button onclick="saveSettings()">Save</button>
+            <button onclick="closeSettings()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="create-role-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Create Role</h2>
+            <div>
+                <label>Role Name: <span class="required">*</span></label>
+                <input type="text" id="create-role-name" required>
+            </div>
+            <div>
+                <label>Description:</label>
+                <input type="text" id="create-role-description">
+            </div>
+            <div>
+                <label>Default Role:</label>
+                <input type="checkbox" id="create-default-role">
+            </div>
+            <div id="create-permissions-container"></div>
+            <button onclick="saveNewRole()" id="create-role-save-btn" disabled>Create</button>
+            <button onclick="closeCreateRoleModal()">Cancel</button>
+        </div>
+    </div>
+</body>
+</html>

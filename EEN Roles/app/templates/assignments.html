@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Assignments</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roleId = urlParams.get('roleId');
+            const tableContainer = document.getElementById('table-container');
+            const roleNameSpan = document.getElementById('role-name');
+
+            if (!roleId) {
+                tableContainer.innerHTML = `<p class="error">No Role ID provided.</p>`;
+                return;
+            }
+
+            const selectedUsers = new Set();
+
+            function toggleSelection(userId, isChecked) {
+                if (isChecked) {
+                    selectedUsers.add(userId);
+                } else {
+                    selectedUsers.delete(userId);
+                }
+            }
+
+            function toggleAllSelection(isChecked) {
+                const checkboxes = document.querySelectorAll('.user-selector');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    toggleSelection(checkbox.dataset.userid, isChecked);
+                });
+            }
+
+            function executeBulkAction(action) {
+                if (selectedUsers.size === 0) {
+                    alert("No users selected.");
+                    return;
+                }
+
+                const payload = Array.from(selectedUsers).map(userId => ({
+                    userId,
+                    roleId,
+                }));
+                const url = action === 'assign' ? '/api/roleassignments/bulkcreate' : '/api/roleassignments/bulkdelete';
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to ${action} roles.`);
+                        }
+                        console.log(`${action} action successful.`);
+                        location.reload(); // Reload the page to reflect changes.
+                    })
+                    .catch(error => {
+                        console.error(`Error performing bulk ${action}:`, error);
+                    });
+            }
+
+            function toggleAssignment(userId, roleId, assign) {
+                const url = assign ? '/api/roleassignments/bulkcreate' : '/api/roleassignments/bulkdelete';
+                const body = JSON.stringify([{ userId, roleId }]);
+            
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: body,
+                })
+                    .then(response => {
+                        if (!response.ok && response.status !== 204) {
+                            throw new Error(`Failed to update role assignment. Status: ${response.status}`);
+                        }
+                        console.log('Role assignment updated.');
+                        location.reload(); // Reload the page to reflect changes.
+                    })
+                    .catch(error => {
+                        console.error('Error updating role assignment:', error);
+                        alert(`Error: ${error.message}`);
+                    });
+            }
+
+            function renderAssignments(assignments, users, roleName) {
+                const rows = users.map(user => {
+                    // Check if the user is assigned to the current role
+                    const isAssigned = assignments.some(a => a.userId === user.id && a.roleId === roleId);
+
+                    return `
+                        <tr>
+                            <td><input type="checkbox" class="user-selector" data-userid="${user.id}" onchange="toggleSelection('${user.id}', this.checked)"></td>
+                            <td>${user.name || '-'}</td>
+                            <td>${user.status?.loginStatus || '-'}</td>
+                            <td>${user.loginDetails?.lastLogin || '-'}</td>
+                            <td>
+                                <label class="toggle">
+                                    <input type="checkbox" ${isAssigned ? 'checked' : ''} 
+                                        onchange="toggleAssignment('${user.id}', '${roleId}', this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                document.getElementById('users-container').innerHTML = rows;
+                roleNameSpan.textContent = roleName;
+            }
+
+            fetch(`/api/roleassignments?roleId=${roleId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    renderAssignments(data.assignments.results, data.users.results, data.roleName);
+                })
+                .catch(error => {
+                    console.error('Error fetching role assignments:', error);
+                });
+
+            // Expose functions globally for dynamic calls
+            window.toggleSelection = toggleSelection;
+            window.toggleAllSelection = toggleAllSelection;
+            window.executeBulkAction = executeBulkAction;
+            window.toggleAssignment = toggleAssignment;
+        });
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/roles">Roles</a>
+        <a href="/logout">Logout</a>
+    </div>
+    <h1>Role Assignments for Role: <span id="role-name"></span></h1>
+
+    <!-- Bulk Action Dropdown -->
+    <div class="bulk-action-container">
+        <select id="bulk-action">
+            <option value="assign">Assign</option>
+            <option value="unassign">Unassign</option>
+        </select>
+        <button onclick="executeBulkAction(document.getElementById('bulk-action').value)">Apply</button>
+    </div>
+
+    <!-- Table for Users -->
+    <div id="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all" onchange="toggleAllSelection(this.checked)"></th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Assign Role</th>
+                </tr>
+            </thead>
+            <tbody id="users-container">
+                <tr>
+                    <td colspan="5">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

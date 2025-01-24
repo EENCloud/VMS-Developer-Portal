@@ -18,6 +18,12 @@
       .album {
         padding: 2rem
       }
+      .card-svg {
+        display: block;
+        margin: 0 auto 1rem;
+        width: 60px;
+        height: auto;
+      }
 
     </style>
     
@@ -31,241 +37,445 @@
 
       <hr>
       <div class="album">
-        <div class="row">
+        <div class="card-deck">
           
           <!-- OAuth Python -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>OAuth authentication in Python</h6>
-                <hr>
-                <p class="card-text">Simple Flask server using OAuth 2.0 for authentication.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/dd74cc3943d17351dcba8f834823623b74375afc/OAuth%20Python" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>OAuth authentication in Python</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24.3333 21.3667C24.3333 21.5324 24.199 21.6667 24.0333 21.6667H19.6333C19.4676 21.6667 19.3333 21.5324 19.3333 21.3667V18.6333C19.3333 18.4676 19.199 18.3333 19.0333 18.3333H17.2903C17.1741 18.3333 17.069 18.4008 17.0161 18.5042C16.0329 20.424 14.0354 21.6667 11.8333 21.6667C8.61667 21.6667 6 19.05 6 15.8333C6 12.6167 8.61667 10 11.8333 10C14.0357 10 16.0256 11.243 17.0158 13.1634C17.0689 13.2663 17.1738 13.3333 17.2896 13.3333H25.7C25.8657 13.3333 26 13.4676 26 13.6333V18.0333C26 18.199 25.8657 18.3333 25.7 18.3333H24.6333C24.4676 18.3333 24.3333 18.4676 24.3333 18.6333V21.3667ZM21 19.7C21 19.8657 21.1343 20 21.3 20H22.3667C22.5324 20 22.6667 19.8657 22.6667 19.7V16.9667C22.6667 16.801 22.801 16.6667 22.9667 16.6667H24.0333C24.199 16.6667 24.3333 16.5324 24.3333 16.3667V15.3C24.3333 15.1343 24.199 15 24.0333 15H16.1642C16.0361 15 15.9221 14.9186 15.8805 14.7974L15.7583 14.4417C15.175 12.7833 13.5917 11.6667 11.8333 11.6667C9.53333 11.6667 7.66667 13.5333 7.66667 15.8333C7.66667 18.1333 9.53333 20 11.8333 20C13.5917 20 15.175 18.8833 15.7583 17.225L15.8805 16.8693C15.9221 16.7481 16.0361 16.6667 16.1642 16.6667H20.7C20.8657 16.6667 21 16.801 21 16.9667V19.7ZM11.8333 18.3333C10.4583 18.3333 9.33333 17.2083 9.33333 15.8333C9.33333 14.4583 10.4583 13.3333 11.8333 13.3333C13.2083 13.3333 14.3333 14.4583 14.3333 15.8333C14.3333 17.2083 13.2083 18.3333 11.8333 18.3333ZM11.8333 15C11.375 15 11 15.375 11 15.8333C11 16.2917 11.375 16.6667 11.8333 16.6667C12.2917 16.6667 12.6667 16.2917 12.6667 15.8333C12.6667 15.375 12.2917 15 11.8333 15Z" fill="#252932"/>
+                  </svg>
                 </div>
+                <div class="col">
+                  <p class="card-text">Simple Flask server using OAuth 2.0 for authentication.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/dd74cc3943d17351dcba8f834823623b74375afc/OAuth%20Python" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
 
           <!-- OAuth Node -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>OAuth authentication in Node.js</h6>
-                <hr>
-                <p class="card-text">A Node.js server using OAuth 2.0 for authentication.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/02a498b7917dee780bb7a944725f8e6ea3d9ce03/OAuth%20Node.JS" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>OAuth authentication in Node.js</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24.3333 21.3667C24.3333 21.5324 24.199 21.6667 24.0333 21.6667H19.6333C19.4676 21.6667 19.3333 21.5324 19.3333 21.3667V18.6333C19.3333 18.4676 19.199 18.3333 19.0333 18.3333H17.2903C17.1741 18.3333 17.069 18.4008 17.0161 18.5042C16.0329 20.424 14.0354 21.6667 11.8333 21.6667C8.61667 21.6667 6 19.05 6 15.8333C6 12.6167 8.61667 10 11.8333 10C14.0357 10 16.0256 11.243 17.0158 13.1634C17.0689 13.2663 17.1738 13.3333 17.2896 13.3333H25.7C25.8657 13.3333 26 13.4676 26 13.6333V18.0333C26 18.199 25.8657 18.3333 25.7 18.3333H24.6333C24.4676 18.3333 24.3333 18.4676 24.3333 18.6333V21.3667ZM21 19.7C21 19.8657 21.1343 20 21.3 20H22.3667C22.5324 20 22.6667 19.8657 22.6667 19.7V16.9667C22.6667 16.801 22.801 16.6667 22.9667 16.6667H24.0333C24.199 16.6667 24.3333 16.5324 24.3333 16.3667V15.3C24.3333 15.1343 24.199 15 24.0333 15H16.1642C16.0361 15 15.9221 14.9186 15.8805 14.7974L15.7583 14.4417C15.175 12.7833 13.5917 11.6667 11.8333 11.6667C9.53333 11.6667 7.66667 13.5333 7.66667 15.8333C7.66667 18.1333 9.53333 20 11.8333 20C13.5917 20 15.175 18.8833 15.7583 17.225L15.8805 16.8693C15.9221 16.7481 16.0361 16.6667 16.1642 16.6667H20.7C20.8657 16.6667 21 16.801 21 16.9667V19.7ZM11.8333 18.3333C10.4583 18.3333 9.33333 17.2083 9.33333 15.8333C9.33333 14.4583 10.4583 13.3333 11.8333 13.3333C13.2083 13.3333 14.3333 14.4583 14.3333 15.8333C14.3333 17.2083 13.2083 18.3333 11.8333 18.3333ZM11.8333 15C11.375 15 11 15.375 11 15.8333C11 16.2917 11.375 16.6667 11.8333 16.6667C12.2917 16.6667 12.6667 16.2917 12.6667 15.8333C12.6667 15.375 12.2917 15 11.8333 15Z" fill="#252932"/>
+                  </svg>
                 </div>
+                <div class="col">
+                  <p class="card-text">A Node.js server using OAuth 2.0 for authentication.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/02a498b7917dee780bb7a944725f8e6ea3d9ce03/OAuth%20Node.JS" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
 
           <!-- OAuth Go -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>OAuth authentication in Go</h6>
-                <hr>
-                <p class="card-text">A Go fiber server using OAuth 2.0 for authentication.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/7acdeaf5bdc2aaa4046b48a9d19fb0e1eae67841/OAuth%20Go" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>OAuth authentication in Go</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24.3333 21.3667C24.3333 21.5324 24.199 21.6667 24.0333 21.6667H19.6333C19.4676 21.6667 19.3333 21.5324 19.3333 21.3667V18.6333C19.3333 18.4676 19.199 18.3333 19.0333 18.3333H17.2903C17.1741 18.3333 17.069 18.4008 17.0161 18.5042C16.0329 20.424 14.0354 21.6667 11.8333 21.6667C8.61667 21.6667 6 19.05 6 15.8333C6 12.6167 8.61667 10 11.8333 10C14.0357 10 16.0256 11.243 17.0158 13.1634C17.0689 13.2663 17.1738 13.3333 17.2896 13.3333H25.7C25.8657 13.3333 26 13.4676 26 13.6333V18.0333C26 18.199 25.8657 18.3333 25.7 18.3333H24.6333C24.4676 18.3333 24.3333 18.4676 24.3333 18.6333V21.3667ZM21 19.7C21 19.8657 21.1343 20 21.3 20H22.3667C22.5324 20 22.6667 19.8657 22.6667 19.7V16.9667C22.6667 16.801 22.801 16.6667 22.9667 16.6667H24.0333C24.199 16.6667 24.3333 16.5324 24.3333 16.3667V15.3C24.3333 15.1343 24.199 15 24.0333 15H16.1642C16.0361 15 15.9221 14.9186 15.8805 14.7974L15.7583 14.4417C15.175 12.7833 13.5917 11.6667 11.8333 11.6667C9.53333 11.6667 7.66667 13.5333 7.66667 15.8333C7.66667 18.1333 9.53333 20 11.8333 20C13.5917 20 15.175 18.8833 15.7583 17.225L15.8805 16.8693C15.9221 16.7481 16.0361 16.6667 16.1642 16.6667H20.7C20.8657 16.6667 21 16.801 21 16.9667V19.7ZM11.8333 18.3333C10.4583 18.3333 9.33333 17.2083 9.33333 15.8333C9.33333 14.4583 10.4583 13.3333 11.8333 13.3333C13.2083 13.3333 14.3333 14.4583 14.3333 15.8333C14.3333 17.2083 13.2083 18.3333 11.8333 18.3333ZM11.8333 15C11.375 15 11 15.375 11 15.8333C11 16.2917 11.375 16.6667 11.8333 16.6667C12.2917 16.6667 12.6667 16.2917 12.6667 15.8333C12.6667 15.375 12.2917 15 11.8333 15Z" fill="#252932"/>
+                  </svg>
                 </div>
+                <div class="col">
+                  <p class="card-text">A Go fiber server using OAuth 2.0 for authentication.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/login-confidential-client" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/7acdeaf5bdc2aaa4046b48a9d19fb0e1eae67841/OAuth%20Go" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
 
         </div><!-- end of row -->
 
-        <div class="row">
-
-          <!-- Custom Analytics -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Customized Analytics</h6>
-                <hr>
-                <p class="card-text">Demonstrates the application of a custom AI analytic to an Eagle Eye preview stream.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Custom%20Object%20Detection" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
-                </div>
-              </div>
-            </div>
-          </div>           
-
-          <!-- Reseller Account Switching -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Reseller Account Switching</h6>
-                <hr>
-                <p class="card-text">Demonstrates the process for generating access tokens for a reseller client's account.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/reseller-account-switching" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/7acdeaf5bdc2aaa4046b48a9d19fb0e1eae67841/SwitchAccount" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Camera Renaming -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Camera Renaming in Bulk</h6>
-                <hr>
-                <p class="card-text">How to rename cameras in bulk using a Python script.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/page/camera-renaming-in-bulk" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/blob/main/CameraRenameInBulk/CameraRenameInBulk.py" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
-                </div>
-              </div>
-            </div>
-          </div>
-            
-        </div><!-- end of row -->
-
-        <div class="row">
+        <div class="card-deck">
           
           <!-- Live Video Flask -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Live Video Streaming - Flask</h6>
-                <hr>
-                <p class="card-text">Example Flask Application implementing the Live Video API and SDK.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Live%20Video%20Flask" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Live Video Streaming - Flask</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M75 74.0625V80.25C75 81.4926 73.9926 82.5 72.75 82.5H24.75C23.5074 82.5 22.5 81.4926 22.5 80.25V39C22.5 38.1716 23.1716 37.5 24 37.5H73.5C74.3284 37.5 75 38.1716 75 39V45.9375L95.4733 38.26C96.4539 37.8923 97.5 38.6172 97.5 39.6645V79.2533C97.5 80.8242 95.9309 81.9116 94.46 81.36L75 74.0625ZM30 45H67.5V75H30V45ZM75 66.0525L90 71.6775V48.3225L75 53.9475V66.0525Z" fill="#252932"/>
+                  </svg>
                 </div>
+                <div class="col">
+                  <p class="card-text">Example Flask Application implementing the Live Video API and SDK.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Live%20Video%20Flask" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
 
           
           <!-- Live Video Angular -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Live Video Streaming - Angular</h6>
-                <hr>
-                <p class="card-text">Example Angular Application implementing the Live Video API and SDK.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Live%20Video%20Angular" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Live Video Streaming - Angular</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M75 74.0625V80.25C75 81.4926 73.9926 82.5 72.75 82.5H24.75C23.5074 82.5 22.5 81.4926 22.5 80.25V39C22.5 38.1716 23.1716 37.5 24 37.5H73.5C74.3284 37.5 75 38.1716 75 39V45.9375L95.4733 38.26C96.4539 37.8923 97.5 38.6172 97.5 39.6645V79.2533C97.5 80.8242 95.9309 81.9116 94.46 81.36L75 74.0625ZM30 45H67.5V75H30V45ZM75 66.0525L90 71.6775V48.3225L75 53.9475V66.0525Z" fill="#252932"/>
+                  </svg>
                 </div>
+                <div class="col">
+                  <p class="card-text">Example Angular Application implementing the Live Video API and SDK.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Live%20Video%20Angular" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
           
           <!-- Export Video -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Export Video</h6>
-                <hr>
-                <p class="card-text">A sample application that allows the user to download video clips from their Eagle Eye Networks account.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/docs/files-1" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Video%20Export" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Export Video</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M36.8098 95L32 90.1043L42.135 79.9693H34.4049V73.0982H53.816V92.5092H46.9448V84.865L36.8098 95ZM60.6871 93.7117V86.8405H81.3006V49.0491H64.1227V31.8712H40.0736V66.227H33.2025V31.8712C33.2025 29.9816 33.8753 28.364 35.2209 27.0184C36.5665 25.6728 38.184 25 40.0736 25H67.5583L88.1718 45.6135V86.8405C88.1718 88.7301 87.499 90.3476 86.1534 91.6933C84.8078 93.0389 83.1902 93.7117 81.3006 93.7117H60.6871Z" fill="#252932"/>
+                  </svg>
                 </div>
+                <div class="col">
+                  <p class="card-text">A sample application that allows the user to download video clips from their Eagle Eye Networks account.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/files-1" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Video%20Export" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
 
         </div><!-- end of row -->
 
-        <div class="row">
+        <div class="card-deck">
           
-          <!-- Node Server -->
-          <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-              <div class="card-body">
-                <h6>Node.JS server for EEN API</h6>
-                <hr>
-                <p class="card-text">Example Node.JS server implementing EEN REST API.</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="btn-group">
-                    <a href="https://developer.eagleeyenetworks.com/page/live-playing" target="_top">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
-                    </a>
-                    <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Node.js%20Local%20Proxy%20Server" target="_blank" rel="noopener noreferrer">
-                      <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
-                    </a>
-                  </div>
-                  <small class="text-muted"></small>
+          <!-- Video Search -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Video Search</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M21.3458 15.811C21.1923 20.1538 18.0551 22.3462 14.811 22.3462C11.5669 22.3462 8.19195 19.5066 8.19195 15.811C8.19195 12.1154 11.1154 9.19231 14.811 9.19231C18.5066 9.19231 21.4764 12.1154 21.3458 15.811ZM19.9163 22.993C18.4759 24.0187 16.7139 24.622 14.811 24.622C9.94481 24.622 6 20.6772 6 15.811C6 10.9448 9.94481 7 14.811 7C19.6772 7 23.622 10.9448 23.622 15.811C23.622 17.7139 23.0187 19.4759 21.993 20.9163L24.8834 23.8067C25.0669 23.9902 25.0297 24.3249 24.8004 24.5543L23.5543 25.8004C23.3249 26.0297 22.9902 26.0669 22.8067 25.8834L19.9163 22.993Z" fill="#252932"/>
+                    <path d="M18.2711 15.6903C18.4762 15.8116 18.4762 16.115 18.2711 16.2363L13.0403 19.3308C12.8352 19.4522 12.5788 19.3005 12.5788 19.0578V12.8688C12.5788 12.6261 12.8352 12.4744 13.0403 12.5958L18.2711 15.6903Z" fill="#252932"/>
+                  </svg>
+                    
                 </div>
+                <div class="col">
+                  <p class="card-text">Parse natual language text to search for people and objects of interest in recorded footage.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/video-search" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Video%20Search" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
               </div>
             </div>
           </div>
 
+          
+          <!-- Event Insertion -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Event Insertion</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M70 84C67.2 84 64.8333 83.0333 62.9 81.1C60.9667 79.1667 60 76.8 60 74C60 71.2 60.9667 68.8333 62.9 66.9C64.8333 64.9667 67.2 64 70 64C72.8 64 75.1667 64.9667 77.1 66.9C79.0333 68.8333 80 71.2 80 74C80 76.8 79.0333 79.1667 77.1 81.1C75.1667 83.0333 72.8 84 70 84ZM32 100C29.8 100 27.9167 99.2167 26.35 97.65C24.7833 96.0833 24 94.2 24 92V36C24 33.8 24.7833 31.9167 26.35 30.35C27.9167 28.7833 29.8 28 32 28H36V20H44V28H76V20H84V28H88C90.2 28 92.0833 28.7833 93.65 30.35C95.2167 31.9167 96 33.8 96 36V92C96 94.2 95.2167 96.0833 93.65 97.65C92.0833 99.2167 90.2 100 88 100H32ZM32 92H88V52H32V92ZM32 44H88V36H32V44Z" fill="#252932"/>
+                  </svg>
+                    
+                </div>
+                <div class="col">
+                  <p class="card-text">Review events from and insert events into a camera's history.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/EEN%20Events" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- IP Speakers -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>IP Speakers</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M80 100H40C37.8 100 35.9167 99.2167 34.35 97.65C32.7833 96.0833 32 94.2 32 92V28C32 25.8 32.7833 23.9167 34.35 22.35C35.9167 20.7833 37.8 20 40 20H80C82.2 20 84.0833 20.7833 85.65 22.35C87.2167 23.9167 88 25.8 88 28V92C88 94.2 87.2167 96.0833 85.65 97.65C84.0833 99.2167 82.2 100 80 100ZM80 92V28H40V92H80ZM60 48C62.2 48 64.0833 47.2167 65.65 45.65C67.2167 44.0833 68 42.2 68 40C68 37.8 67.2167 35.9167 65.65 34.35C64.0833 32.7833 62.2 32 60 32C57.8 32 55.9167 32.7833 54.35 34.35C52.7833 35.9167 52 37.8 52 40C52 42.2 52.7833 44.0833 54.35 45.65C55.9167 47.2167 57.8 48 60 48ZM60 88C64.4 88 68.1667 86.4333 71.3 83.3C74.4333 80.1667 76 76.4 76 72C76 67.6 74.4333 63.8333 71.3 60.7C68.1667 57.5667 64.4 56 60 56C55.6 56 51.8333 57.5667 48.7 60.7C45.5667 63.8333 44 67.6 44 72C44 76.4 45.5667 80.1667 48.7 83.3C51.8333 86.4333 55.6 88 60 88ZM60 80C57.8 80 55.9167 79.2167 54.35 77.65C52.7833 76.0833 52 74.2 52 72C52 69.8 52.7833 67.9167 54.35 66.35C55.9167 64.7833 57.8 64 60 64C62.2 64 64.0833 64.7833 65.65 66.35C67.2167 67.9167 68 69.8 68 72C68 74.2 67.2167 76.0833 65.65 77.65C64.0833 79.2167 62.2 80 60 80Z" fill="#252932"/>
+                  </svg>
+                </div>
+                <div class="col">
+                  <p class="card-text">Leverage an connected IP Speaker to playback audio or open a 2-Way intercom to a surveilled location.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/event-insertion" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/EEN%20Events" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end of row -->
+
+        <div class="card-deck">
+
+          <!-- Roles -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>User Roles</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M72.3299 55.3761C76.2644 51.939 78.75 46.8848 78.75 41.25C78.75 30.8947 70.3553 22.5 60 22.5C49.6447 22.5 41.25 30.8947 41.25 41.25C41.25 46.8848 43.7356 51.939 47.6701 55.3761C37.1285 60.5768 30 72.2304 30 85.35V92.2492C30 93.0779 30.672 93.7496 31.5007 93.7492L36.0007 93.747C36.8289 93.7466 37.5 93.0751 37.5 92.247V85.35C37.5 70.9766 47.9278 60 60 60C72.0722 60 82.5 70.9766 82.5 85.35V92.2492C82.5 93.0779 83.172 93.7496 84.0007 93.7492L88.5007 93.747C89.3289 93.7466 90 93.0751 90 92.247V85.35C90 72.2304 82.8715 60.5768 72.3299 55.3761ZM48.75 41.25C48.75 35.0368 53.7868 30 60 30C66.2132 30 71.25 35.0368 71.25 41.25C71.25 47.4632 66.2132 52.5 60 52.5C53.7868 52.5 48.75 47.4632 48.75 41.25Z" fill="#252932"/>
+                  </svg>
+                </div>
+                <div class="col">
+                  <p class="card-text">Create and manage user roles for an Eagle Eye Networks account.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/user-roles" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/EEN%20Roles" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Analytics -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Customized Analytics</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M20 16C20 18.2091 18.2091 20 16 20C13.7909 20 12 18.2091 12 16C12 13.7909 13.7909 12 16 12C18.2091 12 20 13.7909 20 16ZM18 16C18 17.1046 17.1046 18 16 18C14.8954 18 14 17.1046 14 16C14 14.8954 14.8954 14 16 14C17.1046 14 18 14.8954 18 16Z" fill="#252932"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 23C10 23 6 16 6 16C6 16 10 9 16 9C22 9 26 16 26 16C26 16 22 23 16 23ZM10.1642 18.0858C9.41612 17.3377 8.81645 16.5832 8.39556 16C8.81645 15.4168 9.41612 14.6623 10.1642 13.9142C11.7707 12.3078 13.7865 11 16 11C18.2135 11 20.2293 12.3078 21.8358 13.9142C22.5839 14.6623 23.1835 15.4168 23.6044 16C23.1835 16.5832 22.5839 17.3377 21.8358 18.0858C20.2293 19.6922 18.2135 21 16 21C13.7865 21 11.7707 19.6922 10.1642 18.0858Z" fill="#252932"/>
+                  </svg>
+                </div>
+                <div class="col">
+                  <p class="card-text">Demonstrates the application of a custom AI analytic to an Eagle Eye preview stream.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/watch-live-video" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Custom%20Object%20Detection" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Camera Renaming -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Camera Renaming in Bulk</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12C9.55228 12 10 11.5523 10 11C10 10.4477 9.55228 10 9 10C8.44772 10 8 10.4477 8 11C8 11.5523 8.44772 12 9 12Z" fill="#252932"/>
+                    <path d="M12.4 10C12.1791 10 12 10.1791 12 10.4V11.6C12 11.8209 12.1791 12 12.4 12H23.6C23.8209 12 24 11.8209 24 11.6V10.4C24 10.1791 23.8209 10 23.6 10H12.4Z" fill="#252932"/>
+                    <path d="M12.4 15C12.1791 15 12 15.1791 12 15.4V16.6C12 16.8209 12.1791 17 12.4 17H23.6C23.8209 17 24 16.8209 24 16.6V15.4C24 15.1791 23.8209 15 23.6 15H12.4Z" fill="#252932"/>
+                    <path d="M12 20.4C12 20.1791 12.1791 20 12.4 20H23.6C23.8209 20 24 20.1791 24 20.4V21.6C24 21.8209 23.8209 22 23.6 22H12.4C12.1791 22 12 21.8209 12 21.6V20.4Z" fill="#252932"/>
+                    <path d="M10 16C10 16.5523 9.55228 17 9 17C8.44772 17 8 16.5523 8 16C8 15.4477 8.44772 15 9 15C9.55228 15 10 15.4477 10 16Z" fill="#252932"/>
+                    <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" fill="#252932"/>
+                  </svg>
+                </div>
+                <div class="col">
+                  <p class="card-text">How to rename cameras in bulk using a Python script.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/page/camera-renaming-in-bulk" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/blob/main/CameraRenameInBulk/CameraRenameInBulk.py" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+            
+        </div><!-- end of row -->
+
+        <div class="card-deck">      
+
+          <!-- Reseller Account Switching -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Reseller Account Switching</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5C13.8029 5 12.0219 6.79086 12.0219 9C12.0219 10.4224 12.7603 11.6715 13.8727 12.3807C11.6431 13.2088 10.0328 15.3016 10.0328 17.8V18.6C10.0328 18.8209 10.2109 19 10.4306 19H11.6241C11.8438 19 12.0219 18.8209 12.0219 18.6V17.8C12.0219 15.7394 13.7643 14 16 14C18.2357 14 19.9781 15.7394 19.9781 17.8V18.6C19.9781 18.8209 20.1562 19 20.3759 19H21.5693C21.789 19 21.9671 18.8209 21.9671 18.6V17.8C21.9671 15.3016 20.3569 13.2088 18.1272 12.3807C19.2397 11.6715 19.9781 10.4224 19.9781 9C19.9781 6.79086 18.197 5 16 5ZM14.0109 9C14.0109 7.89543 14.9015 7 16 7C17.0985 7 17.989 7.89543 17.989 9C17.989 10.1046 17.0985 11 16 11C14.9015 11 14.0109 10.1046 14.0109 9Z" fill="#252932"/>
+                    <path d="M15.0054 20.9209C15.0054 20.7442 15.1836 20.6009 15.4033 20.6009H16.5967C16.8164 20.6009 16.9945 20.7442 16.9945 20.9209V23.2676C17.589 23.6134 17.989 24.2597 17.989 25C17.989 26.1046 17.0985 27 16 27C14.9015 27 14.0109 26.1046 14.0109 25C14.0109 24.2597 14.4109 23.6134 15.0054 23.2676V20.9209Z" fill="#252932"/>
+                    <path d="M21.073 21.4494C20.9176 21.6056 20.9176 21.8589 21.073 22.0151L23.0894 24.0426C22.9122 24.7099 23.0839 25.4514 23.6045 25.9749C24.3813 26.7559 25.6407 26.7559 26.4174 25.9749C27.1942 25.1938 27.1942 23.9275 26.4174 23.1465C25.8969 22.623 25.1595 22.4504 24.496 22.6285L22.4795 20.6009C22.3241 20.4447 22.0722 20.4447 21.9169 20.6009L21.073 21.4494Z" fill="#252932"/>
+                    <path d="M9.52063 20.6009C9.67599 20.4447 9.92787 20.4447 10.0832 20.6009L10.9271 21.4494C11.0825 21.6056 11.0825 21.8589 10.9271 22.0151L8.91058 24.0427C9.08781 24.71 8.91612 25.4514 8.39551 25.9749C7.61874 26.7559 6.35935 26.7559 5.58258 25.9749C4.80581 25.1938 4.80581 23.9275 5.58258 23.1465C6.10316 22.623 6.84051 22.4504 7.50407 22.6285L9.52063 20.6009Z" fill="#252932"/>
+                  </svg>
+                </div>
+                <div class="col">
+                  <p class="card-text">Demonstrates the process for generating access tokens for a reseller client's account.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/docs/reseller-account-switching" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/7acdeaf5bdc2aaa4046b48a9d19fb0e1eae67841/SwitchAccount" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Node Server -->
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <h6>Node.JS server for EEN API</h6>
+              <hr>
+              <div class="row">
+                <div class="col-auto">
+                  <svg class="card-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M27 80.625H93V55.875H27V80.625ZM80.625 74.4375C82.3438 74.4375 83.8047 73.8359 85.0078 72.6328C86.2109 71.4297 86.8125 69.9688 86.8125 68.25C86.8125 66.5312 86.2109 65.0703 85.0078 63.8672C83.8047 62.6641 82.3438 62.0625 80.625 62.0625C78.9062 62.0625 77.4453 62.6641 76.2422 63.8672C75.0391 65.0703 74.4375 66.5312 74.4375 68.25C74.4375 69.9688 75.0391 71.4297 76.2422 72.6328C77.4453 73.8359 78.9062 74.4375 80.625 74.4375ZM101.25 47.625H89.5969L81.3469 39.375H38.6531L30.4031 47.625H18.75L32.8781 33.4969C33.6344 32.7406 34.5109 32.1562 35.5078 31.7438C36.5047 31.3312 37.5531 31.125 38.6531 31.125H81.3469C82.4469 31.125 83.4953 31.3312 84.4922 31.7438C85.4891 32.1562 86.3656 32.7406 87.1219 33.4969L101.25 47.625ZM27 88.875C24.7312 88.875 22.7891 88.0672 21.1734 86.4516C19.5578 84.8359 18.75 82.8938 18.75 80.625V47.625H101.25V80.625C101.25 82.8938 100.442 84.8359 98.8266 86.4516C97.2109 88.0672 95.2688 88.875 93 88.875H27Z" fill="#252932"/>
+                    <path d="M66.4514 72.6328C65.2482 73.8359 63.7873 74.4375 62.0685 74.4375C60.3498 74.4375 58.8889 73.8359 57.6857 72.6328C56.4826 71.4297 55.881 69.9688 55.881 68.25C55.881 66.5312 56.4826 65.0703 57.6857 63.8672C58.8889 62.6641 60.3498 62.0625 62.0685 62.0625C63.7873 62.0625 65.2482 62.6641 66.4514 63.8672C67.6545 65.0703 68.256 66.5312 68.256 68.25C68.256 69.9688 67.6545 71.4297 66.4514 72.6328Z" fill="#252932"/>
+                  </svg>
+                </div>
+                <div class="col">
+                  <p class="card-text">Example Node.JS server implementing EEN REST API.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="btn-group">
+                  <a href="https://developer.eagleeyenetworks.com/page/live-playing" target="_top">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">View Article</button>
+                  </a>
+                  <a href="https://github.com/EENCloud/VMS-Developer-Portal/tree/main/Node.js%20Local%20Proxy%20Server" target="_blank" rel="noopener noreferrer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary second-btn">View on Github</button>
+                  </a>
+                </div>
+                <small class="text-muted"></small>
+              </div>
+            </div>
+          </div>
+            
         </div><!-- end of row -->
       </div>
     </main>

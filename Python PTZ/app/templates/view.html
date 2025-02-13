@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block css %}
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='view.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{{ url_for('index') }}">Cameras</a> &gt; <a>{{ camera.name }}</a>
+{% endblock %}
+
+{% block content %}
+        <div id="loader">
+            <div class="spinner"></div>
+        </div>
+        <br />
+        {% if results %}
+            <div class="viewer-block">
+                <div class="viewer">
+                    <video id="video" autoplay muted></video>
+                </div>
+                {% if results.talkdown %}
+                <div class="stream-buttons">
+                    {% if results.talkdown.audioPushHttpsUrl %}
+                    <button id="playAudioBtn" class="stream-btn">Play Audio</button>
+                    {% endif %}
+                    {% if results.talkdown.webRtcUrl %}
+                    <button id="openIntercomBtn" class="stream-btn">
+                        Open Intercom <i id="intercom-status" class="material-icons">volume_off</i>
+                    </button>
+                    {% endif %}
+                </div>
+                <!-- Add the audio element required for WebRTC -->
+                <audio id="webrtc-audio" autoplay></audio>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No footage found.</p>
+        {% endif %}
+{% endblock %}
+
+{% if results and media %}
+{% block script %}
+<script>
+
+    // Hide the loader when the video feed is loaded
+    function hideLoader() {
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    // Fallback to hide the loader after a timeout
+    setTimeout(hideLoader, 20000);
+
+    // Video player initialization
+    var video = document.getElementById('video');
+    var videoSrc = '{{ results.main.hlsUrl | safe }}';
+    if (Hls.isSupported()) {
+        var hls = new Hls({
+            xhrSetup: xhr => {
+                xhr.setRequestHeader('Authorization', 'Bearer {{ media.access_token }}');
+            }
+        });
+        hls.loadSource(videoSrc);
+        hls.attachMedia(video);
+    }
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = videoSrc;
+    }
+
+    video.addEventListener('canplay', hideLoader);
+</script>
+{% if results.capabilities.ptz.capable %}
+<script>
+    async function moveTo(type, coords) {
+        let position;
+        if (type == 'click') {
+            position = {
+                moveType: 'centerOn',
+                relativeX: coords.x,
+                relativeY: coords.y
+            }
+            console.log('Moving to:', position);
+        }
+        else if (type == 'direction') {
+            position = {
+                moveType: 'direction',
+                direction: coords.direction,
+                step: coords.step
+            }
+            console.log('Moving to:', position);
+        }
+        else {
+            console.error('Invalid move type:', type);
+            return;
+        }
+        try {
+            const response = await fetch('{{ url_for("ptz", camera_id=camera.id)}}', {
+                method: 'POST',
+                body: JSON.stringify(position),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Response:', data);
+            } else {
+                const data = await response.json();
+                alert('Error moving camera: ' + data.message);
+            }
+        } catch (error) {
+            alert('There was a problem with the move request.');
+            console.error('Error:', error);
+        }
+    }
+
+    video.addEventListener('click', function(event) {
+        const rect = video.getBoundingClientRect();
+
+        // Calculate the click position relative to the video element
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Convert the click position to a percentage
+        const xPercent = x / rect.width;
+        const yPercent = y / rect.height;
+        moveTo('click', { x: xPercent, y: yPercent });
+    })
+
+    // Keyboard controls for PTZ
+    const activeKeys = new Set();
+    let continuous = 0;
+
+    document.addEventListener('keyup', function(event) {
+        activeKeys.delete(event.key);
+    });
+    document.addEventListener('keydown', function(event) {
+        activeKeys.add(event.key);
+    });
+
+    setInterval(() => {
+        if (activeKeys.size > 0) {
+            // Determine directions
+            const directions = new Set();
+            if (activeKeys.has('ArrowUp')) directions.add('up');
+            if (activeKeys.has('ArrowDown')) directions.add('down');
+            if (activeKeys.has('ArrowLeft')) directions.add('left');
+            if (activeKeys.has('ArrowRight')) directions.add('right');
+
+            if (directions.size > 0) {
+                // Step size increases based on how long the keys have been pressed
+                let step;
+                if (continuous > 1) {
+                    step = 'large';
+                } else if (continuous > 0) {
+                    step = 'medium';
+                } else {
+                    step = 'small';
+                }
+
+                moveTo('direction', {
+                    direction: Array.from(directions),
+                    step: step
+                });
+            }
+            continuous++;
+        } else {
+            continuous = 0;
+        }
+    }, 1000);
+</script>
+{% endif %}
+{% endblock %}
+{% endif %}

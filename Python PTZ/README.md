@@ -19,44 +19,6 @@ This example demonstrates the process for accessing Pan, Tilt, and Zoom capable 
    $ export FLASK_APP=main.py
    ```
 
-## Packaging the 2-Way Audio SDK
-
-To package the 2-Way Audio SDK for use in your own application, you can use the following steps:
-
-1. Install Webpack (or any other bundler of your choice):
-   ```
-   $ npm install --save-dev webpack webpack-cli
-   ```
-
-2. Create a `webpack.config.js` file in the root of your project with the following content:
-   ```javascript
-   const path = require('path');
-
-   module.exports = {
-      mode: 'production',
-      entry: './index.js',
-      output: {
-         filename: 'bundle.js',
-         path: path.resolve(__dirname, 'app/static/js'), // Output directory
-      },
-   };
-   ```
-
-3. Create an `index.js` file in the root of your project with the following content:
-   ```javascript
-   const EENWebRTC = require('@een/two-way-audio-web-sdk');
-   ```
-
-4. Run Webpack to bundle the SDK:
-   ```
-   $ npx webpack
-   ```
-
-5. Include the bundled `bundle.js` file in your template or HTML file:
-   ```html
-   <script src="static/js/bundle.js"></script>
-   ```
-
 ## Running the Application
 
 To start the server:
@@ -70,7 +32,9 @@ This will host a local server on `127.0.0.1:3333`.
 1. Navigate to `http://127.0.0.1:3333` in your web browser.
 2. Click on the "Login with Eagle Eye Networks" link to authenticate.
 3. Once you log in, you will be redirected to the camera select page.
-4. When you select a camera, you'll be taken to the high resolution live stream view of that camera. From here, you will be able to activate an intercom to the IP Speaker associated with the camera if one is available.
+4. When you select a camera, you'll be taken to the high resolution live stream view of that camera. From here, you will be able to PTZ functions of a camera, if available.
+
+You can move the camera either by clicking on the camera view to move to that point or by holding the arrow keys on your keyboard. This will trigger a function POST requests to the PTZ endpoint in the Flask application.
 
 
 ## Support

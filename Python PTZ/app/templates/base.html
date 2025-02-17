@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Eagle Eye PTZ</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+        {% block css %}{% endblock %}
+
+        {% if media and results %}
+        <!-- Loading the Media Cookie here 
+             To access images and videos from the Eagle Eye API,
+             you will need fetch the session cookie before the HTML loads.
+        -->
+        <script>
+            var requestOptions = {
+            method: 'GET',
+            headers: {
+                "Authorization" : "Bearer {{ media.access_token }}",
+            },
+            credentials: 'include'
+            };
+
+            fetch("https://{{ media.base_url }}/api/v3.0/media/session", requestOptions)
+            .then(response => response.json() )
+            .then( body => fetch(body.url, requestOptions) )
+            .then( response => console.log("response status", response.status ) )
+            .catch(error => console.log('error', error));
+        </script>
+        <!-- Loading Fetch API
+             To access recorded images from the Eagle Eye API, you will
+             need fetch them using the an access token.
+        -->
+        <script src="{{ url_for('static', filename='js/fetch.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+        {% endif %}
+        
+    </head>
+    <body>
+        {% if not auth_url %}
+        <div class="navbar">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+        <div class="breadcrumb">
+            {% block breadcrumb %}{% endblock %}
+        </div>
+        <hr>
+        {% endif %}
+        <h1>Eagle Eye PTZ</h1>
+        {% block content %}{% endblock %}
+    </body>
+    {% block script %}{% endblock %}
+</html>

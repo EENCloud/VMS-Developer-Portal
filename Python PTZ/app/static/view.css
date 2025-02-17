@@ -1,0 +1,85 @@
+/* Viewer styles */
+.viewer-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.viewer {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+}
+
+.viewer video {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Stream buttons */
+.stream-buttons {
+    margin-top: 20px;
+}
+
+.stream-btn {
+    padding: 10px 20px;
+    margin: 0 10px;
+    min-width: 240px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #238fce;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.stream-btn:hover {
+    background-color: #23b2ce;
+}
+
+.stream-btn.active {
+    background-color: #4298B5;
+}
+
+.stream-btn:focus {
+    outline: none;
+}
+
+i#intercom-status {
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+/* Full-page loader */
+#loader {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Simple spinning animation */
+.spinner {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #238fce;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

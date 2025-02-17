@@ -85,75 +85,13 @@ def ptz(camera_id):
         return "Invalid Content-Type", 400
     try:
         json_r = request.json
-        response = client.move_to(json_r, camera_id)
+        client.move_to(json_r, camera_id)
         print(f"PTZ Request for Camera {camera_id}: {json_r}")
-        print(f"Response: {response}")
         return jsonify({
             "status": "success"
         }), 200
     except Exception as e:
         print(f"PTZ request failed: {e}")
-        return jsonify({
-            "status": "fail"
-        }), 500
-
-
-# Refresh Token
-# This route will refresh the access token
-@app.route('/refresh_token', methods=['POST'])
-@auth_required
-def refresh_token():
-    print('Viewing Tokens')
-    print(f"Access Token: {session.get('access_token')}")
-    print(f"Refresh Token: {session.get('refresh_token')}")
-    print(f"Base URL: {session.get('base_url')}")
-    print("Viweing Tokenm Store")
-    print(f"Token Store: {token_store.get('access_token')}")
-    print(f"Token Store: {token_store.get('refresh_token')}")
-    print(f"Token Store: {token_store.get('base_url')}")
-    try:
-        client.refresh_access_token()
-    except Exception as e:
-        print(f"Failed to refresh token: {e}")
-        return jsonify({
-            "status": "fail"
-        }), 500
-
-    print("New Token Store")
-    print(f"Access Store: {token_store.get('access_token')}")
-    print(f"Refresh Store: {token_store.get('refresh_token')}")
-    print(f"Base Store: {token_store.get('base_url')}")
-    return jsonify({
-        "status": "success"
-    }), 200
-
-
-# Play Audio
-# This route plays audio to the selected camera
-@app.route('/talkdown/<camera_id>', methods=['POST'])
-@auth_required
-def play_audio(camera_id):
-    # Get audioPushHttpsUrl from the POST request
-    data = request.get_json()
-    audio_push_url = data.get('audioPushHttpsUrl')
-    if not audio_push_url:
-        return jsonify({
-            "status": "fail",
-            "message": "audioPushHttpsUrl is required"
-        }), 400
-    print('Recieved Audio Push URL: '+audio_push_url)
-    try:
-        response = client.play_audio(camera_id, audio_push_url)
-    except Exception as e:
-        print(f"Audio Push request failed: {e}")
-        return jsonify({
-            "status": "fail"
-        }), 500
-    if response:
-        return jsonify({
-            "status": "success"
-        }), 200
-    else:
         return jsonify({
             "status": "fail"
         }), 500

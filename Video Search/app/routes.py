@@ -1,12 +1,14 @@
 from app import app
 from app.forms import SearchForm
-from app.errors import AuthenticationError
 import os
 import json
-import requests
 import urllib.parse
 from datetime import datetime, timedelta
 from functools import wraps
+from een import (
+    EENClient,
+    TokenStorage
+)
 from flask import (
     request, render_template, session,
     redirect, url_for
@@ -16,143 +18,38 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# OAuth Authentication
-def code_auth(code):
-    url = "https://auth.eagleeyenetworks.com/oauth2/token"
-    data = {
-        "grant_type": "authorization_code",
-        "scope": "vms.all",
-        "code": code,
-        "redirect_uri": "http://{host}:{port}".format(
-            host=os.getenv('FLASK_RUN_HOST'),
-            port=os.getenv('FLASK_RUN_PORT')
-        )
-    }
-    response = requests.post(
-        url,
-        auth=(
-            os.getenv('CLIENT_ID'),
-            os.getenv('CLIENT_SECRET')
-        ),
-        data=data
-    )
-    return response
+class FlaskSessionStore(TokenStorage):
+    def get(self, key):
+        return session.get(key)
+
+    def set(self, key, value):
+        session[key] = value
+        session.modified = True
+
+    def __contains__(self, key):
+        return key in session
 
 
-# OAuth Refresh Token Authentication
-def refresh_access(refresh_token):
-    url = "https://auth.eagleeyenetworks.com/oauth2/token"
-    data = {
-        "grant_type": "refresh_token",
-        "scope": "vms.all",
-        "refresh_token": refresh_token
-    }
-    response = requests.post(
-        url,
-        auth=(
-            os.getenv('CLIENT_ID'),
-            os.getenv('CLIENT_SECRET')
-        ),
-        data=data
-    )
-    return response
+# Load the API Client
+token_store = FlaskSessionStore()
+redirect_uri = "http://{host}:{port}".format(
+    host=os.getenv('FLASK_RUN_HOST'),
+    port=os.getenv('FLASK_RUN_PORT')
+)
+
+client = EENClient(
+    os.getenv('CLIENT_ID'),
+    os.getenv('CLIENT_SECRET'),
+    redirect_uri,
+    token_store,
+    timeout=20
+)
 
 
-# Handle Response
-# This function will handle the response from an API call
-# while also handling authentication errors.
-def handle_response(
-        response,
-        original_request_func,
-        endpoint,
-        retry_count=0,
-        max_retries=1,
-        *args, **kwargs):
-    if response.ok:
-        if kwargs.get('stream'):
-            return response
-        return response.text
-    elif response.status_code == 401 and retry_count < max_retries:
-        # Refresh the access token
-        print("Auth failed. Refreshing Access Token.")
-        refresh_token = session.get('refresh_token')
-        if refresh_token:
-            refresh_response = refresh_access(refresh_token)
-            if refresh_response.status_code == 200:
-                # print(auth_response.text)
-                auth_response = json.loads(refresh_response.text)
-
-                # Store the tokens in the session
-                session['access_token'] = auth_response['access_token']
-                session['refresh_token'] = auth_response['refresh_token']
-                session['base_url'] = auth_response['httpsBaseUrl']['hostname']
-
-                # Retry the original request
-                retry_count += 1
-                return original_request_func(
-                    endpoint,
-                    retry_count=retry_count,
-                    *args, **kwargs
-                )
-            else:
-                print("Refresh Failed: {code} {text}".format(
-                    code=refresh_response.status_code,
-                    text=refresh_response.text
-                ))
-                raise AuthenticationError
-        else:
-            print("No refresh token found")
-            raise AuthenticationError
-    else:
-        raise Exception(f"{response.status_code} Response: {response.text}")
-
-
-# API Call
-# This function will make an API call to the Eagle Eye Networks API
-def api_call(
-        endpoint,
-        method='GET',
-        params=None,
-        data=None,
-        headers=None,
-        retry_count=0,
-        stream=False):
-    # print(f"Making API call to {endpoint}")
-    # print(f"Params: {params}")
-    access_token = session.get('access_token')
-    base_url = session.get('base_url')
-
-    url = f"https://{base_url}/api/v3.0{endpoint}"
-    if params:
-        url += '?' + urllib.parse.urlencode(params)
-
-    print(f"request: {url}")
-
-    if not headers:
-        headers = {}
-    headers['Authorization'] = f'Bearer {access_token}'
-
-    if method == 'GET':
-        try:
-            response = requests.get(url, headers=headers, stream=stream)
-        except Exception as e:
-            print(f"Failed to make request: {e}")
-            raise e
-    elif method == 'POST':
-        print(f"Payload: {data}")
-        response = requests.post(url, headers=headers, data=data)
-
-    return handle_response(
-        response,
-        api_call,
-        endpoint,
-        method=method,
-        params=params,
-        data=data,
-        headers=headers,
-        retry_count=retry_count,
-        stream=stream
-    )
+# Get the unquoted argument
+def get_unquoted_arg(arg_name):
+    value = request.args.get(arg_name)
+    return urllib.parse.unquote(value) if value else None
 
 
 # Get the current time and the time exactly 7 days ago
@@ -173,53 +70,6 @@ def get_timestamps():
     return current_time_iso, seven_days_ago_iso
 
 
-# Parse a search sting into a deep search request
-# For more info see:
-# https://developer.eagleeyenetworks.com/reference/parsevideoanalytics
-def parseSearch(searchString):
-    endpoint = "/videoAnalyticEvents:parse"
-
-    payload = {
-        "query": searchString
-    }
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json; charset=utf-8"
-    }
-    return api_call(
-        endpoint,
-        method='POST',
-        data=json.dumps(payload),
-        headers=headers)
-
-
-# Perform a deep search request
-# For more info see:
-# https://developer.eagleeyenetworks.com/reference/listvideoanalyticsevents
-def deepSearch(searchObject):
-    endpoint = "/videoAnalyticEvents:deepSearch"
-
-    # Set the query parameters for the deep search request
-    includeParam = "data.een.fullFrameImageUrl.v1"
-    current, week_ago = get_timestamps()
-    params = {
-        "include": includeParam,
-        "timestamp__gte": week_ago,
-        "timestamp__lte": current
-    }
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json"
-    }
-
-    return api_call(
-        endpoint,
-        method='POST',
-        params=params,
-        data=json.dumps(searchObject),
-        headers=headers)
-
-
 # Parse the deep search response
 # This function will modify the URLs in the deep search response
 # to use the base URL from the session
@@ -235,8 +85,30 @@ def parseDeepSearch(response):
 
 # Search Logic
 def perform_search(term):
-    response = parseSearch(term)
-    deepSearchResponse = deepSearch(json.loads(response))
+    # Parse the search term
+    body = {"query": term}
+    try:
+        response = client.parse_video_analytics(body=body)
+        print(response)
+    except Exception as e:
+        print(f"Failed to parse search: {e}")
+        return []
+
+    # Perform the deep search
+    searchObj = json.loads(response)
+    end, start = get_timestamps()
+    include = "data.een.fullFrameImageUrl.v1"
+    try:
+        deepSearchResponse = client.list_video_analytics_events(
+            include=include,
+            timestamp__gte=start,
+            timestamp__lte=end,
+            body=searchObj
+        )
+    except Exception as e:
+        print(f"Failed to list video analytics events: {e}")
+        return []
+
     results = parseDeepSearch(deepSearchResponse)
     return results
 
@@ -301,9 +173,8 @@ def login():
 
     if (code):
         print("Attempting Code Auth")
-        auth_response = code_auth(code)
+        auth_response = client.auth_een(code)
         if auth_response.status_code == 200:
-            # print(auth_response.text)
             auth_response = json.loads(auth_response.text)
 
             # Store the access_token, refresh_token,
@@ -320,17 +191,8 @@ def login():
                 text=auth_response.text
             ))
 
-    requestAuthUrl = "https://auth.eagleeyenetworks.com/oauth2/authorize"
-    params = {
-        "client_id": os.getenv('CLIENT_ID'),
-        "response_type": "code",
-        "scope": "vms.all",
-        "redirect_uri": "http://{host}:{port}".format(
-            host=os.getenv('FLASK_RUN_HOST'),
-            port=os.getenv('FLASK_RUN_PORT')
-        )
-    }
-    requestAuthUrl += '?' + urllib.parse.urlencode(params)
+    requestAuthUrl = client.get_auth_url()
+    print("Redirecting to: " + requestAuthUrl)
 
     return render_template('login.html', auth_url=requestAuthUrl)
 

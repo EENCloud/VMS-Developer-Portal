@@ -17,7 +17,7 @@ This sample Flask application demonstrates how to use the video search API for E
 
 4. Update the FLASK_APP environment variable:
    ```
-   $ export FLASK_APP=search.py
+   $ export FLASK_APP=main.py
    ```
 
 

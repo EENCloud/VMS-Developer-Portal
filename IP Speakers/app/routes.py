@@ -1,11 +1,13 @@
 from app import app
 import os
 import json
+import requests
 import urllib.parse
 
 from functools import wraps
-from app.een_client import (
+from een import (
     EENClient,
+    TokenStorage,
     AuthenticationError
 )
 from flask import (
@@ -16,10 +18,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+class FlaskSessionStore(TokenStorage):
+    def get(self, key):
+        return session.get(key)
+
+    def set(self, key, value):
+        session[key] = value
+        session.modified = True
+
+    def __contains__(self, key):
+        return key in session
+
+
 # Load the API Client
+token_store = FlaskSessionStore()
+redirect_uri = "http://{host}:{port}".format(
+    host=os.getenv('FLASK_RUN_HOST'),
+    port=os.getenv('FLASK_RUN_PORT')
+)
+
 client = EENClient(
     os.getenv('CLIENT_ID'),
-    os.getenv('CLIENT_SECRET')
+    os.getenv('CLIENT_SECRET'),
+    redirect_uri,
+    token_store,
+    timeout=10
 )
 
 
@@ -68,6 +91,21 @@ def play_audio(camera_id):
         }), 400
     print('Recieved Audio Push URL: '+audio_push_url)
     try:
+
+        headers = {
+            "Transfer-Encoding": 'chuncked',
+            "Authorization": f'Bearer {session.get('access_token')}'
+        }
+        print(f"Current dir: {os.getcwd()}")
+
+        filepath = "app/static/assets/sample_8k_8bit_1ch_ulaw.raw"
+        with open(filepath, 'rb') as audio_file:
+            files = {'audio_chunk': audio_file}
+
+            # Perform the POST request
+            response = requests.post(
+                audio_push_url+"ulaw", headers=headers, files=files)
+
         response = client.play_audio(camera_id, audio_push_url)
     except Exception as e:
         print(f"Audio Push request failed: {e}")
@@ -96,14 +134,14 @@ def view(camera_id):
 
     print('Pulling Feeds and Camera Info')
     try:
-        response = client.get_cameras(camera_id)
+        response = client.get_camera(camera_id)
         camera = json.loads(response)
     except Exception as e:
         print(f"Failed to get camera info: {e}")
 
     try:
-        response = client.get_feeds(
-            camera_id,
+        response = client.list_feeds(
+            deviceId=camera_id,
             include="multipartUrl,hlsUrl,webRtcUrl")
         r_json = json.loads(response)
         results = r_json['results']
@@ -135,6 +173,7 @@ def index():
     if not is_authenticated():
         return redirect(url_for('login'))
 
+    page_token = request.args.get('page_token')
     media = {
         'access_token': session.get('access_token'),
         'base_url': session.get('base_url')
@@ -142,10 +181,20 @@ def index():
 
     print('Pulling Camera List')
     try:
-        cam_response = json.loads(client.get_cameras())
-        feed_response = json.loads(client.get_feeds(type="preview"))
+        context = {k: v for k, v in {
+            'pageSize': 12,
+            'pageToken': page_token
+        }.items() if v is not None}
+        cam_response = json.loads(client.list_cameras(**context))
+        cam_ids = [cam['id'] for cam in cam_response['results']]
+        feed_response = json.loads(client.list_feeds(
+            deviceId__in=cam_ids,
+            type="preview", include="multipartUrl"))
         cam_results = cam_response['results']
+        next_page = cam_response['nextPageToken']
+        prev_page = cam_response['prevPageToken']
         feed_results = feed_response['results']
+
     except AuthenticationError:
         return redirect(url_for('login'))
     except Exception as e:
@@ -165,7 +214,9 @@ def index():
     try:
         return render_template(
             'index.html',
-            cameras=cameras[0:12],
+            results=cameras,
+            next_page=next_page,
+            prev_page=prev_page,
             media=media)
     except Exception as e:
         print(f"Failed render template: {e}")
@@ -199,17 +250,7 @@ def login():
                 text=auth_response.text
             ))
 
-    requestAuthUrl = "https://auth.eagleeyenetworks.com/oauth2/authorize"
-    params = {
-        "client_id": os.getenv('CLIENT_ID'),
-        "response_type": "code",
-        "scope": "vms.all",
-        "redirect_uri": "http://{host}:{port}".format(
-            host=os.getenv('FLASK_RUN_HOST'),
-            port=os.getenv('FLASK_RUN_PORT')
-        )
-    }
-    requestAuthUrl += '?' + urllib.parse.urlencode(params)
+    requestAuthUrl = client.get_auth_url()
 
     return render_template('login.html', auth_url=requestAuthUrl)
 

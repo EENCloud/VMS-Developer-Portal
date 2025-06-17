@@ -1,0 +1,3733 @@
+---
+openapi: 3.0.3
+info:
+  title: USER & ACCOUNTS
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0'
+    description: Eagle Eye Networks API Server
+    variables:
+      BaseUrl:
+        default: api.cxxx.eagleeyenetworks.com
+        description: >-
+          HTTPS Base url to use for all API calls, retrieved from
+          https://api.eagleeyenetworks.com/api/v3.0/clientSettings
+security:
+  - bearerAuth: []
+tags:
+  - name: Users
+    description: Core operations on users in the current account.
+  - name: Accounts
+    description: All core operations on accounts.
+  - name: Roles
+    description: All operations on roles.
+  - name: Auditlog
+    description: Auditlog
+  - name: Resource Grants
+    description: Retrieve an manage resource grants in the account.
+  - name: Editions
+    description: Retrieve information on editions available to the account.
+paths:
+  /users:
+    get:
+      operationId: getUsers
+      description: >
+        This endpoint allows the users to retrieve a list of users within the
+        account. This endpoint supports filtering, pagination, and sorting, as
+        well as including additional information with the response.
+
+        It is important to note that after using the pageSize parameter, the
+        "totalSize" in the response represents the total number of available
+        users, not the number of users resulting from the query string.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/includeForList'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/id__in'
+        - $ref: '#/components/parameters/id__notIn'
+        - $ref: '#/components/parameters/locationId__in'
+        - $ref: '#/components/parameters/locationId__ne'
+        - $ref: '#/components/parameters/firstName__in'
+        - $ref: '#/components/parameters/firstName__contains'
+        - $ref: '#/components/parameters/lastName__in'
+        - $ref: '#/components/parameters/lastName__contains'
+        - $ref: '#/components/parameters/email__in'
+        - $ref: '#/components/parameters/email__contains'
+        - $ref: '#/components/parameters/permissions.administrator'
+        - $ref: '#/components/parameters/status.loginStatus__in'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/qRelevance__gte'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedUserResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    post:
+      operationId: createUser
+      description: >
+        This endpoint allows users to create a user in the account. The created
+        user will be in pending state and a verification email will be sent to
+        the user. Once approved, the newly created user will be in active state
+        and will be able to be used.
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAddUser'
+      responses:
+        '201':
+          description: User Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserMain'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/users/{userId}':
+    parameters:
+      - $ref: '#/components/parameters/userId'
+    get:
+      operationId: getUser
+      description: >-
+        This endpoint allows the users to retrieve info about a specific user
+        based on the user ID.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/includeForSingle'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserForSingle'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    delete:
+      operationId: deleteUser
+      description: >
+        This endpoint allows the users to delete a user from the account,
+        removing all references related to that user.
+      tags:
+        - Users
+      responses:
+        '204':
+          description: User deleted.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateUser
+      description: This endpoint allows the users to updat a user's data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiUserUpdate'
+      tags:
+        - Users
+      responses:
+        '204':
+          description: User Updated
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /users/self:
+    get:
+      operationId: getCurrentUser
+      description: This endpoint allows the users to retrieve info about the current user.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/includeForSingle'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserForSingle'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateCurrentUser
+      description: This endpoint allows the users to update current user's data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiUserSelfUpdate'
+      tags:
+        - Users
+      responses:
+        '204':
+          description: User Updated
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /users/self/trustedClients:
+    get:
+      operationId: getTrustedClients
+      description: >
+        This endpoint allows you to retrieve a list of trusted clients.
+
+        It is important to note that after using the pageSize parameter, the
+        "totalSize" in the response represents the total number of available
+        trusted clients, not the number of trusted clients resulting from the
+        query string.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/includeTrustedDevices'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedTrustedClientResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/users/self/trustedClients/{trustedClientId}':
+    parameters:
+      - $ref: '#/components/parameters/trustedClientId'
+    delete:
+      operationId: deleteTrustedClient
+      description: |
+        This endpoint allows you to delete a trusted client.
+      tags:
+        - Users
+      responses:
+        '204':
+          description: Trusted client deleted.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /accounts:
+    get:
+      operationId: listAccounts
+      description: >-
+        Retrieves a list of accounts the user has access to. This will include
+        the user's own account, but can contain others such as when the user is
+        a reseller.
+      tags:
+        - Accounts
+      parameters:
+        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/sort1'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedEndUserAccountResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/accounts/{id}/credentials/{credentialId}':
+    parameters:
+      - $ref: '#/components/parameters/credentialId'
+      - $ref: '#/components/parameters/id'
+    delete:
+      operationId: deleteCredential
+      description: |
+        Deletes the credential from the account.
+      tags:
+        - Accounts
+      responses:
+        '204':
+          description: Credential deleted.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /roles:
+    get:
+      operationId: getRoles
+      description: |
+        This endpoint returns a list of all roles in current user's account.
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/roleName__contains'
+        - $ref: '#/components/parameters/include1'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: List of roles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedRoleResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    post:
+      operationId: createRole
+      description: >
+        This endpoint creates a new role under the current user's account.
+        Admins can create roles and define which permissions are part of which
+        roles. Non-admin users with 'Role' permission can only create a role
+        with the permission that they already have themselves.
+      tags:
+        - Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiRoleCreate'
+      responses:
+        '201':
+          description: Role created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRole'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/roles/{roleId}':
+    parameters:
+      - $ref: '#/components/parameters/roleId'
+    delete:
+      operationId: deleteRole
+      description: >
+        This endpoint deletes a role from current user's account. A role can
+        only be deleted if it is not assigned to any user. Admin users and
+        non-admin users with 'Role' permission can delete roles.
+      tags:
+        - Roles
+      responses:
+        '204':
+          description: Role deleted.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    get:
+      parameters:
+        - $ref: '#/components/parameters/include1'
+      operationId: getRole
+      description: |
+        This endpoint returns a role by its ID.
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRole'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateRole
+      description: >
+        This endpoint updates a role. Admin users and non-admin users with
+        'Role' permission can update roles.
+      tags:
+        - Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiRoleUpdate'
+      responses:
+        '204':
+          description: Role updated.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /roleAssignments:
+    get:
+      operationId: getRoleAssignments
+      description: >-
+        This endpoint returns a list of all role assignments in current user's
+        account.
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/userId__in'
+        - $ref: '#/components/parameters/roleId__in'
+        - $ref: '#/components/parameters/roleId__contains'
+        - $ref: '#/components/parameters/roleName__contains'
+        - $ref: '#/components/parameters/self'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: List of role assignments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedRoleAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/roleAssignments:bulkcreate':
+    post:
+      operationId: createRoleAssignments
+      description: >
+        This endpoint allows you to create multiple role assignments in one
+        request.
+      tags:
+        - Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiBulkRoleAssignmentUpdate'
+      responses:
+        '200':
+          description: Operations performed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiBulkRoleAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/roleAssignments:bulkdelete':
+    post:
+      operationId: deleteRoleAssignments
+      description: >
+        This endpoint allows you to delete multiple role assignments in one
+        request.
+      tags:
+        - Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiBulkRoleAssignmentUpdate'
+      responses:
+        '200':
+          description: Operations performed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiBulkRoleAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /auditLogs:
+    get:
+      tags:
+        - Auditlog
+      operationId: listAuditlogs
+      description: >
+        This endpoint filters audit events by userId, targetId, targetType,
+        auditType
+      parameters:
+        - $ref: '#/components/parameters/include2'
+        - $ref: '#/components/parameters/userId1'
+        - $ref: '#/components/parameters/targetId'
+        - $ref: '#/components/parameters/targetType'
+        - $ref: '#/components/parameters/locationId'
+        - $ref: '#/components/parameters/auditType'
+        - $ref: '#/components/parameters/timestamp__gte'
+        - $ref: '#/components/parameters/timestamp__lte'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: List of audit events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEvents'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /resourceGrants:
+    get:
+      operationId: getResourceGrants
+      description: >
+        This endpoint allows you to Retrieve a list of resource grants with
+        pagination and filter parameters.  
+
+        It is important to note that after using the pageSize parameter, the
+        "totalSize" in the response represents  the total number of available
+        resource grants, not the number of resource grants resulting from the
+        query string.
+      tags:
+        - Resource Grants
+      parameters:
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/resourceType'
+        - $ref: '#/components/parameters/userId__in1'
+        - $ref: '#/components/parameters/resourceId__in'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPaginatedResourceGrantResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/resourceGrants:bulkCreate':
+    post:
+      operationId: createResourceGrants
+      description: >-
+        This endpoint allows you to create multiple resource grants in one
+        request.
+      tags:
+        - Resource Grants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceGrantsBulkCreate'
+      responses:
+        '200':
+          description: Operations performed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/resourceGrants:bulkDelete':
+    post:
+      operationId: deleteResourceGrants
+      description: >-
+        This endpoint allows you to delete multiple resource grants in one
+        request.
+      tags:
+        - Resource Grants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceGrantsBulkDelete'
+      responses:
+        '200':
+          description: Operations performed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /editions:
+    get:
+      operationId: getEditions
+      description: >
+        This endpoint allows you to retrieve a list of the editions that are
+        available for your account.  
+
+        It is important to note that after using the pageSize parameter, the
+        "totalSize" in  the response represents the total number of available
+        editions, not the number of editions resulting from the query string.
+      tags:
+        - Editions
+      parameters:
+        - $ref: '#/components/parameters/accountId2'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEditionResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/editions/{id}':
+    get:
+      operationId: getEdition
+      description: This endpoint allows you to retrieve a specific edition by its ID.
+      tags:
+        - Editions
+      parameters:
+        - $ref: '#/components/parameters/id1'
+      responses:
+        '200':
+          description: Successfully authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edition'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiPaginatedTrustedClientResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/TrustedClient'
+    TrustedClient:
+      type: object
+      properties:
+        id:
+          type: string
+        lastLogin:
+          type: string
+          format: date-time
+          example: '2023-04-04T09:38:37.372Z'
+        ip:
+          type: string
+          example: 192.158.1.38
+        description:
+          type: string
+          example: iPhone / iOS 5.1 / Mobile Safari 5.1
+          description: 'Information about device type, operating system and browser'
+        device:
+          $ref: '#/components/schemas/TrustedClientDevice'
+        browser:
+          $ref: '#/components/schemas/TrustedClientBrowser'
+        operatingSystem:
+          $ref: '#/components/schemas/TrustedClientOperatingSystem'
+      required:
+        - id
+        - lastLogin
+        - ip
+        - description
+    TrustedClientDevice:
+      type: object
+      properties:
+        brand:
+          type: string
+          example: Apple
+          nullable: true
+        model:
+          type: string
+          example: iPhone
+          nullable: true
+        family:
+          type: string
+          example: iPhone
+        type:
+          type: string
+          nullable: true
+          enum:
+            - pc
+            - tablet
+            - mobile
+          example: mobile
+        touchCapable:
+          type: boolean
+          description: Indicates whether user agent has touch capabilities
+          example: true
+      required:
+        - brand
+        - model
+        - family
+        - type
+        - touchCapable
+    TrustedClientBrowser:
+      type: object
+      properties:
+        family:
+          type: string
+          example: Mobile Safari
+        version:
+          type: string
+          example: '5.1'
+      required:
+        - family
+        - version
+    TrustedClientOperatingSystem:
+      type: object
+      properties:
+        family:
+          type: string
+          example: iOS
+        version:
+          type: string
+          example: '5.1'
+      required:
+        - family
+        - version
+    ApiPaginatedUserResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiUserForList'
+    ApiUserForList:
+      allOf:
+        - $ref: '#/components/schemas/ApiUserMain'
+        - $ref: '#/components/schemas/ApiUserIncludes'
+        - $ref: '#/components/schemas/ApiUserFTSRelated'
+    ApiUserForSingle:
+      allOf:
+        - $ref: '#/components/schemas/ApiUserMain'
+        - $ref: '#/components/schemas/ApiUserIncludes'
+    ApiUserMain:
+      type: object
+      properties:
+        id:
+          type: string
+        createTimestamp:
+          type: string
+          format: date-time
+          example: '2023-04-04T09:38:37.372Z'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          $ref: '#/components/schemas/Email'
+        accountId:
+          type: string
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        language:
+          type: string
+        employeeId:
+          $ref: '#/components/schemas/EmployeeId'
+      required:
+        - id
+        - firstName
+        - lastName
+        - accountId
+        - email
+        - language
+        - employeeId
+    ApiUserIncludes:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        locationSummary:
+          $ref: '#/components/schemas/LocationSummary'
+        loginDetails:
+          $ref: '#/components/schemas/LoginDetails'
+        timeZone:
+          $ref: '#/components/schemas/TimeZone'
+        contactDetails:
+          $ref: '#/components/schemas/ContactDetails'
+        support:
+          $ref: '#/components/schemas/Support'
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        layoutSettings:
+          $ref: '#/components/schemas/LayoutSettings'
+        previewSettings:
+          $ref: '#/components/schemas/PreviewSettings'
+        effectivePermissions:
+          $ref: '#/components/schemas/EffectiveUserPermissions'
+        timeSettings:
+          $ref: '#/components/schemas/TimeSettings'
+    ApiUserFTSRelated:
+      type: object
+      properties:
+        qRelevance:
+          type: number
+          description: >
+            Field is only returned when `q` parameter is used and its value
+            indicates the relevance of the user in relation to the terms in the
+            `q` parameter. The range of this value is between 0 and 1, higher is
+            better.
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.5
+          readOnly: true
+    EffectiveUserPermissions:
+      readOnly: true
+      type: object
+      properties:
+        read:
+          type: boolean
+        delete:
+          type: boolean
+        edit:
+          type: boolean
+    ApiAddUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: |
+            First name of the user.
+        lastName:
+          type: string
+          description: |
+            Last name of the user.
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        email:
+          $ref: '#/components/schemas/Email'
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        roles:
+          $ref: '#/components/schemas/Roles'
+        grantAllLayouts:
+          type: boolean
+          default: true
+          description: >
+            Indicates whether the newly created user will inherit access to all
+            layouts from the user who created them.
+        grantAllCameras:
+          type: boolean
+          default: true
+          description: >
+            Indicates whether the newly created user will inherit access to all
+            cameras from the user who created them.
+        grantAllLocations:
+          type: boolean
+          default: true
+          description: >
+            Indicates whether the newly created user will inherit access to all
+            locations from the user who created them.
+        grantAllAccounts:
+          type: boolean
+          default: true
+          description: >
+            Indicates whether the newly created user will inherit access to all
+            accounts from the user who created them. It should be used only from
+            reseller context. In case of used from the sub-account context the
+            flag will be ignored.
+        grantAllSpeakers:
+          type: boolean
+          default: false
+          description: >
+            Indicates whether the newly created user will inherit access to all
+            speakers from the user who created them.
+        grantAllMultiCameras:
+          type: boolean
+          default: false
+          description: >
+            Indicates whether the newly created user will inherit access to all
+            multi cameras from the user who created them.
+      required:
+        - firstName
+        - lastName
+        - email
+    ApiUserUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 126
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 126
+        email:
+          $ref: '#/components/schemas/Email'
+        locationId:
+          $ref: '#/components/schemas/LocationId'
+        status:
+          type: string
+          description: >-
+            User can be enabled if set to "active" and disabled if set to
+            "blocked"
+          enum:
+            - active
+            - blocked
+        loginSchedule:
+          $ref: '#/components/schemas/WeeklyIntervalSchedule'
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        employeeId:
+          $ref: '#/components/schemas/EmployeeId'
+    ApiUserSelfUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 126
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 126
+        email:
+          $ref: '#/components/schemas/Email'
+        contactDetails:
+          $ref: '#/components/schemas/ContactDetails'
+        support:
+          $ref: '#/components/schemas/Support'
+        language:
+          type: string
+        timeZone:
+          $ref: '#/components/schemas/TimeZone'
+        layoutSettings:
+          $ref: '#/components/schemas/LayoutSettings'
+        previewSettings:
+          $ref: '#/components/schemas/PreviewSettings'
+        timeSettings:
+          $ref: '#/components/schemas/TimeSettings'
+    PaginatedResponseWithSize:
+      description: >
+        Used to wrap results for a paginated response, containing information on
+        how to retrieve further pages and  the total number of results.  
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseNoTotalSize'
+        - properties:
+            totalSize:
+              type: integer
+              readOnly: true
+              description: |
+                Size of the total result set.
+          required:
+            - totalSize
+    PaginatedResponseNoTotalSize:
+      type: object
+      description: >
+        Used to wrap results for a paginated response, containing information on
+        how to retrieve further pages.
+      properties:
+        nextPageToken:
+          type: string
+          readOnly: true
+          nullable: true
+          description: >
+            Token to retrieve the next page. The value of this token is passed
+            into the field pageToken.  This value can be null if there is no
+            next page.
+        prevPageToken:
+          type: string
+          readOnly: true
+          nullable: true
+          description: >
+            Token to retrieve the previous page. The value of this token is
+            passed into the field pageToken.  This value can be null of there is
+            no previous page.
+        results:
+          type: array
+          readOnly: true
+          description: The result set from a collection API call.
+          items:
+            type: object
+      required:
+        - nextPageToken
+        - prevPageToken
+        - results
+    ApiV3Error:
+      type: object
+      properties:
+        code:
+          description: HTTP code defined in EEN Standard Code Values
+          type: integer
+        status:
+          description: A string enum describing the code
+          type: string
+          enum:
+            - cancelled
+            - unknown
+            - invalidArgument
+            - deadlineExceeded
+            - notFound
+            - conflict
+            - permissionDenied
+            - resourceExhausted
+            - failedPrecondition
+            - aborted
+            - outOfRange
+            - unimplemented
+            - internal
+            - unavailable
+            - dataLoss
+            - unauthenticated
+            - mediaTypeNotSupported
+            - acceptNotSupported
+            - methodNotSupported
+            - tooManyRequests
+        message:
+          description: Developer friendly human readable error message in English
+          type: string
+        details:
+          description: An array of extensible objects that define error information
+          type: array
+          items:
+            $ref: '#/components/schemas/ExceptionDetail'
+      required:
+        - code
+        - status
+        - message
+        - details
+    ExceptionDetail:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorInfoExceptionDetail'
+        - $ref: '#/components/schemas/BadRequestExceptionDetail'
+        - $ref: '#/components/schemas/ResourceInfoExceptionDetail'
+      discriminator:
+        propertyName: type
+        mapping:
+          errorInfo: '#/components/schemas/ErrorInfoExceptionDetail'
+          badRequest: '#/components/schemas/BadRequestExceptionDetail'
+          resourceInfo: '#/components/schemas/ResourceInfoExceptionDetail'
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+            - badRequest
+            - resourceInfo
+      required:
+        - type
+    ErrorInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+        reason:
+          description: >
+            The reason for the error. This is a constant value that identifies
+            the proximate cause of the
+
+            error. Error reasons are unique within a particular domain of
+            errors.
+          type: string
+          enum:
+            - unauthenticated
+            - unexpectedArgument
+            - missingRequiredArgument
+            - wrongArgumentValue
+            - invalidPermission
+            - wrongEdition
+            - wrongAccountType
+            - resourceNotFound
+            - endpointNotFound
+            - methodNotSupported
+            - unexpectedError
+            - acceptNotSupported
+            - alreadyExists
+            - foreignKeyConflict
+            - childDevicesExist
+            - contentNotSupported
+            - deadlineExpired
+            - tooManyRequests
+            - deviceUnavailable
+            - serviceUnavailable
+            - invalidJSON
+            - resourceLocked
+            - notSupportedOnBridge
+            - outOfRetention
+            - deviceIdentificationFailed
+            - credentialValidationFailed
+            - credentialSetupFailed
+            - localUrlValidationFailed
+            - hwRegistrationFailed
+            - failedAddingCameraAfterValidation
+            - neverConnected
+            - reconnectFailed
+            - unsupportedModel
+            - purged
+            - userBlocked
+            - userTemporarilyBlocked
+            - quotaExceeded
+        domain:
+          description: |
+            Logical grouping to which the "reason" belongs
+          type: string
+        metadata:
+          $ref: '#/components/schemas/ExceptionMetadata'
+    BadRequestExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - badRequest
+        argumentViolations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArgumentViolation'
+    ArgumentViolation:
+      properties:
+        argumentName:
+          type: string
+          description: Name of the argument
+        description:
+          type: string
+          description: Description of the violation
+    ResourceInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - resourceInfo
+        resource:
+          description: 'Referenced resource type, eg "cameras", "bridges", or "locations".'
+          type: string
+        ids:
+          type: array
+          description: Identities of resources
+          items:
+            type: string
+    ExceptionMetadata:
+      properties:
+        path:
+          description: Path of the request
+          type: string
+        method:
+          description: Method of the request
+          type: string
+    Email:
+      type: string
+      description: This email is used for login.
+      format: email
+    Roles:
+      type: array
+      items:
+        type: string
+        format: uuid
+      description: >
+        List of role IDs assigned to the user. When a user is created, they can
+        only have either roles or permissions assigned. Furthermore, the roles
+        feature has to be enabled for the account.
+    UserStatus:
+      type: string
+      description: |
+        Login status of user
+         * `active` - User is active
+         * `pending` - Every newly created user is in pending state until it verifies its email and set credentials.
+         * `blocked` - User was active once but it has been disabled by Admin.
+      enum:
+        - active
+        - pending
+        - blocked
+    Status:
+      type: object
+      description: This status signifies the current status of the user.
+      properties:
+        loginStatus:
+          $ref: '#/components/schemas/UserStatus'
+    TimeZone:
+      type: object
+      properties:
+        timeZone:
+          type: string
+          example: Americas/Chicago
+          description: The timezone the user is in.
+    LoginDetails:
+      type: object
+      properties:
+        lastLogin:
+          type: string
+          format: date-time
+          example: '2023-04-04T09:38:37.372Z'
+        loginSchedule:
+          $ref: '#/components/schemas/WeeklyIntervalSchedule'
+    AlternateEmail:
+      type: string
+      description: This email is used sending notifications from user account.
+      format: email
+    ContactDetails:
+      type: object
+      properties:
+        alternateEmail:
+          $ref: '#/components/schemas/AlternateEmail'
+        phone:
+          type: string
+    EmployeeId:
+      nullable: true
+      type: string
+      description: Custom text field
+      maxLength: 50
+    Pin:
+      type: string
+      description: >-
+        Six digit string that signifies a support pin. Support can use this pin
+        to login to user account.
+      pattern: '^[0-9]*$'
+      example: '000000'
+      minLength: 6
+      maxLength: 6
+    Support:
+      type: object
+      properties:
+        pin:
+          $ref: '#/components/schemas/Pin'
+    PreviewSettings:
+      type: object
+      properties:
+        showMotionBoxes:
+          type: boolean
+          description: Indicates whether motion boxes should be shown
+        showAnalytics:
+          type: boolean
+          description: Indicates whether additional analytics should be shown
+        showPluginExtensions:
+          type: boolean
+          description: >-
+            Indicates whether to show custom annotations for third party
+            applications.
+    TimeSettings:
+      type: object
+      properties:
+        showMilliseconds:
+          type: boolean
+          description: Select to display milliseconds when playing video.
+        format:
+          type: string
+          description: Select between 12 and 24 hour mode for the display of time.
+          enum:
+            - 24h
+            - 12h
+    LayoutSettings:
+      type: object
+      properties:
+        rotationInterval:
+          type: integer
+          description: >-
+            Layout rotation internal in seconds after which current layout is
+            switched to next one in the below list.
+        rotationOrder:
+          type: array
+          description: >
+            Ordered list of layout IDs that user has access to, which will be
+            displayed in order after rotationInterval. This array may contain
+            deleted layouts or those to which the user lost access. They need to
+            be filtered out on the client side.
+          items:
+            type: string
+            description: Unique layout identifier
+      required:
+        - rotationInterval
+        - rotationOrder
+    WeeklyScheduleAllRequired:
+      type: object
+      properties:
+        days:
+          $ref: '#/components/schemas/WeeklyScheduleDaysAllRequired'
+        hours:
+          $ref: '#/components/schemas/WeeklyScheduleHours'
+      required:
+        - days
+        - hours
+    WeeklyScheduleDays:
+      type: object
+      description: Days of the week that the start and end times are applied.
+      properties:
+        sunday:
+          type: boolean
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+    WeeklyScheduleDaysAllRequired:
+      allOf:
+        - $ref: '#/components/schemas/WeeklyScheduleDays'
+      required:
+        - monday
+        - tuesday
+        - wednesday
+        - thursday
+        - friday
+        - saturday
+        - sunday
+    WeeklyScheduleHours:
+      type: object
+      description: >
+        Times that the schedule starts and ends. If the start time is greater
+        than the end time, the interval is considered to cover the remaining
+        time of the day from the start time until 24:00, and then from 00:00 to
+        the end time. 
+
+        For example, start: 16:30 and end: 06:00 on monday means the interval
+        covers from 16:30 to 24:00 and continues from 00:00 to 06:00 on the same
+        day (monday).
+      properties:
+        start:
+          type: string
+          pattern: '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+          description: >-
+            Starting point of the interval. It should be in the range of 00:00
+            to 23:59 since this is the range for a day.
+          minLength: 5
+          maxLength: 5
+        end:
+          type: string
+          pattern: '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+          description: >-
+            End point of the interval. It should be in the range of 00:00 to
+            23:59 since this is the range for the day.
+          minLength: 5
+          maxLength: 5
+      required:
+        - start
+        - end
+    WeeklyIntervalSchedule:
+      type: object
+      description: >
+        It signifies a week long alert schedule. This schedule is effective
+        according to actor's (user/camera/account) timezone. It allows setting
+        different times for different days.
+      properties:
+        sunday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        monday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        tuesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        wednesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        thursday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        friday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        saturday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+    Interval:
+      type: object
+      description: >
+        Interval of a schedule. If the start time is greater than the end time,
+        the interval is considered to cover the remaining time of the day from
+        the start time until 24:00, and then from 00:00 to the end time. 
+
+        For example, start: 16:30 and end: 06:00 on monday means the interval
+        covers from 16:30 to 24:00 and continues from 00:00 to 06:00 on the same
+        day (monday).
+      properties:
+        start:
+          type: string
+          pattern: '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+          description: >-
+            Starting point of the interval. It should be in the range of 00:00
+            to 23:59 since this is the range for a day
+        end:
+          type: string
+          pattern: '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+          description: >-
+            End point of the interval. It should be in the range of 00:00 to
+            23:59 since this is the range for the day
+      required:
+        - start
+        - end
+    LocationId:
+      description: ID Of the location.
+      minLength: 1
+      type: string
+      nullable: true
+      example: 2428fda3-389f-48ce-b062-85875dd6b2e2
+    LocationSummary:
+      type: object
+      x-jsoninclude-nonnull-annotation: true
+      description: Summary of location information.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: object
+          properties:
+            country:
+              type: string
+              nullable: true
+            region:
+              type: string
+              nullable: true
+            city:
+              type: string
+              nullable: true
+            streetAddress:
+              type: string
+              nullable: true
+            streetAddress2:
+              type: string
+              nullable: true
+            postalCode:
+              type: string
+              nullable: true
+    CameraStatusCounts:
+      type: object
+      properties:
+        online:
+          type: integer
+        deviceOffline:
+          type: integer
+        'off':
+          type: integer
+        bridgeOffline:
+          type: integer
+        invalidCredentials:
+          type: integer
+        error:
+          type: integer
+        unknown:
+          type: integer
+    BridgeStatusCounts:
+      type: object
+      properties:
+        online:
+          type: integer
+        deviceOffline:
+          type: integer
+        unknown:
+          type: integer
+    UserStatusCounts:
+      type: object
+      properties:
+        active:
+          type: integer
+        blocked:
+          type: integer
+        pending:
+          type: integer
+    AccountStatusCounts:
+      type: object
+      properties:
+        active:
+          type: integer
+        loginDisabled:
+          type: integer
+        accountDisabled:
+          type: integer
+    AccountStatus:
+      description: |
+        The overall status of the account
+          * `active`: The default is active.
+          * `accountDisabled`: All cameras are turned off and no login is allowed for end user accounts.
+          * `loginDisabled`: No login is allowed for end user accounts, but cameras continue to record.
+      enum:
+        - active
+        - accountDisabled
+        - loginDisabled
+      type: string
+    Permissions:
+      x-jsoninclude-nonnull-annotation: true
+      type: object
+      properties:
+        administrator:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            All permissions are enabled - create, delete, edit, and view access
+            to all accounts and user settings, bridges, cameras, layouts, audit
+            log and archive.
+        editAccounts:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Edit Control, Days, Security, Camera, Alerts, Notifications,
+            Privacy, Sharing, Responders, Default retentions, and camera
+            resolution settings.
+        layoutAdministrator:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Create, delete and edit any accessible layouts. All user layouts are
+            visible to admin users.
+        createLayouts:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Ability to create layouts and edit the layouts created. This does
+            not grant permission to edit layouts created by other users.
+        editNoBillingDeviceSettings:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Edit Camera Settings except for Cloud Retention and Full Video
+            Resolution. Cannot add or delete cameras. Edit existing Analytics.
+            Cannot add or delete Analytics.
+        turnCamerasOnOff:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Turn Cameras on/off. Cameras off cannot be recorded.
+        editMotionAreas:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Edit Motion Settings. Set object size and sensitivity, add/delete
+            regions, add/delete alerts for regions. Edit existing Analytics. Set
+            object size and sensitivity, add/delete alerts.
+        editAllCameraSettings:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Editing all Camera Settings. Cannot add or delete cameras.
+        editUsers:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: 'Create, delete and edit non-admin users in an end user account.'
+        upgradeEdition:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Upgrade current edition subscription to a higher level edition.
+        addEditBridgesCameras:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Create, delete, edit, and view Bridges and Cameras. This is the only
+            permission for a non-admin to be able to add and view bridges in an
+            end user account.
+        editSharing:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Edit Sharing and Responders settings.
+        controlPTZ:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Control Pan, Tilt, Zoom, & recall stations while viewing a preview
+            or live video of PTZ cameras.
+        editPTZStations:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: |
+            Edit PTZ Settings. Set PTZ mode and create, delete, edit stations.
+        addEditSpeakers:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: 'Add speakers, edit speaker settings, delete speakers.'
+        editSpeakers:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Edit speaker settings. Cannot add or delete speakers.
+        viewLiveVideo:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View full resolution video live.
+        viewHistoricVideo:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View history browser and historic video.
+        downloadVideo:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Download preview and full resolution video.
+        viewPreviewVideo:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View preview images from cameras.
+        talkDown:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >-
+            Allows the users to initiate Talk Down to the camera field(s) of
+            view.
+        editMap:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: 'Add and edit floors, lines, shapes, and cameras on the map.'
+        viewAuditLog:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View Audit Log and download reports from it.
+        viewArchive:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View all files and folders within the Archive.
+        editArchive:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >-
+            Save videos to Archive - delete, edit, and view files and folders
+            within the Archive.
+        viewPlugins:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View all Plugins.
+        editPlugins:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Add and remove plugins.
+        exportUsers:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Export a list of account users in .csv format.
+        viewVSP:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >-
+            User access to view vehicle data, search vehicle across camera &
+            location, set rules, and alert.
+        editResellerUsers:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: 'Create, delete and edit reseller user who is not an Admin.'
+        editAdminUsers:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: >
+            Create, delete and edit admin and non-admin users in an end user
+            account. Give access to bridges, cameras, and layouts. Create new
+            end user accounts and give access to them.
+        viewContract:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: 'View recordings, search, and create new recordings.'
+        addRemovePayment:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Add and remove payment methods.
+        viewInvoice:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View and download invoices.
+        placeOrders:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Add products to the shipping cart and place orders.
+        viewShipments:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View the status of shipments.
+        viewPricingInformation:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View pricing information.
+        viewResellerProgramInformation:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View Marketing's reseller program information.
+        viewVSPRule:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View VSP rules.
+        editVSPRule:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Edit VSP rules.
+        viewVehicleList:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View vehicle lists.
+        editVehicleList:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Edit vehicle lists.
+        editAlertManagerRulesAndActions:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: Edit Alert Manager rules and actions.
+        viewAlertManagerRulesAndActions:
+          type: boolean
+          x-jsoninclude-nonnull-annotation: true
+          description: View Alert Manager rules and actions.
+    AccountSelfPatch:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        timeZone:
+          $ref: '#/components/schemas/TimeZone1'
+        workingHours:
+          $ref: '#/components/schemas/WeeklyScheduleAllRequired'
+        security:
+          $ref: '#/components/schemas/Security'
+        passwordManagementRules:
+          $ref: '#/components/schemas/PasswordManagementRules'
+        firstResponders:
+          $ref: '#/components/schemas/FirstResponders'
+        defaultCameraSettings:
+          $ref: '#/components/schemas/DefaultCameraSettings'
+        videoPrivacy:
+          $ref: '#/components/schemas/VideoPrivacy'
+        bridgeSettings:
+          $ref: '#/components/schemas/BridgeSettings'
+        cameraSettings:
+          $ref: '#/components/schemas/CameraSettings'
+        roleSettings:
+          $ref: '#/components/schemas/RoleSettings'
+    AccountSelfGet:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+              minLength: 1
+              maxLength: 12
+            name:
+              type: string
+              readOnly: true
+              minLength: 1
+              maxLength: 126
+            editionId:
+              type: string
+              minLength: 1
+              description: >
+                The current edition of the account. This argument can only be
+                updated by resellers requests applied to end user accounts.
+                Downgrades cannot occur within this context. Downgrade is
+                determined based on edition order parameter. The only editions
+                that can be set on the end user account are the editions that
+                are available to the reseller account.
+            type:
+              $ref: '#/components/schemas/AccountType'
+            effectivePermissions:
+              $ref: '#/components/schemas/EffectiveAccountPermissions'
+            brandingInfo:
+              $ref: '#/components/schemas/BrandingInfo'
+            resourceCounts:
+              $ref: '#/components/schemas/ResourceCounts'
+            resourceStatusCounts:
+              $ref: '#/components/schemas/ResourceStatusCounts'
+            deviceAnomalyCounts:
+              $ref: '#/components/schemas/DeviceAnomalyCounts'
+            statistics:
+              $ref: '#/components/schemas/AccountStatistics'
+            packages:
+              readOnly: true
+              type: array
+              items:
+                type: string
+              example:
+                - een.vsp
+                - een.pos
+              description: List of packages enabled for an account.
+        - $ref: '#/components/schemas/AccountSelfPatch'
+        - required:
+            - id
+            - name
+            - editionId
+            - status
+            - type
+    AccountGet:
+      allOf:
+        - type: object
+          properties:
+            customerId:
+              type: string
+              maxLength: 120
+              description: >
+                The customer identifier assigned to this account. It is used to
+                link the account with an external CRM system. It can only be
+                updated by resellers requests applied to end user accounts.
+        - $ref: '#/components/schemas/AccountSelfGet'
+    ApiPaginatedEndUserAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccountGet'
+    BrandingInfo:
+      allOf:
+        - $ref: '#/components/schemas/Branding'
+      readOnly: true
+    EffectiveAccountPermissions:
+      type: object
+      readOnly: true
+      properties:
+        read:
+          type: boolean
+        edit:
+          type: boolean
+          description: Edit account settings
+        upgradeEdition:
+          type: boolean
+          description: >-
+            Upgrade current edition subscription to a higher level edition.
+            Downgrades require technical support.
+        addBridgesCameras:
+          type: boolean
+          description: Add bridges and cameras to the account
+        addSpeakers:
+          type: boolean
+          description: Add speakers to the account
+        addLayouts:
+          type: boolean
+          description: Add layouts to the account
+        addUsers:
+          type: boolean
+          description: Add users to the account
+        viewAuditLog:
+          type: boolean
+          description: View Audit Log and download reports from it
+        viewArchive:
+          type: boolean
+          description: View all files and folders within the Archive
+        editArchive:
+          type: boolean
+          description: >-
+            Save videos to Archive - delete, and edit files and folders within
+            the Archive
+        viewPlugins:
+          type: boolean
+          description: View the list of plugins
+        addPlugins:
+          type: boolean
+          description: Add plugins
+        exportUsers:
+          type: boolean
+          description: Export a list of account users in .csv format
+    TimeZone1:
+      type: object
+      properties:
+        timeZone:
+          type: string
+          example: America/Chicago
+          description: >
+            The timezone the account is in. The list of supported timezones is
+            provided by the /timeZones endpoint.
+    Security:
+      type: object
+      properties:
+        sessionDuration:
+          type: integer
+          example: 10080
+          description: >
+            Unit: Minutes. Sets the maximum duration of access token (Also known
+            as the auth sesstion). The result is that this is the maximum time
+            webapps will be logged in for. Other applications such as mobile and
+            server to server applications are not directly affected by this
+            maximum, as they can automatically get a new access token using a
+            refresh token or automated login."
+          minimum: 1
+          maximum: 525600
+        sessionInactivityTimeout:
+          type: integer
+          nullable: true
+          example: 1440
+          description: >
+            Unit: Minutes. Account admins can set this value to request apps to
+            automatically log-out if the user hasn't interacted with the
+            application for the given time. This is mainly useful in webapps due
+            to the higher likelihood of a user leaving a screen unlocked and
+            walking away. If the value is set to null then this feature is
+            disabled.
+          minimum: 5
+          maximum: 1440
+        loginAttemptLimit:
+          type: integer
+          nullable: true
+          example: 3
+          description: >-
+            Maximum number of consecutive failed login attempts within a 24 hour
+            period that a user will be allowed before being forced to do a
+            password reset.
+          minimum: 3
+          maximum: 99
+        twoFactorAuthenticationForced:
+          type: boolean
+          description: Sets all users on the account to Two Factor Authentication.
+    PasswordManagementRules:
+      type: object
+      properties:
+        requireSpecialChar:
+          description: >-
+            Password needs to contain at least one symbol, specifically:
+            ~`!@#$%^&*()_+
+          type: boolean
+        requireNumericChar:
+          description: >-
+            The user will be required to create a password with at least one
+            numeric character.
+          type: boolean
+        daysToExpire:
+          description: Require to create a new password in the given number of days.
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 365
+        excludeUsername:
+          description: >-
+            Require to create a password that does not contain a username of the
+            given user.
+          type: boolean
+        limits:
+          $ref: '#/components/schemas/PasswordLimits'
+    PasswordLimits:
+      type: object
+      properties:
+        allowedMinimumLength:
+          description: Allowed minimum value for the minimumLength field.
+          type: integer
+          readOnly: true
+          example: 10
+        allowedMaximumLength:
+          description: Allowed minimum value for the maximumLength field.
+          type: integer
+          readOnly: true
+          example: 64
+        minimumLength:
+          description: >-
+            Require to create a password with the minimum length of the set
+            value.
+          type: integer
+          example: 10
+        maximumLength:
+          description: >-
+            Require to create a password with the maximum length of the set
+            value.
+          type: integer
+          example: 64
+        reuseNumberLimit:
+          description: >-
+            Require to create a password that was not previously used for the
+            selected number of previous passwords of the given user.
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 15
+        reuseDayLimit:
+          description: Defines the minimum number of days before a password can be reused.
+          type: integer
+          nullable: true
+          example: 1
+          minimum: 0
+          maximum: 120
+    FirstResponders:
+      type: object
+      properties:
+        active:
+          description: Activate Responder Share feature.
+          type: boolean
+    DefaultCameraSettings:
+      type: object
+      properties:
+        cloudRetentionDays:
+          description: >-
+            Default number of days that recorded video will be kept in the cloud
+            when cameras are added.
+          type: integer
+          example: 10
+          minimum: 1
+          maximum: 1825
+        maximumOnPremiseRetentionDays:
+          description: >
+            Default maximum value for the number of days that recorded video
+            will be kept on premise. Used when new cameras are added to the
+            system. The value cannot be lower than the
+            `minimumOnPremiseRetentionDays`.
+          type: integer
+          example: 7
+          minimum: 0
+          maximum: 365
+        minimumOnPremiseRetentionDays:
+          description: >
+            Default minimum value for the number of days that recorded video
+            will be kept on premise. Used when new cameras are added to the
+            system. The value cannot be grater than the
+            `maximumOnPremiseRetentionDays`.
+          type: integer
+          example: 14
+          minimum: 0
+          maximum: 180
+        previewResolution:
+          $ref: '#/components/schemas/PreviewResolution'
+        fullVideoResolution:
+          $ref: '#/components/schemas/FullVideoResolution'
+        previewOnlyCloudRetention:
+          $ref: '#/components/schemas/PreviewOnlyCloudRetention'
+        proposedValues:
+          allOf:
+            - readOnly: true
+            - $ref: >-
+                #/components/schemas/CameraSettingProposedValues/properties/retention
+        supportedValues:
+          type: object
+          readOnly: true
+          properties:
+            minimumOnPremiseRetentionDays:
+              type: object
+              properties:
+                min:
+                  type: integer
+                  example: 0
+                  minimum: 0
+                  maximum: 180
+                max:
+                  type: integer
+                  example: 180
+                  minimum: 0
+                  maximum: 180
+            maximumOnPremiseRetentionDays:
+              type: object
+              properties:
+                min:
+                  type: integer
+                  example: 0
+                  minimum: 0
+                  maximum: 365
+                max:
+                  type: integer
+                  example: 365
+                  minimum: 0
+                  maximum: 365
+            previewOnlyCloudRetention:
+              type: array
+              example:
+                - true
+                - false
+              items:
+                type: boolean
+                enum:
+                  - true
+                  - false
+            previewResolution:
+              type: array
+              example:
+                - cif
+                - std
+              items:
+                type: string
+                enum:
+                  - cif
+                  - std
+            fullVideoResolution:
+              type: array
+              example:
+                - std
+                - high
+                - 1080P
+                - 3MP
+                - 4MP
+                - 5MP
+                - 10MP
+              items:
+                type: string
+                enum:
+                  - std
+                  - high
+                  - 1080P
+                  - 3MP
+                  - 4MP
+                  - 5MP
+                  - 10MP
+            cloudRetentionDays:
+              type: object
+              properties:
+                min:
+                  type: integer
+                  example: 1
+                  minimum: 1
+                  maximum: 1825
+                max:
+                  type: integer
+                  example: 1825
+                  minimum: 1
+                  maximum: 1825
+    PreviewResolution:
+      description: >-
+        New resolutions might be added in the future. Currently only "cif" (320
+        x 180) and "std" (SD1) resolutions are supported.
+      type: string
+      enum:
+        - cif
+        - std
+    FullVideoResolution:
+      description: >-
+        New resolutions might be added in the future. Currently only "std"
+        (SD1), "high" (HD1), "1080P (HD2)", "3MP (HD3)", "4MP (HD4)", "5MP
+        (HD5)" and "10MP (HD10)" resolutions are supported.
+      type: string
+      enum:
+        - std
+        - high
+        - 1080P
+        - 3MP
+        - 4MP
+        - 5MP
+        - 10MP
+    PreviewOnlyCloudRetention:
+      description: >-
+        Allows previews to be transmitted to cloud while keeping full video
+        locally on the CMVR. This setting is only available for cameras attached
+        to a CMVR.
+      type: boolean
+    VideoPrivacy:
+      properties:
+        enabled:
+          type: boolean
+    BridgeSettings:
+      properties:
+        bridgeHealth:
+          type: boolean
+    CameraSettings:
+      properties:
+        rtspCameras:
+          type: boolean
+    RoleSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: >-
+            Indicates that the roles based access control can be enabled for
+            users.
+    ResourceCounts:
+      description: 'Count of resources.  For resellers, this will be the cumulative counts.'
+      type: object
+      readOnly: true
+      properties:
+        cameras:
+          type: integer
+          minimum: 0
+          example: 23
+        bridges:
+          type: integer
+          minimum: 0
+          example: 2
+        multiCameras:
+          type: integer
+          minimum: 0
+          example: 1
+        speakers:
+          type: integer
+          minimum: 0
+          example: 1
+        users:
+          type: integer
+          minimum: 0
+          example: 12
+        accounts:
+          type: integer
+          minimum: 0
+          example: 5
+        layouts:
+          type: integer
+          minimum: 0
+          example: 10
+        responderCameraProxies:
+          description: >-
+            Number of cameras shared with this account as part of the first
+            responder functionality.
+          type: integer
+          minimum: 0
+          example: 0
+        locations:
+          type: integer
+          minimum: 0
+          example: 10
+        deviceTags:
+          type: integer
+          minimum: 0
+          example: 3
+        sharedCameraProxies:
+          description: >-
+            Number of cameras shared with this account as part of the camera
+            sharing functionality. Cameras shared using first responder
+            functionality are not part of this count.
+          type: integer
+          minimum: 0
+          example: 10
+    ResourceStatusCounts:
+      description: >-
+        Count of resources by status.  For resellers, this will be the
+        cumulative counts.
+      type: object
+      readOnly: true
+      properties:
+        cameras:
+          $ref: '#/components/schemas/CameraStatusCounts'
+        bridges:
+          $ref: '#/components/schemas/BridgeStatusCounts'
+        users:
+          $ref: '#/components/schemas/UserStatusCounts'
+        accounts:
+          $ref: '#/components/schemas/AccountStatusCounts'
+        multiCameras:
+          $ref: '#/components/schemas/CameraStatusCounts'
+        speakers:
+          $ref: '#/components/schemas/CameraStatusCounts'
+    DeviceAnomalyCounts:
+      description: >-
+        Count of the device anomalies. For resellers, this will be the
+        cumulative counts.
+      type: object
+      readOnly: true
+      properties:
+        onlineBridgesWithNoDevices:
+          type: integer
+          minimum: 0
+          example: 3
+    AccountStatistics:
+      description: Statistics for the account.
+      type: object
+      readOnly: true
+      properties:
+        averageCloudRetentionDays:
+          description: >
+            The average cloud retention period (in days) for recorded video from
+            cameras owned by the account. Cameras shared with the account are
+            excluded, but cameras shared by the account are included.
+          type: integer
+          minimum: 0
+          example: 10
+        lastLogin:
+          description: >
+            The last time the account was logged into. If the account has never
+            been logged into, this will be null.
+          type: string
+          format: date-time
+          nullable: true
+          example: '2023-04-04T09:38:37.372Z'
+    AccountType:
+      readOnly: true
+      description: >
+        Indicates account type. *Note: new values might be added in the future,
+        so clients are advised to implement logic to handle unknown values.*
+      enum:
+        - distributor
+        - reseller
+        - endUserAccount
+      type: string
+    Branding:
+      type: object
+      properties:
+        name:
+          type: string
+          description: |
+            Branded company name.
+          example: Acme Corporation
+        subDomain:
+          type: string
+          description: |
+            Sub domain for the branded url.
+          example: Initech
+        supportEmail:
+          type: string
+          description: |
+            Branded support email.
+          example: support@example.com
+        supportPhone:
+          type: string
+          description: |
+            Branded support phone number.
+          example: (555) 555-1234
+        corporateURL:
+          type: string
+          description: |
+            Corporate website url.
+          example: www.acme-corp.example
+        isWhiteLabelEnabled:
+          type: boolean
+          description: |
+            Indicates whether the white label is enabled (true) or not (false)
+          example: false
+        whiteLabelId:
+          type: string
+          description: |
+            White label brand id.
+          example: een
+          nullable: true
+        authHostname:
+          type: string
+          description: |
+            Authentication hostname.
+        logoSmall:
+          type: string
+          description: |
+            Branded small logo URL (PNG, 160x52, transparent background).
+          example: >-
+            https://s3.amazonaws.com/een-brand-assets/acme-corporation/logo_small.png
+        logoLarge:
+          type: string
+          description: |
+            Branded large logo URL (PNG, 460x184, white background).
+          example: >-
+            https://s3.amazonaws.com/een-brand-assets/acme-corporation/logo_large.png
+    CameraSettingProposedValues:
+      description: >-
+        Lists of proposed values to be displayed to users for each property.
+        Although users can choose any number of days, this subset keeps the list
+        manageable and agrees with any billing thresholds.
+      type: object
+      readOnly: true
+      properties:
+        retention:
+          type: object
+          properties:
+            cloudDays:
+              description: >-
+                Proposed set of cloud retention days that the user could chose
+                between.
+              type: array
+              items:
+                type: integer
+              example:
+                - 1
+                - 2
+                - 3
+                - 5
+                - 7
+                - 14
+                - 28
+                - 30
+                - 31
+                - 60
+                - 90
+                - 180
+                - 365
+                - 730
+                - 1095
+                - 1825
+            cloudPreviewOnlyDays:
+              description: >-
+                Proposed set of cloud retention days that the user could choose
+                between if they choose to keep only preview videos in the cloud.
+                This list should replace cloudDays if cloudPreviewOnly property
+                is set to true.
+              type: array
+              items:
+                type: integer
+              example:
+                - 1
+                - 2
+                - 3
+                - 5
+                - 7
+                - 14
+                - 28
+                - 30
+                - 31
+                - 60
+                - 90
+                - 180
+            minimumOnPremiseDays:
+              description: >
+                Proposed set of minimum on-premise retention days the user could
+                choose between. 
+
+                Keep in mind that the minimum on-premise retention days value
+                should be less than the maximum on-premise retention days value.
+              type: array
+              items:
+                type: integer
+              example:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 5
+                - 7
+                - 14
+                - 28
+                - 30
+                - 31
+                - 60
+                - 90
+                - 180
+            maximumOnPremiseDays:
+              description: >
+                Proposed set maximum on-premise retention days the user could
+                choose between.
+
+                Keep in mind that the minimum on-premise retention days value
+                should be less than the maximum on-premise retention days value.
+              type: array
+              items:
+                type: integer
+              example:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 5
+                - 7
+                - 14
+                - 28
+                - 30
+                - 31
+                - 60
+                - 90
+                - 180
+                - 365
+    ApiRoleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 126
+          description: The name of the role.
+        notes:
+          type: string
+          maxLength: 5000
+          description: The notes of the role.
+        default:
+          type: boolean
+          description: >-
+            True if the role is one of the default roles for the account, false
+            otherwise.
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+    ApiRoleCreate:
+      allOf:
+        - $ref: '#/components/schemas/ApiRoleUpdate'
+        - type: object
+          required:
+            - name
+            - permissions
+            - default
+    ApiRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The ID of the role.
+        assignable:
+          x-jsoninclude-nonnull-annotation: true
+          type: boolean
+          description: >-
+            True if the user doing the request can assign this role to other
+            users, false otherwise.
+        userCount:
+          x-jsoninclude-nonnull-annotation: true
+          type: integer
+          description: Count of users that are associated with this role in the account
+        name:
+          type: string
+          description: The name of the role.
+          minLength: 1
+          maxLength: 126
+        notes:
+          x-jsoninclude-nonnull-annotation: true
+          type: string
+          description: The notes of the role.
+          maxLength: 5000
+        default:
+          type: boolean
+          description: >-
+            True if the role is one of the default roles for the account, false
+            otherwise.
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+      required:
+        - id
+        - name
+        - default
+    ApiPaginatedRoleResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiRole'
+    ApiRoleAssignment:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: The ID of the user.
+        roleId:
+          type: string
+          format: uuid
+          description: The ID of the role.
+        roleName:
+          type: string
+          description: The name of the role.
+      required:
+        - userId
+        - roleId
+        - roleName
+    ApiBulkRoleAssignmentUpdate:
+      type: array
+      minItems: 1
+      maxItems: 5000
+      items:
+        type: object
+        properties:
+          userId:
+            type: string
+            minLength: 1
+            description: The ID of the user.
+          roleId:
+            type: string
+            minLength: 1
+            format: uuid
+            description: The ID of the role.
+        required:
+          - userId
+          - roleId
+    ApiBulkRoleAssignmentResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          userId:
+            type: string
+            description: The ID of the user.
+          roleId:
+            type: string
+            format: uuid
+            description: The ID of the role.
+          status:
+            type: integer
+            description: The response status of the operation.
+        required:
+          - userId
+          - roleId
+          - status
+    ApiPaginatedRoleAssignmentResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiRoleAssignment'
+    id:
+      type: string
+      example: d290f1ee-6c54-4b01-90e6-d701748f0851
+    timestamp:
+      type: string
+      format: date-time
+      example: '2021-04-22T00:00:00.000+00:00'
+    accountId:
+      type: string
+      example: '00011557'
+    userId:
+      type: string
+      example: ca0de584
+    auditType:
+      type: string
+      description: Valid values given by /auditTypes endpoint.
+      enum:
+        - requestDownload
+        - saveDownload
+        - createDevice
+        - deleteDevice
+        - updateDevice
+        - createAccount
+        - updateAccount
+        - createUser
+        - createUserSso
+        - deleteUser
+        - updateUser
+        - switchAccount
+        - devicesOn
+        - devicesOff
+        - deviceRestart
+        - userLogin
+        - userLogout
+        - getLayout
+        - createLayout
+        - deleteLayout
+        - updateLayout
+        - managedSwitchControl
+        - managedSwitchUpdate
+        - forgotPassword
+        - resetPassword
+        - videoRecordStart
+        - videoRecordEnd
+        - viewVideoEnd
+        - viewVideoStart
+        - createFile
+        - deleteFile
+        - updateFile
+        - activateFirstResponders
+        - deactivateFirstResponders
+        - openTunnel
+        - closeTunnel
+        - activeOutput0
+        - activeOutput1
+        - activeOutput2
+        - activeOutput3
+        - lprSearch
+        - videoSearch
+        - cameraSnapshot
+        - talkdownSessionStarted
+        - talkdownSessionFinished
+        - createLocation
+        - updateLocation
+        - deleteLocation
+    targetType:
+      type: string
+      enum:
+        - user
+        - account
+        - device
+        - file
+    CreateAuditEvent:
+      type: object
+      required:
+        - userId
+        - accountId
+        - auditType
+        - targetType
+        - targetId
+        - targetName
+      properties:
+        timestamp:
+          $ref: '#/components/schemas/timestamp'
+        userId:
+          $ref: '#/components/schemas/userId'
+        userName:
+          type: string
+        userEmail:
+          type: string
+        accountId:
+          $ref: '#/components/schemas/accountId'
+        auditType:
+          type: string
+        targetType:
+          type: string
+        targetId:
+          type: string
+        targetName:
+          type: string
+        ipAddress:
+          type: string
+        userAgent:
+          type: object
+          properties:
+            browserFamily:
+              type: string
+            browserVersion:
+              type: string
+            osFamily:
+              type: string
+            osVersion:
+              type: string
+        locationId:
+          description: ID Of the location.
+          minLength: 1
+          type: string
+          nullable: true
+          example: 2428fda3-389f-48ce-b062-85875dd6b2e2
+        locationName:
+          type: string
+        dataSchemas:
+          type: array
+          items:
+            type: string
+        data:
+          type: object
+    AuditEvent:
+      allOf:
+        - $ref: '#/components/schemas/CreateAuditEvent'
+      required:
+        - id
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        ipAddressLocation:
+          type: object
+          properties:
+            city:
+              type: string
+            region:
+              type: string
+            zipCode:
+              type: string
+            country:
+              type: string
+        description:
+          type: string
+        auditTypeName:
+          type: string
+    AuditEvents:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseNoTotalSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditEvent'
+    ApiPaginatedResourceGrantResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ResourceGrantGet'
+    ResourceType:
+      type: string
+      enum:
+        - layout
+        - camera
+        - location
+        - account
+        - speaker
+        - multiCamera
+      example: account
+    ResourceGrantOptions:
+      type: object
+      properties:
+        expirationTimestamp:
+          type: string
+          format: date-time
+          example: '2023-04-04T09:38:37.372Z'
+          description: >-
+            The date when access to resource ends. This can be only set for
+            accounts.
+    ResourceGrant:
+      properties:
+        id:
+          type: string
+          readOnly: true
+        resourceId:
+          type: string
+        userId:
+          type: string
+        resourceType:
+          $ref: '#/components/schemas/ResourceType'
+        createTimestamp:
+          type: string
+          format: date-time
+          example: '2023-04-04T09:38:37.372Z'
+          readOnly: true
+        options:
+          $ref: '#/components/schemas/ResourceGrantOptions'
+    ResourceGrantGet:
+      allOf:
+        - $ref: '#/components/schemas/ResourceGrant'
+      required:
+        - id
+        - resourceId
+        - userId
+        - resourceType
+        - createTimestamp
+        - options
+    ResourceGrantCreate:
+      allOf:
+        - $ref: '#/components/schemas/ResourceGrant'
+      required:
+        - resourceId
+        - userId
+        - resourceType
+    ResourceGrantsBulkCreate:
+      type: array
+      items:
+        $ref: '#/components/schemas/ResourceGrantCreate'
+    ResourceGrantsBulkDelete:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceGrantCompositeId'
+      required:
+        - ids
+    ResourceGrantCompositeId:
+      type: object
+      properties:
+        resourceId:
+          type: string
+        userId:
+          type: string
+        resourceType:
+          $ref: '#/components/schemas/ResourceType'
+      required:
+        - resourceId
+        - userId
+        - resourceType
+    BulkResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/BulkResponseItem'
+    BulkResponseItem:
+      type: object
+      properties:
+        resourceId:
+          type: string
+        userId:
+          type: string
+        resourceType:
+          $ref: '#/components/schemas/ResourceType'
+        status:
+          type: integer
+          example: 200
+      required:
+        - resourceId
+        - userId
+        - resourceType
+        - status
+    Edition:
+      properties:
+        id:
+          oneOf:
+            - $ref: '#/components/parameters/id/schema'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 32
+        order:
+          type: integer
+          description: The order in which the edition should be sorted
+        capabilities:
+          type: object
+          description: >-
+            Object with key as feature flag and value boolean determining if it
+            is on/off
+      required:
+        - id
+        - name
+        - order
+        - capabilities
+    PaginatedEditionResponse:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponseWithSize'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/Edition'
+  parameters:
+    userId:
+      in: path
+      name: userId
+      schema:
+        type: string
+      required: true
+    trustedClientId:
+      in: path
+      name: trustedClientId
+      schema:
+        type: string
+      required: true
+    locationId__in:
+      in: query
+      name: locationId__in
+      required: false
+      description: List of Location IDs to filter on that is comma separated.
+      style: form
+      explode: false
+      schema:
+        type: array
+        example:
+          - 2428fda3-389f-48ce-b062-85875dd6b2e2
+        items:
+          type: string
+    locationId__ne:
+      in: query
+      name: locationId__ne
+      required: false
+      description: >-
+        Filter to get the users with an locationId that is not equal to the
+        provided value. The lookup is exact but case insensitive.
+      schema:
+        example: 2428fda3-389f-48ce-b062-85875dd6b2e2
+        type: string
+    sort:
+      in: query
+      name: sort
+      description: >
+        Comma separated list of of fields that should be sorted. By default, the
+        users response is sorted by first name.
+         * `sort=` - not providing any value will result in error 400
+         * `sort=+firstName,+firstName` - same values will result in error 400
+         * `sort=-firstName,+firstName` - mutually exclusive values will return error 400
+         * maxItem=5 - Only five values will be accepted, more will return error 400
+         * qRelevance is optional ordering parameter which is available if q filter is used, if q filter is not passed qRelevance as ordering parameter will return error 400
+      schema:
+        type: array
+        default:
+          - +firstName
+        items:
+          type: string
+          maxItems: 10
+          enum:
+            - '-firstName'
+            - '-lastName'
+            - '-createTimestamp'
+            - '-email'
+            - '-loginDetails.lastLogin'
+            - '-permissions.administrator'
+            - '-status.loginStatus.active'
+            - '-status.loginStatus.blocked'
+            - '-status.loginStatus.pending'
+            - '-qRelevance'
+            - +firstName
+            - +lastName
+            - +createTimestamp
+            - +email
+            - +loginDetails.lastLogin
+            - +permissions.administrator
+            - +status.loginStatus.active
+            - +status.loginStatus.blocked
+            - +status.loginStatus.pending
+            - +qRelevance
+      example:
+        - +email
+        - '-qRelevance'
+      style: form
+      explode: false
+    firstName__in:
+      in: query
+      name: firstName__in
+      description: >-
+        Filter to get the users whose firstName is on the provided list. The
+        lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    firstName__contains:
+      in: query
+      name: firstName__contains
+      description: >
+        Filter to get the users whose the firstName contains the provided
+        substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+    lastName__in:
+      in: query
+      name: lastName__in
+      description: >-
+        Filter to get the users whose lastName is on the provided list. The
+        lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    lastName__contains:
+      in: query
+      name: lastName__contains
+      description: >
+        Filter to get the users whose the lastName contains the provided
+        substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+    email__contains:
+      in: query
+      name: email__contains
+      description: >
+        Filter to get the users whose the email contains provided substring. The
+        lookup is exact but case insensitive
+      schema:
+        type: string
+    email__in:
+      in: query
+      name: email__in
+      description: Filter to get the users whose email is on the provided list. The
+        lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    permissions.administrator:
+      in: query
+      name: permissions.administrator
+      description: |
+        Filter to get the users with provided administrator value.
+      schema:
+        type: boolean
+    status.loginStatus__in:
+      in: query
+      name: status.loginStatus__in
+      description: >-
+        Filter to get the users whose loginStatus is on the provided list. The
+        lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - active
+            - pending
+            - blocked
+      style: form
+      explode: false
+    includeForList:
+      in: query
+      name: include
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - loginDetails
+            - locationSummary
+            - contactDetails
+            - timeZone
+            - support
+            - status
+            - permissions
+            - layoutSettings
+            - previewSettings
+            - effectivePermissions
+            - timeSettings
+            - qRelevance
+    includeForSingle:
+      in: query
+      name: include
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - loginDetails
+            - locationSummary
+            - contactDetails
+            - timeZone
+            - support
+            - status
+            - permissions
+            - layoutSettings
+            - previewSettings
+            - effectivePermissions
+            - timeSettings
+    includeTrustedDevices:
+      in: query
+      name: include
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - device
+            - browser
+            - operatingSystem
+    q:
+      in: query
+      name: q
+      description: >
+        Text search that is applied to multiple fields. The fields being
+        searched are defined by the backend and can be changed without warning.
+        Example fields being searched: `firstName`, `lastName`, `email`.
+      schema:
+        type: string
+        example: entrance
+    qRelevance__gte:
+      in: query
+      name: qRelevance__gte
+      description: >
+        Sets the current minimum similarity threshold that is used with the `q`
+        parameter. The threshold must be between 0 and 1 (float, default is
+        0.5).
+      schema:
+        type: number
+        format: float
+        minimum: 0
+        maximum: 1
+        example: 0.5
+    id__in:
+      in: query
+      name: id__in
+      description: >-
+        Filter to get the users whose id is on the provided list. The lookup is
+        exact and case insensitive.
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    id__notIn:
+      in: query
+      name: id__notIn
+      description: >-
+        Filter to exlude the users whose ids are in the provided list. The
+        lookup is exact and case insensitive.
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    pageToken:
+      in: query
+      name: pageToken
+      description: >
+        Token string value that references a page for pagination. This value is
+        received when retrieving the first page in the `nextPageToken` and
+        `prevPageToken` fields.
+      example: b2Zmc2V0PTEwJmxpbWl0PTEw
+      required: false
+      schema:
+        type: string
+    pageSize:
+      in: query
+      name: pageSize
+      description: >
+        The number of entries to return per page. The maximum range of valid
+        page sizes is documented with minimum and  maximum values, but the range
+        might be further limited dynamically based on the requested information,
+        account, and system status. Values outside of the (dynamic) allowed
+        range will not result in an error, but will be clamped to the nearest
+        limit. Thus, logic to detect the last page should not be based on
+        comparing the requested size with the received size, but on the
+        existence of a `nextPageToken` value.
+      example: 100
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    id:
+      in: path
+      required: true
+      name: id
+      description: >
+        Account ID.  Use __*self*__ as the Account ID to reference the account
+        of the current session
+      schema:
+        type: string
+    include:
+      in: query
+      name: include
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - effectivePermissions
+            - timeZone
+            - workingHours
+            - security
+            - passwordManagementRules
+            - firstResponders
+            - defaultCameraSettings
+            - videoPrivacy
+            - bridgeSettings
+            - cameraSettings
+            - brandingInfo
+            - resourceCounts
+            - resourceStatusCounts
+            - deviceAnomalyCounts
+            - statistics
+            - packages
+            - roleSettings
+    credentialId:
+      in: path
+      required: true
+      name: credentialId
+      description: Credential ID
+      schema:
+        type: string
+    sort1:
+      in: query
+      name: sort
+      description: |
+        Comma separated list of of fields that should be sorted.
+         * `sort=` - not providing any value will result in error 400
+         * `sort=+name,+name` - same values will result in error 400
+         * `sort=-name,+name` - mutially exclusive values will return error 400
+         * maxItem=3 - Only Three values will be accepted, more will return error 400
+         * qRelevance is optional ordering parameter which is available if q filter is used, if q filter is not passed qRelevance as ordering parameter will return error 400 
+      schema:
+        type: array
+        default:
+          - +name
+        items:
+          type: string
+          maxItems: 1
+          enum:
+            - '-name'
+            - +name
+      example:
+        - +name
+      style: form
+      explode: false
+    roleId:
+      name: roleId
+      in: path
+      description: The ID of the role.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    self:
+      in: query
+      name: self
+      description: Filter to get the role assignments for the requesting user.
+      schema:
+        type: boolean
+    include1:
+      in: query
+      name: include
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - assignable
+            - userCount
+            - permissions
+            - notes
+    userId__in:
+      in: query
+      name: userId__in
+      required: false
+      description: List of user IDs to filter on that is comma separated.
+      style: form
+      explode: false
+      schema:
+        type: array
+        example:
+          - abc456f
+        items:
+          type: string
+    roleId__in:
+      in: query
+      name: roleId__in
+      required: false
+      description: List of role IDs to filter on that is comma separated.
+      style: form
+      explode: false
+      schema:
+        type: array
+        example:
+          - 2428fda3-389f-48ce-b062-85875dd6b2e2
+        items:
+          type: string
+          format: uuid
+    roleId__contains:
+      in: query
+      name: roleId__contains
+      description: >
+        Filter to get the user role assignments whose the role ID contains the
+        provided substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+    roleName__contains:
+      in: query
+      name: roleName__contains
+      description: >
+        Filter to get the user role assignments whose the role name contains the
+        provided substring. The lookup is exact but case insensitive
+      schema:
+        type: string
+    timestamp__gte:
+      in: query
+      name: timestamp__gte
+      description: Minimum timestamp to list auditlogs.
+      required: true
+      schema:
+        $ref: '#/components/schemas/timestamp'
+    timestamp__lte:
+      in: query
+      name: timestamp__lte
+      required: true
+      description: Maximum timestamp to list auditlogs.
+      schema:
+        $ref: '#/components/schemas/timestamp'
+    targetType:
+      in: query
+      name: targetType
+      description: Filter by targetType
+      required: false
+      schema:
+        $ref: '#/components/schemas/targetType'
+    auditType:
+      in: query
+      name: auditType
+      description: Filter by auditType
+      required: false
+      schema:
+        $ref: '#/components/schemas/auditType'
+    userId1:
+      in: query
+      name: userId
+      description: Filter by userId
+      required: false
+      schema:
+        $ref: '#/components/schemas/userId'
+    locationId:
+      in: query
+      name: locationId
+      description: Filter by locationId
+      required: false
+      schema:
+        type: string
+    targetId:
+      in: query
+      name: targetId
+      description: Filter by targetId
+      required: false
+      schema:
+        type: string
+    include2:
+      in: query
+      name: include
+      schema:
+        type: string
+        enum:
+          - description
+          - userAgent
+          - data
+          - ipAddressLocation
+    resourceType:
+      in: query
+      name: resourceType
+      description: Filter to get the grants with the specified resource type
+      schema:
+        $ref: '#/components/schemas/ResourceType'
+      required: true
+    userId__in1:
+      in: query
+      name: userId__in
+      description: >-
+        Filter to get the grants whose userId is on the provided list. The
+        lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    resourceId__in:
+      in: query
+      name: resourceId__in
+      description: >-
+        Filter to get the grants whose resourceId is on the provided list. The
+        lookup is exact but case insensitive
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+    id1:
+      in: path
+      required: true
+      name: id
+      description: Edition ID
+      schema:
+        type: string
+    accountId2:
+      in: query
+      name: accountId
+      description: Account ID specified in as an ESN Type.
+      schema:
+        type: string
+  responses:
+    validationError:
+      description: >-
+        The supplied object is invalid. Error detail will contain the validation
+        error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            unexpectedArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Unexpected argument: name'
+                details:
+                  - type: errorInfo
+                    reason: unexpectedArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            missingRequiredArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Missing required arguments: name, id'
+                details:
+                  - type: errorInfo
+                    reason: missingRequiredArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidJSON:
+              value:
+                code: 400
+                status: invalidArgument
+                message: Invalid JSON
+                details:
+                  - type: errorInfo
+                    reason: invalidJSON
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Invalid Argument: Argument name is too long'
+                details:
+                  - type: errorInfo
+                    reason: wrongArgumentValue
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: badRequest
+                    argumentViolations:
+                      - argumentName: name
+                        description: Name is too long
+    unauthorized:
+      description: You are not authenticated. Please authenticate and try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 401
+            status: unauthenticated
+            message: The client caller does not have a valid authentication credential
+            details:
+              - type: errorInfo
+                reason: unauthenticated
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+    forbidden:
+      description: You have no permission to access the specified resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            invalidPermission:
+              value:
+                code: 403
+                status: permissionDenied
+                message: >-
+                  The client caller does not have permission for the specified
+                  operation
+                details:
+                  - type: errorInfo
+                    reason: invalidPermission
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            wrongEdition:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is not enabled for the account
+                details:
+                  - type: errorInfo
+                    reason: wrongEdition
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+            wrongAccountType:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is only available for end users
+                details:
+                  - type: errorInfo
+                    reason: wrongAccountType
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+    resourceNotFound:
+      description: Referenced resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            endpointNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The API endpoint was not found
+                details:
+                  - type: errorInfo
+                    reason: endpointNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            resourceNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The resource was not found
+                details:
+                  - type: errorInfo
+                    reason: resourceNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: resourceInfo
+                    resource: <resource>
+                    ids:
+                      - <ids>
+    conflict:
+      description: >-
+        There was a conflict while trying to perform your request. See error
+        details for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            alreadyExists:
+              value:
+                code: 409
+                status: conflict
+                message: The resource already exists
+                details:
+                  - type: errorInfo
+                    reason: alreadyExists
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            foreignKeyConflict:
+              value:
+                code: 409
+                status: conflict
+                message: >-
+                  The resource cannot be deleted as other resources link to it.
+                  Please remove the links or delete the other resources first
+                  before deleting this resource.
+                details:
+                  - type: errorInfo
+                    reason: foreignKeyConflict
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            childDevicesExist:
+              value:
+                code: 409
+                status: conflict
+                message: >-
+                  This device can not be deleted before all attached cameras
+                  have been deleted. Please delete all cameras and then delete
+                  this device.
+                details:
+                  - type: errorInfo
+                    reason: childDevicesExist
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+    internalServerError:
+      description: Something went wrong in the server. Please try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 500
+            status: internal
+            message: An internal error has occurred. Please try again later.
+            details:
+              - type: errorInfo
+                reason: unexpectedError
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+x-readme:
+  explorer-enabled: true

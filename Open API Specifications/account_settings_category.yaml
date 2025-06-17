@@ -1,0 +1,950 @@
+---
+openapi: 3.0.3
+info:
+  title: ACCOUNT SETTINGS
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0'
+    description: Eagle Eye Networks API Server
+    variables:
+      BaseUrl:
+        default: api.cxxx.eagleeyenetworks.com
+        description: >-
+          HTTPS Base url to use for all API calls, retrieved from
+          https://api.eagleeyenetworks.com/api/v3.0/clientSettings
+security:
+  - bearerAuth: []
+tags:
+  - name: SSO
+    description: Single Sign On
+  - name: Client Settings
+    description: Settings required to let a client successfully use the API.
+paths:
+  /accounts/self/ssoAuthSettings:
+    get:
+      operationId: getAuthSettings
+      description: |
+        Returns Single Sign On Authentication Settings for the given account.
+      tags:
+        - SSO
+      parameters:
+        - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuthSettings'
+              examples:
+                Generic OpenId Connect:
+                  description: Generic OpenID Connect SSO config.
+                  value:
+                    type: oidc
+                    config:
+                      credentials:
+                        clientId: string
+                        clientSecret: string
+                      endpoints:
+                        authorization: 'https://accounts.google.com/o/oauth2/v2/auth'
+                        token: 'https://oauth2.googleapis.com/token'
+                        userInfo: 'https://openidconnect.googleapis.com/v1/userinfo'
+                        jwks: 'https://www.googleapis.com/oauth2/v3/certs'
+                      issuer:
+                        url: 'https://accounts.google.com'
+                    spInitiatedSsoLogin: false
+                    scim:
+                      autoUserProvisioningEnabled: true
+                Okta OpenId Connect:
+                  description: Okta OpenID Connect SSO config.
+                  value:
+                    type: okta
+                    config:
+                      credentials:
+                        clientId: string
+                        clientSecret: string
+                      issuer:
+                        url: 'https://yourOktaDomain.com'
+                    spInitiatedSsoLogin: false
+                    scim:
+                      autoUserProvisioningEnabled: true
+                Microsoft Active Directory OpenId Connect:
+                  description: >
+                    With the "Microsoft Active Directory" OIDC SSO type, a
+                    specific active directory is configured as identity provider
+                    for the account.  The specific directory is identified by
+                    the required tenantId. Any user and guest under this
+                    specific active directory can use this configuration to
+                    login.  "Microsoft Accounts", also known as "Personal
+                    accounts" can only be used to identify as a user if that
+                    account has been invited as a guest account in the Active
+                    Directory.  Auto User Provisioning can be enabled for this
+                    configuration.
+                  value:
+                    type: microsoftActiveDirectory
+                    config:
+                      credentials:
+                        clientId: string
+                        clientSecret: string
+                      tenantId: string
+                    spInitiatedSsoLogin: false
+                    scim:
+                      autoUserProvisioningEnabled: true
+                Microsoft Global OpenId Connect:
+                  description: >
+                    If the "Microsoft Global" OIDC SSO type is configured, users
+                    with personal Microsoft accounts and users under any active
+                    directory can use
+                     it to login to the system. 
+                    Guest users of an active directory can't use this
+                    configuration to login. As it is impossible to
+                    authoritatively decide which account an unknown user belongs
+                    to, Auto User Provisioning is not possible.
+                  value:
+                    type: microsoftGlobal
+                    spInitiatedSsoLogin: false
+                Google OpenId Connect:
+                  description: Google OpenID Connect SSO config.
+                  value:
+                    type: google
+                    spInitiatedSsoLogin: false
+                Disabled SSO:
+                  description: >-
+                    No Single Sign On enabled and ssoOidcIdpConfigUrls include
+                    requested.
+                  value:
+                    type: disabled
+                    ssoOidcIdpConfigUrls:
+                      redirectUri: >-
+                        https://auth.eagleeyenetworks.com/login/oauth2/code/0123456789
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateAuthSettings
+      description: |
+        Updates Single Sign On Authentication Settings with the given values.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAuthSettingsUpdate'
+            examples:
+              Configure Generic OpenId Connect:
+                description: Generic OpenID Connect SSO config.
+                value:
+                  type: oidc
+                  config:
+                    credentials:
+                      clientId: string
+                      clientSecret: string
+                    endpoints:
+                      authorization: 'https://accounts.google.com/o/oauth2/v2/auth'
+                      token: 'https://oauth2.googleapis.com/token'
+                      userInfo: 'https://openidconnect.googleapis.com/v1/userinfo'
+                      jwks: 'https://www.googleapis.com/oauth2/v3/certs'
+                    issuer:
+                      url: 'https://accounts.google.com'
+                  spInitiatedSsoLogin: false
+                  scim:
+                    autoUserProvisioningEnabled: true
+              Configure Okta OpenId Connect:
+                description: Okta OpenID Connect SSO config.
+                value:
+                  type: okta
+                  config:
+                    credentials:
+                      clientId: string
+                      clientSecret: string
+                    issuer:
+                      url: 'https://yourOktaDomain.com'
+                  spInitiatedSsoLogin: false
+                  scim:
+                    autoUserProvisioningEnabled: true
+              Configure Microsoft Global OpenId Connect:
+                description: >
+                  If the "Microsoft Global" OIDC SSO type is configured, users
+                  with personal Microsoft accounts and users under any active
+                  directory can use  it to login to the system.  Guest users of
+                  an active directory can't use this configuration to login. As
+                  it is impossible to authoritatively decide which account an
+                  unknown user belongs to, Auto User Provisioning is not
+                  possible.
+                value:
+                  type: microsoftGlobal
+                  spInitiatedSsoLogin: false
+              Configure Microsoft Active Directory OpenId Connect:
+                description: >
+                  With the "Microsoft Active Directory" OIDC SSO type, a
+                  specific active directory is configured as identity provider
+                  for the account.  The specific directory is identified by the
+                  required tenantId. Any user and guest under this specific
+                  active directory can use this configuration to login.  "Microsoft Accounts", also known as "Personal accounts" can
+                  only be used to identify as a user if that account has been
+                  invited as a guest account in the Active Directory.  Auto User
+                  Provisioning can be enabled for this configuration.
+                value:
+                  type: microsoftActiveDirectory
+                  config:
+                    credentials:
+                      clientId: string
+                      clientSecret: string
+                    tenantId: string
+                  spInitiatedSsoLogin: false
+                  scim:
+                    autoUserProvisioningEnabled: true
+              Configure Google OpenId Connect:
+                description: Google OpenID Connect SSO config.
+                value:
+                  type: google
+                  spInitiatedSsoLogin: false
+              Disable SSO:
+                description: >-
+                  No Single Sign On enabled and ssoOidcIdpConfigUrls include
+                  requested.
+                value:
+                  type: disabled
+      tags:
+        - SSO
+      responses:
+        '204':
+          description: IDP Updated
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /clientSettings:
+    get:
+      operationId: getClientSettings
+      description: Retrieves settings required to let the client successfully use the API.
+      tags:
+        - Client Settings
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiClientSettings'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiAuthSettings:
+      oneOf:
+        - $ref: '#/components/schemas/ApiDisabledSsoSettings'
+        - $ref: '#/components/schemas/ApiGenericOidcSsoSettings'
+        - $ref: '#/components/schemas/ApiGoogleOidcSsoSettings'
+        - $ref: '#/components/schemas/ApiOktaOidcSsoSettings'
+        - $ref: '#/components/schemas/ApiMicrosoftGlobalOidcSsoSettings'
+        - $ref: '#/components/schemas/ApiMicrosoftActiveDirectoryOidcSsoSettings'
+      discriminator:
+        propertyName: type
+        mapping:
+          disabled: '#/components/schemas/ApiDisabledSsoSettings'
+          oidc: '#/components/schemas/ApiGenericOidcSsoSettings'
+          google: '#/components/schemas/ApiGoogleOidcSsoSettings'
+          okta: '#/components/schemas/ApiOktaOidcSsoSettings'
+          microsoftGlobal: '#/components/schemas/ApiMicrosoftGlobalOidcSsoSettings'
+          microsoftActiveDirectory: '#/components/schemas/ApiMicrosoftActiveDirectoryOidcSsoSettings'
+    ApiAuthSettingsUpdate:
+      oneOf:
+        - $ref: '#/components/schemas/ApiDisabledSsoSettingsUpdate'
+        - $ref: '#/components/schemas/ApiGenericOidcSsoSettingsUpdate'
+        - $ref: '#/components/schemas/ApiGoogleOidcSsoSettingsUpdate'
+        - $ref: '#/components/schemas/ApiOktaOidcSsoSettingsUpdate'
+        - $ref: '#/components/schemas/ApiMicrosoftGlobalOidcSsoSettingsUpdate'
+        - $ref: >-
+            #/components/schemas/ApiMicrosoftActiveDirectoryOidcSsoSettingsUpdate
+      discriminator:
+        propertyName: type
+        mapping:
+          disabled: '#/components/schemas/ApiDisabledSsoSettingsUpdate'
+          oidc: '#/components/schemas/ApiGenericOidcSsoSettingsUpdate'
+          google: '#/components/schemas/ApiGoogleOidcSsoSettingsUpdate'
+          okta: '#/components/schemas/ApiOktaOidcSsoSettingsUpdate'
+          microsoftGlobal: '#/components/schemas/ApiMicrosoftGlobalOidcSsoSettingsUpdate'
+          microsoftActiveDirectory: >-
+            #/components/schemas/ApiMicrosoftActiveDirectoryOidcSsoSettingsUpdate
+    ApiBaseSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/BaseSsoSettings'
+        - $ref: '#/components/schemas/ssoOidcIdpConfigUrls'
+    ApiBaseDisabledSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/BaseDisabledSsoSettings'
+        - $ref: '#/components/schemas/ssoOidcIdpConfigUrls'
+    ApiBaseSsoSettingsUpdate:
+      $ref: '#/components/schemas/BaseSsoSettings'
+    ApiDisabledSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseDisabledSsoSettings'
+        - $ref: '#/components/schemas/DisabledSsoSettings'
+    ApiGenericOidcSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettings'
+        - $ref: '#/components/schemas/GenericOidcSsoSettings'
+    ApiOktaOidcSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettings'
+        - $ref: '#/components/schemas/OktaOidcSsoSettings'
+    ApiMicrosoftGlobalOidcSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettings'
+        - $ref: '#/components/schemas/MicrosoftGlobalOidcSsoSettings'
+    ApiMicrosoftActiveDirectoryOidcSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettings'
+        - $ref: '#/components/schemas/MicrosoftActiveDirectoryOidcSsoSettings'
+    ApiGoogleOidcSsoSettings:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettings'
+        - $ref: '#/components/schemas/GoogleOidcSsoSettings'
+    ApiDisabledSsoSettingsUpdate:
+      allOf:
+        - $ref: '#/components/schemas/BaseDisabledSsoSettings'
+        - $ref: '#/components/schemas/DisabledSsoSettings'
+    ApiGenericOidcSsoSettingsUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettingsUpdate'
+        - $ref: '#/components/schemas/GenericOidcSsoSettings'
+    ApiOktaOidcSsoSettingsUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettingsUpdate'
+        - $ref: '#/components/schemas/OktaOidcSsoSettings'
+    ApiMicrosoftGlobalOidcSsoSettingsUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettingsUpdate'
+        - $ref: '#/components/schemas/MicrosoftGlobalOidcSsoSettings'
+    ApiMicrosoftActiveDirectoryOidcSsoSettingsUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettingsUpdate'
+        - $ref: '#/components/schemas/MicrosoftActiveDirectoryOidcSsoSettings'
+    ApiGoogleOidcSsoSettingsUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApiBaseSsoSettingsUpdate'
+        - $ref: '#/components/schemas/GoogleOidcSsoSettings'
+    BaseSsoSettings:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        spInitiatedSsoLogin:
+          type: boolean
+          description: >
+            If this field is set to true, it means that all the non admin users
+            under this account will use this SSO settings to authenticate when
+            performing Service provider initiated login.  A Service provider
+            initiated login means that an unauthenticated user tries to directly
+            login to an application like the VMS webapp and the application
+            redirects them to their configured Identity provider to authenticate
+            themselves. This is the opposite of an Idp initiated login where the
+            user directly logs in to their identity provider, which then shows
+            them a catalog of applications they have access to.
+          default: false
+    BaseDisabledSsoSettings:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+    GoogleOidcSsoSettings:
+      type: object
+      description: Google OpenID Connect SSO config.
+      properties:
+        type:
+          type: string
+          enum:
+            - google
+    MicrosoftActiveDirectoryOidcSsoSettings:
+      type: object
+      required:
+        - config
+      description: >
+        With the "Microsoft Active Directory" OIDC SSO type, a specific active
+        directory is configured as identity provider for the account.  The
+        specific directory is identified by the required tenantId. Any user and
+        guest under this specific active directory can use this configuration to
+        login.  "Microsoft Accounts", also known as "Personal accounts" can only
+        be used to identify as a user if that account has been invited as a
+        guest account in the Active Directory.  Auto User Provisioning can be
+        enabled for this configuration.
+      properties:
+        type:
+          type: string
+          enum:
+            - microsoftActiveDirectory
+        config:
+          type: object
+          properties:
+            credentials:
+              $ref: '#/components/schemas/ApiIDPCredentials'
+            tenantId:
+              type: string
+              description: |
+                Tenant id of the IDP
+              minLength: 1
+              maxLength: 100
+              example: 42fb98b2-68d6-4f42-b2e9-983782fd748b
+          required:
+            - credentials
+            - tenantId
+        scim:
+          $ref: '#/components/schemas/scim'
+    MicrosoftGlobalOidcSsoSettings:
+      type: object
+      description: >
+        If the "Microsoft Global" OIDC SSO type is configured, users with
+        personal Microsoft accounts and users under any active directory can use
+        it to login
+         to the system. 
+        Guest users of an active directory can't use this configuration to
+        login. As it is impossible to authoritatively decide which account an
+        unknown user belongs to, Auto User Provisioning is not possible.
+      properties:
+        type:
+          type: string
+          enum:
+            - microsoftGlobal
+    OktaOidcSsoSettings:
+      type: object
+      description: Okta OpenID Connect SSO config.
+      required:
+        - config
+      properties:
+        type:
+          type: string
+          enum:
+            - okta
+        config:
+          type: object
+          properties:
+            credentials:
+              $ref: '#/components/schemas/ApiIDPCredentials'
+            issuer:
+              $ref: '#/components/schemas/ApiIDPIssuer'
+          required:
+            - credentials
+            - issuer
+        scim:
+          $ref: '#/components/schemas/scim'
+    GenericOidcSsoSettings:
+      type: object
+      description: Generic OpenID Connect SSO config.
+      required:
+        - config
+      properties:
+        type:
+          type: string
+          enum:
+            - oidc
+        config:
+          type: object
+          properties:
+            credentials:
+              $ref: '#/components/schemas/ApiIDPCredentials'
+            endpoints:
+              $ref: '#/components/schemas/ApiIDPEndpoints'
+            issuer:
+              $ref: '#/components/schemas/ApiIDPIssuer'
+          required:
+            - credentials
+            - endpoints
+            - issuer
+        scim:
+          $ref: '#/components/schemas/scim'
+    DisabledSsoSettings:
+      type: object
+      description: No Single Sign On enabled and ssoOidcIdpConfigUrls include requested.
+      properties:
+        type:
+          type: string
+          enum:
+            - disabled
+    scim:
+      type: object
+      properties:
+        autoUserProvisioningEnabled:
+          type: boolean
+          description: >
+            If this option is enabled, it means that if the user does not exist
+            in the VMS,  the system will automatically provision them,
+            eliminating the need for any manual intervention.
+    ssoOidcIdpConfigUrls:
+      type: object
+      properties:
+        ssoOidcIdpConfigUrls:
+          type: object
+          description: >
+            Optional include that can be requested to be returned to get OpenId
+            Connect specific url(s) to be used when configuring the IDP.
+          readOnly: true
+          x-jsoninclude-nonnull-annotation: true
+          properties:
+            redirectUri:
+              type: string
+              description: >
+                URL to be used in a third party IDP as allowed redirect URI.  This value is unique to the account and its configuration, so
+                please request it every time it is shown  to the user and do not
+                try to generate it.
+              format: url
+              example: 'https://auth.eagleeyenetworks.com/login/oauth2/code/0123456789'
+    ApiV3Error:
+      type: object
+      properties:
+        code:
+          description: HTTP code defined in EEN Standard Code Values
+          type: integer
+        status:
+          description: A string enum describing the code
+          type: string
+          enum:
+            - cancelled
+            - unknown
+            - invalidArgument
+            - deadlineExceeded
+            - notFound
+            - conflict
+            - permissionDenied
+            - resourceExhausted
+            - failedPrecondition
+            - aborted
+            - outOfRange
+            - unimplemented
+            - internal
+            - unavailable
+            - dataLoss
+            - unauthenticated
+            - mediaTypeNotSupported
+            - acceptNotSupported
+            - methodNotSupported
+            - tooManyRequests
+        message:
+          description: Developer friendly human readable error message in English
+          type: string
+        details:
+          description: An array of extensible objects that define error information
+          type: array
+          items:
+            $ref: '#/components/schemas/ExceptionDetail'
+      required:
+        - code
+        - status
+        - message
+        - details
+    ExceptionDetail:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorInfoExceptionDetail'
+        - $ref: '#/components/schemas/BadRequestExceptionDetail'
+        - $ref: '#/components/schemas/ResourceInfoExceptionDetail'
+      discriminator:
+        propertyName: type
+        mapping:
+          errorInfo: '#/components/schemas/ErrorInfoExceptionDetail'
+          badRequest: '#/components/schemas/BadRequestExceptionDetail'
+          resourceInfo: '#/components/schemas/ResourceInfoExceptionDetail'
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+            - badRequest
+            - resourceInfo
+      required:
+        - type
+    ErrorInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+        reason:
+          description: >
+            The reason for the error. This is a constant value that identifies
+            the proximate cause of the
+
+            error. Error reasons are unique within a particular domain of
+            errors.
+          type: string
+          enum:
+            - unauthenticated
+            - unexpectedArgument
+            - missingRequiredArgument
+            - wrongArgumentValue
+            - invalidPermission
+            - wrongEdition
+            - wrongAccountType
+            - resourceNotFound
+            - endpointNotFound
+            - methodNotSupported
+            - unexpectedError
+            - acceptNotSupported
+            - alreadyExists
+            - foreignKeyConflict
+            - childDevicesExist
+            - contentNotSupported
+            - deadlineExpired
+            - tooManyRequests
+            - deviceUnavailable
+            - serviceUnavailable
+            - invalidJSON
+            - resourceLocked
+            - notSupportedOnBridge
+            - outOfRetention
+            - deviceIdentificationFailed
+            - credentialValidationFailed
+            - credentialSetupFailed
+            - localUrlValidationFailed
+            - hwRegistrationFailed
+            - failedAddingCameraAfterValidation
+            - neverConnected
+            - reconnectFailed
+            - unsupportedModel
+            - purged
+            - userBlocked
+            - userTemporarilyBlocked
+            - quotaExceeded
+        domain:
+          description: |
+            Logical grouping to which the "reason" belongs
+          type: string
+        metadata:
+          $ref: '#/components/schemas/ExceptionMetadata'
+    BadRequestExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - badRequest
+        argumentViolations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArgumentViolation'
+    ArgumentViolation:
+      properties:
+        argumentName:
+          type: string
+          description: Name of the argument
+        description:
+          type: string
+          description: Description of the violation
+    ResourceInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - resourceInfo
+        resource:
+          description: 'Referenced resource type, eg "cameras", "bridges", or "locations".'
+          type: string
+        ids:
+          type: array
+          description: Identities of resources
+          items:
+            type: string
+    ExceptionMetadata:
+      properties:
+        path:
+          description: Path of the request
+          type: string
+        method:
+          description: Method of the request
+          type: string
+    ApiIDPEndpoints:
+      type: object
+      required:
+        - authorization
+        - token
+        - userInfo
+        - jwks
+      properties:
+        authorization:
+          type: string
+          format: url
+          description: |
+            Authorization URL of the IDP
+          minLength: 1
+          maxLength: 500
+          example: 'https://accounts.google.com/o/oauth2/v2/auth'
+        token:
+          type: string
+          format: url
+          description: |
+            Token URL of the IDP
+          minLength: 1
+          maxLength: 500
+          example: 'https://oauth2.googleapis.com/token'
+        userInfo:
+          type: string
+          format: url
+          description: |
+            User info URL of the IDP
+          minLength: 1
+          maxLength: 500
+          example: 'https://openidconnect.googleapis.com/v1/userinfo'
+        jwks:
+          type: string
+          format: url
+          description: |
+            JWKs URL of the IDP
+          minLength: 1
+          maxLength: 500
+          example: 'https://www.googleapis.com/oauth2/v3/certs'
+    ApiIDPIssuer:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: url
+          description: |
+            Issuer URL of the IDP
+          minLength: 1
+          maxLength: 500
+          example: 'https://accounts.google.com'
+    ApiIDPCredentials:
+      type: object
+      properties:
+        clientId:
+          type: string
+          minLength: 1
+          maxLength: 100
+        clientSecret:
+          type: string
+          minLength: 1
+          maxLength: 100
+      required:
+        - clientId
+        - clientSecret
+    ApiClientSettings:
+      type: object
+      properties:
+        httpsBaseUrl:
+          $ref: '#/components/schemas/ApiHttpsBaseUrl'
+    ApiHttpsBaseUrl:
+      type: object
+      description: >
+        Represents base URL to use to do REST API calls over https. This
+        includes the host and port information.
+      properties:
+        hostname:
+          type: string
+          description: |
+            Host to connect to do REST API calls
+          example: api.c000.eagleeyenetworks.com
+        port:
+          type: integer
+          example: 443
+      required:
+        - hostname
+        - port
+  parameters:
+    include:
+      in: query
+      name: include
+      description: >-
+        Allows clients to request optional information such us URLs necessary to
+        configure third party IDPs.
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - ssoOidcIdpConfigUrls
+  responses:
+    validationError:
+      description: >-
+        The supplied object is invalid. Error detail will contain the validation
+        error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            unexpectedArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Unexpected argument: name'
+                details:
+                  - type: errorInfo
+                    reason: unexpectedArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            missingRequiredArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Missing required arguments: name, id'
+                details:
+                  - type: errorInfo
+                    reason: missingRequiredArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidJSON:
+              value:
+                code: 400
+                status: invalidArgument
+                message: Invalid JSON
+                details:
+                  - type: errorInfo
+                    reason: invalidJSON
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Invalid Argument: Argument name is too long'
+                details:
+                  - type: errorInfo
+                    reason: wrongArgumentValue
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: badRequest
+                    argumentViolations:
+                      - argumentName: name
+                        description: Name is too long
+    unauthorized:
+      description: You are not authenticated. Please authenticate and try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 401
+            status: unauthenticated
+            message: The client caller does not have a valid authentication credential
+            details:
+              - type: errorInfo
+                reason: unauthenticated
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+    forbidden:
+      description: You have no permission to access the specified resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            invalidPermission:
+              value:
+                code: 403
+                status: permissionDenied
+                message: >-
+                  The client caller does not have permission for the specified
+                  operation
+                details:
+                  - type: errorInfo
+                    reason: invalidPermission
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            wrongEdition:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is not enabled for the account
+                details:
+                  - type: errorInfo
+                    reason: wrongEdition
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+            wrongAccountType:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is only available for end users
+                details:
+                  - type: errorInfo
+                    reason: wrongAccountType
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+    resourceNotFound:
+      description: Referenced resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            endpointNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The API endpoint was not found
+                details:
+                  - type: errorInfo
+                    reason: endpointNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            resourceNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The resource was not found
+                details:
+                  - type: errorInfo
+                    reason: resourceNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: resourceInfo
+                    resource: <resource>
+                    ids:
+                      - <ids>
+    internalServerError:
+      description: Something went wrong in the server. Please try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 500
+            status: internal
+            message: An internal error has occurred. Please try again later.
+            details:
+              - type: errorInfo
+                reason: unexpectedError
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+x-readme:
+  explorer-enabled: true

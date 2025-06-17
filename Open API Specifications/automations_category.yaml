@@ -1,0 +1,2193 @@
+---
+openapi: 3.0.3
+info:
+  title: AUTOMATIONS
+  version: 3.0.0
+servers:
+  - url: 'https://{BaseUrl}/api/v3.0'
+    description: Eagle Eye Networks API Server
+    variables:
+      BaseUrl:
+        default: api.cxxx.eagleeyenetworks.com
+        description: >-
+          HTTPS Base url to use for all API calls, retrieved from
+          https://api.eagleeyenetworks.com/api/v3.0/clientSettings
+security:
+  - bearerAuth: []
+tags:
+  - name: Event Alert Rules
+    description: Describe when an event should trigger an alert.
+  - name: Alert Rules
+    description: Describe when an event should trigger an alert.
+  - name: Action Rules
+    description: Describe when an alert should trigger an automated action.
+  - name: Actions
+    description: Describe what automation actions have been defined.
+paths:
+  /eventAlertConditionRules:
+    post:
+      operationId: addEventAlertConditionRule
+      tags:
+        - Event Alert Rules
+      description: >-
+        Create a new rule that produces alerts based on certain conditions.
+        Specifically, the user specifies alert conditions that indicate when the
+        alert is produced based on following:
+          * Which resources can produce the alert
+          * What is the schedule for the alert.
+          * What event types can produce the alert.
+      requestBody:
+        description: Conditions for the rule to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiEventAlertConditionRuleCreate'
+      responses:
+        '201':
+          $ref: '#/components/responses/ruleCreatedResponse'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    get:
+      operationId: listEventAlertConditionRules
+      tags:
+        - Event Alert Rules
+      description: >
+        List the configured event alert condition rules in the account.
+        Parameters can be used to filter the rules based on the actor, name, and
+        enabled status. A list of the availible field values for each field can
+        be fetched using the
+        [`listFieldValues`](ref:geteventalertconditionrulesfieldvalues)
+        endpoint.
+      parameters:
+        - $ref: '#/components/parameters/actor__in'
+        - $ref: '#/components/parameters/name__contains'
+        - $ref: '#/components/parameters/enabled'
+        - $ref: '#/components/parameters/eventFilter.eventTypes__contains'
+        - $ref: '#/components/parameters/eventFilter.eventTypes__in'
+        - $ref: '#/components/parameters/priority__gte'
+        - $ref: '#/components/parameters/priority__lte'
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: All the rules that met the filter criteria of this API inputs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEventRulesResult'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/eventAlertConditionRules:listFieldValues':
+    get:
+      operationId: getEventAlertConditionRulesFieldValues
+      tags:
+        - Event Alert Rules
+      description: >-
+        Fetches the list of field values across all the attributes of
+        alertConditionRules stored for this account. These values can be used to
+        filter the results of the [GET
+        `/eventAlertConditionRules`](ref:listeventalertconditionrules) endpoint.
+      responses:
+        '200':
+          description: 'Success, returns possible values of each field'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEventRulesFields'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/eventAlertConditionRules/{id}':
+    get:
+      operationId: getEventAlertConditionRule
+      tags:
+        - Event Alert Rules
+      parameters:
+        - $ref: '#/components/parameters/id'
+      description: Get details of a specific rule by id
+      responses:
+        '200':
+          description: 'Success, returns the rule details'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEventAlertConditionRule'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateEventAlertConditionRule
+      tags:
+        - Event Alert Rules
+      parameters:
+        - $ref: '#/components/parameters/id'
+      description: >-
+        Updates the properties of a specific rule. Only the user defined fields
+        can be updated by this method.
+      requestBody:
+        description: Data containing information on the rule to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiEventAlertConditionRuleUpdate'
+      responses:
+        '204':
+          description: The rule is updated successfully.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    delete:
+      operationId: deleteEventAlertConditionRule
+      tags:
+        - Event Alert Rules
+      description: Deletes the rule corresponding to the rule ID
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: The rule has been deleted successfully.
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /alertActionRules:
+    post:
+      operationId: addAlertActionRule
+      description: >
+        Registers a new alert action rule with the account. These rules allow
+        users to link alert action rules to alert condition rule.
+      tags:
+        - Action Rules
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertActionRule'
+      responses:
+        '201':
+          description: Alert action rule registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertActionRule'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+    get:
+      tags:
+        - Action Rules
+      operationId: listAlertActionRules
+      description: |
+        List the configured action rules.
+      parameters:
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Alert action rule results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertActionRules'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/alertActionRules/{actionRuleId}':
+    parameters:
+      - in: path
+        name: actionRuleId
+        schema:
+          type: string
+        required: true
+    get:
+      operationId: getAlertActionRule
+      description: Retrieve a single alert action rule.
+      tags:
+        - Action Rules
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertActionRule'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateAlertActionRule
+      description: Update single alert action rule.
+      tags:
+        - Action Rules
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertActionRuleUpdate'
+      responses:
+        '204':
+          description: Alert Condition Rule Updated
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    delete:
+      operationId: deleteAlertActionRule
+      description: Removes alert action rule.
+      tags:
+        - Action Rules
+      responses:
+        '204':
+          description: Alert action rule deleted.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  /alertActions:
+    post:
+      operationId: addAlertAction
+      description: >
+        Registers a new alert action with the account. These alert actions can
+        be used as responses to alerts generated by alert action rules.
+      tags:
+        - Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertAction'
+            examples:
+              notification:
+                summary: Notification
+                description: >-
+                  Sending alert notifications to a list of users using email and
+                  push notifications.
+                value:
+                  type: notification
+                  settings:
+                    users:
+                      - id: ca0de584
+                        push: true
+                        email: true
+                    rearmSeconds: 900
+                    maxPerHour: 10
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              smtp:
+                summary: SMTP
+                description: >-
+                  Send an alert via SMTP, which is primarily used for monitoring
+                  services.
+                value:
+                  type: smtp
+                  settings:
+                    email: user@example.com
+                    url: string
+                    port: 65535
+                    username: string
+                    password: string
+                    tls: true
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              zulipPrivate:
+                summary: Zulip private message to user
+                description: Send a zulip private message to a specific user.
+                value:
+                  type: zulipPrivate
+                  settings:
+                    apiKey: string
+                    email: string
+                    organizationUrl: string
+                    user: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              zulipStream:
+                summary: Zulip stream
+                description: Send a zulip message to a specific stream and topic.
+                value:
+                  type: zulipStream
+                  settings:
+                    apiKey: string
+                    email: string
+                    organizationUrl: string
+                    stream: string
+                    topic: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              slack:
+                summary: Slack
+                description: Send a slack message to a specific channel.
+                value:
+                  type: slack
+                  settings:
+                    apiToken: string
+                    channel: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              webhook:
+                summary: Webhook
+                description: Send an alert via webhook.
+                value:
+                  type: webhook
+                  settings:
+                    url: string
+                    auth_token: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              sentinel:
+                summary: Sentinel
+                description: Send an alert via sentinel.
+                value:
+                  type: sentinel
+                  settings:
+                    url: string
+                    auth_token: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              zapier:
+                summary: Zapier
+                description: Send an alert via zapier.
+                value:
+                  type: zapier
+                  settings:
+                    url: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              brivo:
+                summary: Brivo
+                description: Triggering Brivo access points.
+                value:
+                  type: brivo
+                  settings:
+                    service: string
+                    oauthId: string
+                    accessPointName: string
+                    accessPointId: int
+                    brivoOverrideSettings:
+                      endTimeMode: string
+                      behavior: string
+                      endTime: date-time
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              zendesk:
+                summary: Zendesk
+                description: Send an alert to Zendesk and create a ticket.
+                value:
+                  type: zendesk
+                  settings:
+                    apiToken: string
+                    email: string
+                    subdomain: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              immix:
+                summary: Immix
+                description: >-
+                  Send an alert to Immix via SMTP, which is primarily used for
+                  monitoring services.
+                value:
+                  type: immix
+                  settings:
+                    email: user@example.com
+                    url: immix.example.com
+                    port: 65535
+                    username: string
+                    password: string
+                    tls: true
+                    boundingBox: true
+                    preAlertImageOffset: 1
+                    postAlertImageOffset: 3
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              evalinkTalos:
+                summary: Evalink Talos
+                description: Send an alert via EvalinkTalos.
+                value:
+                  type: evalinkTalos
+                  settings:
+                    url: string
+                    auth_token: string
+                  enabled: true
+                  name: Notify all technical support staff.
+                  notes: >-
+                    Notify everyone with the technical support role. Useful in
+                    cases where a device goes offline.
+              outputPort:
+                summary: Output Port
+                description: Trigger a device output.
+                value:
+                  type: outputPort
+                  settings:
+                    deviceId: string
+                    portId: string
+                    duration: 30
+                  enabled: true
+                  name: Trigger a device output.
+                  notes: Triiger an output on a device when an alert is received.
+      responses:
+        '201':
+          description: Alert action registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertAction'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+    get:
+      tags:
+        - Actions
+      operationId: listAlertActions
+      description: |
+        List the configured alert actions.
+      parameters:
+        - $ref: '#/components/parameters/pageToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Alert action results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertActions'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+  '/alertActions/{actionId}':
+    parameters:
+      - in: path
+        name: actionId
+        schema:
+          type: string
+        required: true
+    get:
+      operationId: getAlertAction
+      description: Retrieve a single alert action.
+      tags:
+        - Actions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertAction'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      operationId: updateAlertAction
+      description: Update single alert action.
+      tags:
+        - Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertActionUpdate'
+      responses:
+        '204':
+          description: Alert Action Updated
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    delete:
+      operationId: deleteAlertAction
+      description: Removes alert action.
+      tags:
+        - Actions
+      responses:
+        '204':
+          description: Alert action deleted.
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiEventRulesFields:
+      type: object
+      properties:
+        actors:
+          type: array
+          items:
+            type: object
+            properties:
+              actor:
+                type: string
+                description: 'The actor in the format `actorType:actorId`.'
+                example: 'camera:100d4c41'
+              name:
+                type: string
+                description: Name of the actor.
+                example: Front Door Camera
+        enabled:
+          type: array
+          items:
+            type: boolean
+        priority:
+          type: array
+          items:
+            $ref: '#/components/schemas/Priority'
+    Priority:
+      type: integer
+      description: Defines the priority of the alert
+      format: int32
+      minimum: 1
+      maximum: 10
+    ApiEventRulesResult:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiEventAlertConditionRule'
+    ApiEventAlertConditionRuleCreate:
+      type: object
+      description: >-
+        Encompasses all the user specified properties of a rule used to generate
+        alerts.
+      required:
+        - name
+        - priority
+      allOf:
+        - $ref: '#/components/schemas/EventAlertConditionRuleBase'
+      properties:
+        enabled:
+          type: boolean
+          description: Whether the rule is enabled
+          default: false
+    ApiEventAlertConditionRuleUpdate:
+      type: object
+      description: >-
+        Encompasses all the user specified properties of a rule used to generate
+        alerts.
+      allOf:
+        - $ref: '#/components/schemas/EventAlertConditionRuleBase'
+    EventAlertConditionRuleBase:
+      type: object
+      description: >-
+        Encompasses all the user specified properties of a rule used to generate
+        alerts.
+      properties:
+        name:
+          type: string
+          description: Name for the rule
+          minLength: 1
+          maxLength: 126
+          example: Alert on Motion detection
+        priority:
+          $ref: '#/components/schemas/Priority'
+        notes:
+          type: string
+          description: A verbose explanation of the rule
+          example: Generate alerts on Motion Detection at night.
+        enabled:
+          type: boolean
+          description: Whether rule is enabled
+        humanValidation:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              description: >
+                If set to true, the alert will be validated by a human before
+                being applied. This is useful for rules that are not 100%
+                reliable and need human confirmation.
+              example: true
+            service:
+              type: string
+              description: >
+                The service that will be used for human validation. Currently,
+                the only supported service is Eagle Eye Human Review, which is
+                the default.
+              example: eenV1
+              enum:
+                - eenV1
+              default: eenV1
+        eventFilter:
+          $ref: '#/components/schemas/EventFilter'
+    ApiEventAlertConditionRule:
+      type: object
+      description: >-
+        Encompasses all the user specified and system generated properties of a
+        rule used to generate alerts.
+      allOf:
+        - $ref: '#/components/schemas/EventAlertConditionRuleBase'
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+              description: The system generated id of this rule resource
+            createTimeStamp:
+              type: string
+              description: Time at which the Alert Condition Rule was created.
+              example: '2021-04-22T00:00:00.000+00:00'
+              readOnly: true
+              format: date-time
+            updateTimeStamp:
+              type: string
+              description: Time at which the Alert Condition Rule was last updated.
+              example: '2021-04-22T00:20:00.000+00:00'
+              readOnly: true
+              format: date-time
+            outputAlertTypes:
+              type: array
+              readOnly: true
+              description: >-
+                Possible Alert Types that are producible by this rule.  For a
+                given event, what alert is produced depends on the configuration
+                parameters of the rule and the event properties.
+              items:
+                type: string
+                example: een.motionDetectionAlert.v1
+    EventFilter:
+      type: object
+      description: >-
+        A list of attributes of the event used to funnel down a specific set of
+        events for any downstream action.
+      properties:
+        eventTypes:
+          type: array
+          description: >
+            Specifies the types of events that this rule should evaluate. Only
+            events matching one of the specified types will trigger the rule.
+            For example, if this field includes `een.personDetectionEvent.v1`,
+            but the incoming event is a `een.motionDetectionEvent.v1`, the rule
+            will not be triggered.
+          items:
+            type: string
+            example: een.lprPlateReadEvent.v1
+        data:
+          type: object
+          description: >
+            A key-value map used to filter events based on fields defined in
+            event data schemas.
+
+
+            Keys must follow the format: `{schema}.{field}__{operator}`. Refer
+            to the event descriptions and corresponding data schemas to
+            determine the available schema names and their respective fields.
+
+
+            If the operator is omitted, equality is assumed.
+
+
+            The `schema` and `field` names used in the keys must match the
+            `dataSchemas` associated with the filtered `eventTypes`. 
+
+            If any schema or field is invalid for the given event type(s), the
+            API will return a validation error.
+
+
+            Supported operators:
+              - `__in`: Match if the field value is in the provided list
+              - `__gte`: Match if the field value is greater than or equal to the given value (number or date-time)
+              - `__lte`: Match if the field value is less than or equal to the given value (number or date-time)
+          properties:
+            and:
+              type: array
+              description: All conditions must match
+              items:
+                type: object
+                additionalProperties: true
+                example:
+                  een.lprDetection.v1.plateConfidence__gte: 0.95
+                  een.lprDetection.v1.plateRegion__in:
+                    - US-NY
+                    - CA-ON
+        schedule:
+          $ref: '#/components/schemas/WeeklyIntervalSchedule'
+        resourceFilter:
+          $ref: '#/components/schemas/ResourceFilter'
+    ResourceFilter:
+      type: object
+      description: List of actors against which filtering has to happen
+      properties:
+        actors:
+          description: >
+            Actors that can trigger alerts for this rule, in the format
+            `actorType:actorId`. All actors must have same type.
+          items:
+            type: string
+          example:
+            - 'camera:100d4c41'
+    ApiV3Error:
+      type: object
+      properties:
+        code:
+          description: HTTP code defined in EEN Standard Code Values
+          type: integer
+        status:
+          description: A string enum describing the code
+          type: string
+          enum:
+            - cancelled
+            - unknown
+            - invalidArgument
+            - deadlineExceeded
+            - notFound
+            - conflict
+            - permissionDenied
+            - resourceExhausted
+            - failedPrecondition
+            - aborted
+            - outOfRange
+            - unimplemented
+            - internal
+            - unavailable
+            - dataLoss
+            - unauthenticated
+            - mediaTypeNotSupported
+            - acceptNotSupported
+            - methodNotSupported
+            - tooManyRequests
+        message:
+          description: Developer friendly human readable error message in English
+          type: string
+        details:
+          description: An array of extensible objects that define error information
+          type: array
+          items:
+            $ref: '#/components/schemas/ExceptionDetail'
+      required:
+        - code
+        - status
+        - message
+        - details
+    ExceptionDetail:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorInfoExceptionDetail'
+        - $ref: '#/components/schemas/BadRequestExceptionDetail'
+        - $ref: '#/components/schemas/ResourceInfoExceptionDetail'
+      discriminator:
+        propertyName: type
+        mapping:
+          errorInfo: '#/components/schemas/ErrorInfoExceptionDetail'
+          badRequest: '#/components/schemas/BadRequestExceptionDetail'
+          resourceInfo: '#/components/schemas/ResourceInfoExceptionDetail'
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+            - badRequest
+            - resourceInfo
+      required:
+        - type
+    ErrorInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+        reason:
+          description: >
+            The reason for the error. This is a constant value that identifies
+            the proximate cause of the
+
+            error. Error reasons are unique within a particular domain of
+            errors.
+          type: string
+          enum:
+            - unauthenticated
+            - unexpectedArgument
+            - missingRequiredArgument
+            - wrongArgumentValue
+            - invalidPermission
+            - wrongEdition
+            - wrongAccountType
+            - resourceNotFound
+            - endpointNotFound
+            - methodNotSupported
+            - unexpectedError
+            - acceptNotSupported
+            - alreadyExists
+            - foreignKeyConflict
+            - childDevicesExist
+            - contentNotSupported
+            - deadlineExpired
+            - tooManyRequests
+            - deviceUnavailable
+            - serviceUnavailable
+            - invalidJSON
+            - resourceLocked
+            - notSupportedOnBridge
+            - outOfRetention
+            - deviceIdentificationFailed
+            - credentialValidationFailed
+            - credentialSetupFailed
+            - localUrlValidationFailed
+            - hwRegistrationFailed
+            - failedAddingCameraAfterValidation
+            - neverConnected
+            - reconnectFailed
+            - unsupportedModel
+            - purged
+            - userBlocked
+            - userTemporarilyBlocked
+            - quotaExceeded
+        domain:
+          description: |
+            Logical grouping to which the "reason" belongs
+          type: string
+        metadata:
+          $ref: '#/components/schemas/ExceptionMetadata'
+    BadRequestExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - badRequest
+        argumentViolations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArgumentViolation'
+    ArgumentViolation:
+      properties:
+        argumentName:
+          type: string
+          description: Name of the argument
+        description:
+          type: string
+          description: Description of the violation
+    ResourceInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - resourceInfo
+        resource:
+          description: 'Referenced resource type, eg "cameras", "bridges", or "locations".'
+          type: string
+        ids:
+          type: array
+          description: Identities of resources
+          items:
+            type: string
+    ExceptionMetadata:
+      properties:
+        path:
+          description: Path of the request
+          type: string
+        method:
+          description: Method of the request
+          type: string
+    AlertActionRuleUpdate:
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the alert action rule.
+          type: string
+          readOnly: true
+          example: 322d38b9-8ed7-41b5-a57d-3fe9f160939c
+        createTimestamp:
+          description: Time at which the alert action rule was created.
+          type: string
+          format: date-time
+          readOnly: true
+          example: '2021-04-22T00:00:00.000+00:00'
+        name:
+          description: >-
+            Name to let humans easily identify and understand the alert action
+            rule.
+          type: string
+          example: Cameras offline for 5 min.
+        notes:
+          description: >-
+            Large text field that allows users to leave notes for themselves and
+            others.
+          type: string
+          example: Take action if cameras are offline for more than 5 minutes.
+        enabled:
+          description: >-
+            If set to true, this rule is active, if set to false, it will not be
+            applied.
+          type: boolean
+          example: true
+          default: true
+        categories:
+          description: >-
+            If defined, this rule will only trigger on alerts that fall within
+            one of the given categories.
+          type: array
+          items:
+            $ref: '#/components/schemas/category'
+          nullable: true
+          minLength: 1
+        alertTypes:
+          description: >-
+            If defined, this rule will only trigger on alerts of the given
+            types.
+          type: array
+          items:
+            type: string
+            example: audit
+          nullable: true
+          minLength: 1
+        actorIds:
+          description: >-
+            If defined, this rule will only trigger on alerts about actors with
+            the given ids.
+          type: array
+          items:
+            type: string
+          nullable: true
+          minLength: 1
+        actorTypes:
+          description: >-
+            If defined, this rule will only trigger on alerts about actors of
+            the given types.
+          type: array
+          items:
+            type: string
+            example: device
+          nullable: true
+          minLength: 1
+        actorAccountIds:
+          description: >-
+            If defined, this rule will only trigger on alerts about actors from
+            the given accounts.
+          type: array
+          items:
+            type: string
+          nullable: true
+          minLength: 1
+        ruleIds:
+          description: >
+            If defined, this rule will only trigger on alerts that were
+            generated by one of the given alert condition
+
+            rules.
+          type: array
+          items:
+            type: string
+            example: d290f1ee-6c54-4b01-90e6-d701748f0851
+          nullable: true
+          minLength: 1
+        priority__gte:
+          description: >
+            If defined, this rule will only trigger on alerts with a priority
+            greater than or equal to the given value.
+          type: integer
+          example: 3
+          nullable: true
+        priority__lte:
+          description: >
+            If defined, this rule will only trigger on alerts with a priority
+            less than or equal to the given value.
+          type: integer
+          example: 8
+          nullable: true
+        alertActionIds:
+          description: Defines the actions to take if an alert matches the rule.
+          type: array
+          items:
+            type: string
+            example: f3436b61-94fd-41b6-8f0a-ee6ff55acaa6
+    category:
+      type: string
+      description: The type of the alert.
+      enum:
+        - health
+        - video
+        - operational
+        - audit
+        - job
+        - security
+        - sharing
+      example: video
+    AlertActionRule:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionRuleUpdate'
+        - required:
+            - name
+    PaginatedResponse:
+      type: object
+      description: >
+        Used to wrap results for a paginated response, containing information on
+        how to retrieve further pages and, if  available, the total number of
+        results.
+      properties:
+        nextPageToken:
+          type: string
+          readOnly: true
+          nullable: true
+          description: >
+            Token to retrieve the next page. The value of this token is passed
+            into the field pageToken.  This value can be null if there is no
+            next page.
+        prevPageToken:
+          type: string
+          readOnly: true
+          nullable: true
+          description: >
+            Token to retrieve the previous page. The value of this token is
+            passed into the field pageToken.  This value can be null of there is
+            no previous page.
+        totalSize:
+          type: integer
+          minimum: 0
+          readOnly: true
+          nullable: true
+          description: >
+            The number of resource entries being returned from the result set.  This can be omitted if the API endpoint does not have total size
+            information.
+        results:
+          type: array
+          readOnly: true
+          description: The result set from a collection API call.
+          items:
+            type: object
+      required:
+        - nextPageToken
+        - prevPageToken
+        - results
+    WeeklyIntervalSchedule:
+      type: object
+      description: >
+        It signifies a week long alert schedule. This schedule is effective
+        according to actor's (user/camera/account) timezone. It allows setting
+        different times for different days.
+      properties:
+        sunday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        monday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        tuesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        wednesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        thursday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        friday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+        saturday:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interval'
+    Interval:
+      type: object
+      description: >
+        Interval of a schedule. If the start time is greater than the end time,
+        the interval is considered to cover the remaining time of the day from
+        the start time until 24:00, and then from 00:00 to the end time. 
+
+        For example, start: 16:30 and end: 06:00 on monday means the interval
+        covers from 16:30 to 24:00 and continues from 00:00 to 06:00 on the same
+        day (monday).
+      properties:
+        start:
+          type: string
+          pattern: '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+          description: >-
+            Starting point of the interval. It should be in the range of 00:00
+            to 23:59 since this is the range for a day
+        end:
+          type: string
+          pattern: '^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$'
+          description: >-
+            End point of the interval. It should be in the range of 00:00 to
+            23:59 since this is the range for the day
+      required:
+        - start
+        - end
+    AlertAction:
+      oneOf:
+        - $ref: '#/components/schemas/NotificationAction'
+        - $ref: '#/components/schemas/SmtpAction'
+        - $ref: '#/components/schemas/ZulipPrivateAction'
+        - $ref: '#/components/schemas/ZulipStreamAction'
+        - $ref: '#/components/schemas/SlackAction'
+        - $ref: '#/components/schemas/WebhookAction'
+        - $ref: '#/components/schemas/BrivoAction'
+        - $ref: '#/components/schemas/ZendeskAction'
+        - $ref: '#/components/schemas/ImmixAction'
+        - $ref: '#/components/schemas/ZapierAction'
+        - $ref: '#/components/schemas/SentinelAction'
+        - $ref: '#/components/schemas/EvalinkTalosAction'
+        - $ref: '#/components/schemas/OutputPortAction'
+      discriminator:
+        propertyName: type
+        mapping:
+          notification: '#/components/schemas/NotificationAction'
+          smtp: '#/components/schemas/SmtpAction'
+          zulipPrivate: '#/components/schemas/ZulipPrivateAction'
+          zulipStream: '#/components/schemas/ZulipStreamAction'
+          slack: '#/components/schemas/SlackAction'
+          webhook: '#/components/schemas/WebhookAction'
+          brivo: '#/components/schemas/BrivoAction'
+          zendesk: '#/components/schemas/ZendeskAction'
+          immix: '#/components/schemas/ImmixAction'
+          zapier: '#/components/schemas/ZapierAction'
+          sentinel: '#/components/schemas/SentinelAction'
+          evalinkTalos: '#/components/schemas/EvaLinkTalosAction'
+          outputPort: '#/components/schemas/OutputPortAction'
+    AlertActionUpdate:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionChangeable'
+        - type: object
+          properties:
+            settings:
+              oneOf:
+                - $ref: '#/components/schemas/NotificationActionSettings'
+                - $ref: '#/components/schemas/SmtpActionSettings'
+                - $ref: '#/components/schemas/ZulipPrivateActionSettings'
+                - $ref: '#/components/schemas/ZulipStreamActionSettings'
+                - $ref: '#/components/schemas/SlackActionSettings'
+                - $ref: '#/components/schemas/WebhookActionSettings'
+                - $ref: '#/components/schemas/BrivoActionSettings'
+                - $ref: '#/components/schemas/ZendeskActionSettings'
+                - $ref: '#/components/schemas/ImmixActionSettings'
+                - $ref: '#/components/schemas/ZapierActionSettings'
+                - $ref: '#/components/schemas/SentinelActionSettings'
+                - $ref: '#/components/schemas/EvalinkTalosActionSettings'
+                - $ref: '#/components/schemas/OutputPortActionSettings'
+    AlertActionChangeable:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: Denotes if the alert rule action is enabled or not being applied.
+          example: true
+          default: true
+        name:
+          type: string
+          example: Notify all technical support staff.
+        notes:
+          type: string
+          example: >-
+            Notify everyone with the technical support role. Useful in cases
+            where a device goes offline.
+    AlertActionBase:
+      allOf:
+        - type: object
+          required:
+            - type
+            - settings
+            - name
+            - enabled
+          properties:
+            id:
+              description: Unique identifier of the alert action.
+              type: string
+              readOnly: true
+              example: f3436b61-94fd-41b6-8f0a-ee6ff55acaa6
+            createTimestamp:
+              description: Time at which the alert action was created.
+              type: string
+              format: date-time
+              readOnly: true
+              example: '2021-04-22T00:00:00.000+00:00'
+            type:
+              description: Alert action type.
+              type: string
+              example: notification
+              enum:
+                - notification
+                - smtp
+                - zulipPrivate
+                - zulipStream
+                - slack
+                - webhook
+                - brivo
+                - zendesk
+                - immix
+                - zapier
+                - sentinel
+                - evalinkTalos
+                - outputPort
+        - $ref: '#/components/schemas/AlertActionChangeable'
+    NotificationAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - notification
+            settings:
+              $ref: '#/components/schemas/NotificationActionSettings'
+    NotificationActionSettings:
+      description: >
+        Settings for sending notifications to a list of users.  Each item in the
+        list is the id of the user and if the user wants email and/or push
+        notifications sent
+      type: object
+      required:
+        - users
+      properties:
+        users:
+          type: array
+          minLength: 1
+          items:
+            type: object
+            required:
+              - id
+              - push
+              - email
+            properties:
+              id:
+                description: Unique id of the user to notify.
+                type: string
+                example: ca0de584
+              push:
+                description: >-
+                  If true, try to notify the user using mobile push
+                  notifications.
+                type: boolean
+                example: true
+              email:
+                description: 'If true, try to notify the user using email notifications.'
+                type: boolean
+                example: true
+        rearmSeconds:
+          description: >
+            If rearmSeconds are set, any alert that occurs for the
+            alertActionRule within the rearmSeconds period will not be sent via
+            email and/or push. Instead, it will appear in
+            /api/v3.0/notifications with the `status` = `throttled`
+          type: number
+          example: 900
+          minimum: 1
+          maximum: 65535
+        maxPerHour:
+          description: >
+            If maxPerHour is set, for any alert that occurs for the
+            alertActionRule over the maxPerHour in the last 60 minutes will not
+            be sent via email and/or push.  Instead,  it will appear in
+            /api/v3.0/notifications with the `status` = `throttled`
+          type: number
+          example: 10
+          minimum: 1
+          maximum: 65535
+    SmtpAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - smtp
+            settings:
+              $ref: '#/components/schemas/SmtpActionSettings'
+    SmtpActionSettings:
+      description: >
+        Settings for sending an alert via SMTP.  This alert action is primarily
+        used for monitoring services.
+      type: object
+      required:
+        - email
+        - url
+        - port
+      properties:
+        type:
+          type: string
+          enum:
+            - smtp
+        email:
+          description: |
+            Required
+          type: string
+          format: email
+        url:
+          description: >
+            The ip address or domain name of the mail server are both
+            acceptable.
+          type: string
+        port:
+          type: number
+          minimum: 1
+          maximum: 65535
+        username:
+          description: |
+            Check with your monitoring service if this is required.
+          type: string
+        password:
+          description: |
+            Check with your monitoring service if this is required.
+          type: string
+        tls:
+          description: |
+            If tls is not present in the settings, the default is false
+          type: boolean
+    ZulipPrivateAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - zulipPrivate
+            settings:
+              $ref: '#/components/schemas/ZulipPrivateActionSettings'
+    ZulipPrivateActionSettings:
+      allOf:
+        - $ref: '#/components/schemas/ZulipActionSettings'
+        - description: >
+            Settings for sending a private alert message to a user Zulip. Zulip
+            bots need to be supported by your organization. Bots can be created
+            under `Personal Settings > Bots`.
+          type: object
+          required:
+            - user
+          properties:
+            user:
+              description: |
+                The user's Zulip email or user number.
+              type: string
+    ZulipStreamAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - zulipStream
+            settings:
+              $ref: '#/components/schemas/ZulipStreamActionSettings'
+    ZulipStreamActionSettings:
+      allOf:
+        - $ref: '#/components/schemas/ZulipActionSettings'
+        - description: >
+            Settings for sending an alert message to a stream in Zulip. Zulip
+            bots need to be supported by your organization. Bots can be created
+            under `Personal Settings > Bots`.
+          type: object
+          required:
+            - stream
+            - topic
+          properties:
+            stream:
+              type: string
+              description: |
+                The name or id of a stream.
+            topic:
+              description: |
+                The topic to post the message in.
+              type: string
+    ZulipActionSettings:
+      type: object
+      required:
+        - apiKey
+        - email
+        - organizationUrl
+      properties:
+        apiKey:
+          description: |
+            The apiKey for your Zulip bot
+          type: string
+        email:
+          description: |
+            The email address for your Zulip bot
+          type: string
+        organizationUrl:
+          description: |
+            The url for your Zulip instance
+          type: string
+    SlackAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - slack
+            settings:
+              $ref: '#/components/schemas/SlackActionSettings'
+    SlackActionSettings:
+      description: >
+        Settings for sending an alert message to Slack.  Slack bot apps require
+        the `chat:write` permissions scope. In addition, the bot app will need
+        explicit permission to the channel selected in the settings via the
+        Slack app.
+      type: object
+      required:
+        - apiToken
+        - channel
+      properties:
+        apiToken:
+          description: |
+            The Slack apiToken generated for your bot app.
+          type: string
+        channel:
+          description: |
+            The Slack channel for sending alert messages.
+          type: string
+    WebhookAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - webhook
+            settings:
+              $ref: '#/components/schemas/WebhookActionSettings'
+    WebhookActionSettings:
+      description: >
+        Settings for sending an alert via a webhook.  Currently only POST is
+        supported.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+        auth_token:
+          description: >
+            Optional bearer token to be included in the Authorization header
+            when sending the alert to the webhook.
+          type: string
+    SentinelAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - sentinel
+            settings:
+              $ref: '#/components/schemas/SentinelActionSettings'
+    SentinelActionSettings:
+      description: >
+        Settings for sending an alert via a sentinel.  Currently only POST is
+        supported.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+        auth_token:
+          description: >
+            Optional bearer token to be included in the Authorization header
+            when sending the the alert to Sentinel.
+          type: string
+    ZapierAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - zapier
+            settings:
+              $ref: '#/components/schemas/ZapierActionSettings'
+    ZapierActionSettings:
+      description: >
+        Settings for sending an alert via Zapier.  Currently only POST is
+        supported.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          description: >
+            The URL for the Zapier webhook to which alerts will be sent. This
+            URL is provided by Zapier. For more information, refer to [Zapier
+            Webhooks](https://help.zapier.com/hc/en-us/articles/8496083355661-How-to-Get-Started-with-Webhooks-by-Zapier#h_01HQ87H8BTMK49GY2RC8C4T59J)
+            and [Trigger Zaps from
+            Webhooks](https://help.zapier.com/hc/en-us/articles/8496288690317-Trigger-Zaps-from-webhooks#h_01HBGES5DW79VEMREX2Z7A0K48).
+          type: string
+    EvalinkTalosAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - evalinkTalos
+            settings:
+              $ref: '#/components/schemas/EvalinkTalosActionSettings'
+    EvalinkTalosActionSettings:
+      description: >
+        Settings for sending an alert via a Evalink Talos.  Currently only POST
+        is supported.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+        auth_token:
+          description: >
+            Optional bearer token to be included in the Authorization header
+            when sending the the alert to Evalink Talos.
+          type: string
+    BrivoAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - brivo
+            settings:
+              $ref: '#/components/schemas/BrivoActionSettings'
+    OutputPortActionSettings:
+      description: >
+        Settings for activating an output port alert action when an alert is
+        triggered.
+      type: object
+      required:
+        - deviceId
+        - portId
+      properties:
+        deviceId:
+          description: |
+            The device id of the device to which the output port belongs.
+          type: string
+        duration:
+          description: >
+            The duration in seconds for which the device output port should be
+            activated.
+          type: number
+          minimum: 1
+          maximum: 3600000
+        portId:
+          description: |
+            The device output port id to be activated.
+          type: string
+    OutputPortAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - outputPort
+            settings:
+              $ref: '#/components/schemas/OutputPortActionSettings'
+    BrivoActionSettings:
+      description: >
+        Settings for using a Brivo access point by an alert action. Supports
+        Acctivation, Setting an Override and removing an override
+      type: object
+      required:
+        - service
+        - oauthId
+        - accessPointName
+      properties:
+        service:
+          description: >
+            Which service to use. There is accessPoint used to activate a brivo
+            accesspoint. doorOverride is used to to keep an access point
+            activated either to a specified time or indefinite time. Door
+            Override Cancle removes the door override. Has to be ['accessPoint',
+            'doorOverride', 'doorOverrideCancel']
+          type: string
+        oauthId:
+          description: >
+            The oauth id is the value that should be used to retrieve the oauth
+            information from the oauth mode. These values are like access_token.
+        accessPointName:
+          description: |
+            The access point name.
+        accessPointId:
+          description: >
+            The access point id. It is a unique Id generated by Brivo. When
+            serializer is used the access_point_name will be used to get this
+            value.
+        brivoOverrideSettings:
+          $ref: '#/components/schemas/BrivoOverRideSettings'
+    BrivoOverRideSettings:
+      description: >
+        Optional Field for adding an override values to the access point. Should
+        only be used if adding an override value
+      type: object
+      required:
+        - endTimeMode
+        - behavior
+      properties:
+        endTimeMode:
+          description: |
+            When should over ride go to.
+              UNTIL_TIME: Used to say when time ends. EndTime is required for this. Not providing this will raise an validation error.
+              UNTIL_NEXT_SCHEDULE_CHANGE: Override will be placed until scheudle change is up
+              INDEFINITE: Door override will be in place until forcibly removed.
+        behavior:
+          description: |
+            With Override in place should access point be LOCKED or UNLOCK
+        endTime:
+          description: >
+            The time format is iso-8601. This is used for when will the override
+            be removed. This is not required if the endTimeMode is INDEFINITE
+    ZendeskAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - zendesk
+            settings:
+              $ref: '#/components/schemas/ZendeskActionSettings'
+    ZendeskActionSettings:
+      description: |
+        Settings for sending an alert message to Zendesk and creating a ticket.
+      type: object
+      required:
+        - apiToken
+        - email
+        - subdomain
+      properties:
+        apiToken:
+          description: >
+            The API token generated for your Zendesk account. For instructions
+            on how to generate this token, please refer to [this
+            guide](https://support.zendesk.com/hc/en-us/articles/4408889192858-Managing-access-to-the-Zendesk-API#topic_bsw_lfg_mmb).
+          type: string
+        email:
+          description: >
+            The email address associated with your Zendesk account. Please note
+            that this email address does not need to be necessarily tied to a
+            specific user and could belong to any admin or agent. Consider
+            creating a dedicated user for automated interactions to streamline
+            alert management.
+          type: string
+        subdomain:
+          description: >
+            The subdomain associated with your Zendesk account. This should
+            follow the format https://subdomain.zendesk.com. Please provide only
+            the subdomain and not the full URL. For more information on finding
+            your Zendesk subdomain, please refer to [this
+            guide](https://support.zendesk.com/hc/en-us/articles/4409381383578-Where-can-I-find-my-Zendesk-subdomain).
+          type: string
+    ImmixAction:
+      allOf:
+        - $ref: '#/components/schemas/AlertActionBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - immix
+            settings:
+              $ref: '#/components/schemas/ImmixActionSettings'
+    ImmixActionSettings:
+      description: |
+        Settings for sending an Immix alert.
+      required:
+        - email
+        - url
+        - port
+      properties:
+        email:
+          description: |
+            The email address where alert will be delivered.
+          type: string
+          format: email
+        url:
+          description: |
+            Accepts either the IP address or domain name of the mail server.
+          type: string
+        port:
+          description: |
+            The port number used to connect to the mail server.
+          type: number
+          minimum: 1
+          maximum: 65535
+        username:
+          description: |
+            Check with your monitoring service if this is required.
+          type: string
+        password:
+          description: |
+            Check with your monitoring service if this is required.
+          type: string
+        tls:
+          description: |
+            If TLS is not present in the settings, the default is false
+          type: boolean
+        boundingBox:
+          description: >
+            Specifies whether to include a bounding box around the object that
+            triggered the alert in the alert image.
+          type: boolean
+        preAlertImageOffset:
+          description: >
+            Specifies the time, in seconds before the alert timestamp, to
+            retrieve an additional image. If not present in the settings, the
+            default is 0, and no additional image will be sent.
+          type: number
+          minimum: 0
+          maximum: 3
+        postAlertImageOffset:
+          description: >
+            Specifies the time, in seconds after the alert timestamp, to
+            retrieve an additional image. If not present in the settings, the
+            default is 0 and no additional image will be sent.
+          type: number
+          minimum: 0
+          maximum: 3
+    AlertActionRules:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/AlertActionRule'
+    AlertActions:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/AlertAction'
+  responses:
+    ruleCreatedResponse:
+      description: Response on successful creation of the rule.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiEventAlertConditionRule'
+    validationError:
+      description: >-
+        The supplied object is invalid. Error detail will contain the validation
+        error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            unexpectedArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Unexpected argument: name'
+                details:
+                  - type: errorInfo
+                    reason: unexpectedArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            missingRequiredArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Missing required arguments: name, id'
+                details:
+                  - type: errorInfo
+                    reason: missingRequiredArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidJSON:
+              value:
+                code: 400
+                status: invalidArgument
+                message: Invalid JSON
+                details:
+                  - type: errorInfo
+                    reason: invalidJSON
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Invalid Argument: Argument name is too long'
+                details:
+                  - type: errorInfo
+                    reason: wrongArgumentValue
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: badRequest
+                    argumentViolations:
+                      - argumentName: name
+                        description: Name is too long
+    unauthorized:
+      description: You are not authenticated. Please authenticate and try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 401
+            status: unauthenticated
+            message: The client caller does not have a valid authentication credential
+            details:
+              - type: errorInfo
+                reason: unauthenticated
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+    forbidden:
+      description: You have no permission to access the specified resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            invalidPermission:
+              value:
+                code: 403
+                status: permissionDenied
+                message: >-
+                  The client caller does not have permission for the specified
+                  operation
+                details:
+                  - type: errorInfo
+                    reason: invalidPermission
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            wrongEdition:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is not enabled for the account
+                details:
+                  - type: errorInfo
+                    reason: wrongEdition
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+            wrongAccountType:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is only available for end users
+                details:
+                  - type: errorInfo
+                    reason: wrongAccountType
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+    resourceNotFound:
+      description: Referenced resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            endpointNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The API endpoint was not found
+                details:
+                  - type: errorInfo
+                    reason: endpointNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            resourceNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The resource was not found
+                details:
+                  - type: errorInfo
+                    reason: resourceNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: resourceInfo
+                    resource: <resource>
+                    ids:
+                      - <ids>
+    internalServerError:
+      description: Something went wrong in the server. Please try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 500
+            status: internal
+            message: An internal error has occurred. Please try again later.
+            details:
+              - type: errorInfo
+                reason: unexpectedError
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+  parameters:
+    id:
+      in: path
+      name: id
+      required: true
+      description: Id
+      schema:
+        type: string
+        format: uuid
+    actor__in:
+      in: query
+      name: actor
+      description: >
+        Filter to get only event alert rules where the actorType and actorId
+        value equals any one of the supplied value in the list. For each entry
+        of list, the actor type has to be prefixed along with actor id like
+        `actorType:actorId`. For example, to filter for camera with id 100d4c41,
+        the actorId that has to be used is `camera:100d4c41`. To search for
+        event alert rules for a specific type of actor, for example switch, use
+        a wildcard as actorId: `switch:*`.
+      schema:
+        type: array
+        items:
+          type: string
+        example:
+          - 'camera:100d4c41'
+          - 'bridge:abcd1234'
+    name__contains:
+      in: query
+      name: name__contains
+      description: Phrase that is used to search for rule whose names contain it
+      schema:
+        type: string
+    enabled:
+      in: query
+      name: enabled
+      description: >-
+        Filter against enabled rules (when set to true) or disabled rules (when
+        set to false)
+      schema:
+        type: boolean
+    eventFilter.eventTypes__contains:
+      description: >-
+        Filter to only include results that contain all the specified event
+        types.
+      in: query
+      name: eventFilter.eventTypes__contains
+      style: form
+      explode: false
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+    eventFilter.eventTypes__in:
+      description: >-
+        Filter to only include results that contain one of the specified event
+        types.
+      in: query
+      name: eventFilter.eventTypes__in
+      style: form
+      explode: false
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+    priority__gte:
+      in: query
+      name: priority__gte
+      description: Filter by priority__gte
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 10
+    priority__lte:
+      in: query
+      name: priority__lte
+      description: Filter by priority__lte
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 10
+    pageToken:
+      in: query
+      name: pageToken
+      description: >
+        Token string value that references a page for pagination. This value is
+        received when retrieving the first page in the `nextPageToken` and
+        `prevPageToken` fields.
+      example: b2Zmc2V0PTEwJmxpbWl0PTEw
+      required: false
+      schema:
+        type: string
+    pageSize:
+      in: query
+      name: pageSize
+      description: >
+        The number of entries to return per page. The maximum range of valid
+        page sizes is documented with minimum and  maximum values, but the range
+        might be further limited dynamically based on the requested information,
+        account, and system status. Values outside of the (dynamic) allowed
+        range will not result in an error, but will be clamped to the nearest
+        limit. Thus, logic to detect the last page should not be based on
+        comparing the requested size with the received size, but on the
+        existence of a `nextPageToken` value.
+      example: 100
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100

@@ -1,0 +1,588 @@
+---
+openapi: 3.0.3
+info:
+  title: RESELLERS ACCOUNT SWITCHING
+  version: 3.0.0
+servers:
+  - url: 'https://auth.eagleeyenetworks.com/api/v3.0'
+    description: Eagle Eye Networks Authentication Server
+security:
+  - bearerAuth: []
+tags:
+  - name: Tokens
+    description: Create authorization tokens on demand.
+paths:
+  /authorizationTokens:
+    post:
+      operationId: createToken
+      description: >
+        Resellers can retrieve access tokens for a given end-user account,
+        assuming that the end-user account falls under the reseller's account.
+      tags:
+        - Tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessTokenRequest'
+            examples:
+              Application Token Generation:
+                description: >-
+                  Generate an access token on behalf of the user using
+                  application client token
+                value:
+                  type: application
+                  targetType: user
+                  targetId: a1234567
+                  scopes:
+                    - vms.all
+                  expirationTimestamp: '2025-03-20T08:47:19.133-01:00'
+              Reseller Token Generation:
+                description: >-
+                  Generate an access token on behalf of the account using
+                  reseller access token
+                value:
+                  type: reseller
+                  targetType: account
+                  targetId: a1234567
+                  scopes:
+                    - vms.all
+              Application To Reseller Sub Account Token Generation:
+                description: >-
+                  Generate an access token on behalf of the sub-account by
+                  Switching into it from given resellerId using application
+                  client token
+                value:
+                  type: applicationToResellerSubAccount
+                  targetType: account
+                  targetId: a1234567
+                  resellerUserId: b8765432
+                  scopes:
+                    - vms.all
+                  expirationTimestamp: '2025-03-20T08:47:19.133-01:00'
+      responses:
+        '201':
+          description: Token created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '400':
+          $ref: '#/components/responses/validationError'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AccessTokenRequest:
+      oneOf:
+        - $ref: '#/components/schemas/ApiApplicationTokenRequest'
+        - $ref: '#/components/schemas/ApiResellerTokenRequest'
+        - $ref: '#/components/schemas/ApiApplicationToResellerSubAccountTokenRequest'
+      discriminator:
+        propertyName: type
+        mapping:
+          application: '#/components/schemas/ApiApplicationTokenRequest'
+          reseller: '#/components/schemas/ApiResellerTokenRequest'
+          applicationToResellerSubAccount: '#/components/schemas/ApiApplicationToResellerSubAccountTokenRequest'
+    ApiApplicationTokenRequest:
+      allOf:
+        - $ref: '#/components/schemas/ApiTokenRequestBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - application
+            targetId:
+              type: string
+              minLength: 1
+              description: Id of the user for which a token should be generated.
+              example: ca051350a
+            targetType:
+              type: string
+              enum:
+                - user
+            expirationTimestamp:
+              type: string
+              format: date-time
+              description: >-
+                The time at which the token will expire, if it isn't revoked
+                beforehand. Maximum expiration time is 6 months, minimum
+                expiration time is 15 minutes. If not provided, the token expiry
+                time will be set based on account settings.
+              example: '2025-03-20T08:47:19.133-01:00'
+          required:
+            - type
+            - targetId
+            - targetType
+    ApiResellerTokenRequest:
+      allOf:
+        - $ref: '#/components/schemas/ApiTokenRequestBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - reseller
+            targetId:
+              type: string
+              minLength: 1
+              description: Id of the account for which a token should be generated.
+              example: '00012345'
+            targetType:
+              type: string
+              enum:
+                - account
+          required:
+            - type
+            - targetId
+            - targetType
+    ApiApplicationToResellerSubAccountTokenRequest:
+      allOf:
+        - $ref: '#/components/schemas/ApiTokenRequestBase'
+        - type: object
+          properties:
+            resellerUserId:
+              type: string
+              description: >-
+                Id of the reseller user which is going to be used for "Switching
+                into" an end-user account.
+            type:
+              type: string
+              enum:
+                - applicationToResellerSubAccount
+            targetId:
+              type: string
+              minLength: 1
+              description: Id of the sub-account for which a token should be generated.
+              example: '00000123'
+            targetType:
+              type: string
+              enum:
+                - account
+            expirationTimestamp:
+              type: string
+              format: date-time
+              description: >-
+                The time at which the token will expire, if it isn't revoked
+                beforehand. Maximum expiration time is 6 months, minimum
+                expiration time is 15 minutes. If not provided, the token expiry
+                time will be set based on account settings.
+              example: '2025-03-20T08:47:19.133-01:00'
+          required:
+            - resellerUserId
+            - type
+            - targetId
+            - targetType
+    ApiTokenRequestBase:
+      type: object
+      properties:
+        scopes:
+          type: array
+          items:
+            type: string
+            enum:
+              - vms.all
+          default:
+            - vms.all
+          description: >
+            The sets of scopes the token's authorization should be limited to.
+            Since a user can also have limited
+
+            permissions, the final set of scopes is the intersection of the
+            user's permissions and the requested scopes.
+
+            Supported scopes:
+             * `vms.all`: All possible scopes.
+            Currently only `vms.all` is supported.
+      required:
+        - targetId
+        - scopes
+    AccessToken:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        expireTimestamp:
+          type: string
+          format: date-time
+          description: >-
+            The time at which the token will expire, if it isn't revoked
+            beforehand.
+        scopes:
+          type: array
+          items:
+            type: string
+        httpsBaseUrl:
+          allOf:
+            - $ref: '#/components/schemas/ApiHttpsBaseUrl'
+            - description: >-
+                Represents base URL to use to do REST API calls over https. This
+                includes the host and port information.
+      required:
+        - accessToken
+        - expireTimestamp
+        - scopes
+        - httpBaseUrl
+    ApiV3Error:
+      type: object
+      properties:
+        code:
+          description: HTTP code defined in EEN Standard Code Values
+          type: integer
+        status:
+          description: A string enum describing the code
+          type: string
+          enum:
+            - cancelled
+            - unknown
+            - invalidArgument
+            - deadlineExceeded
+            - notFound
+            - conflict
+            - permissionDenied
+            - resourceExhausted
+            - failedPrecondition
+            - aborted
+            - outOfRange
+            - unimplemented
+            - internal
+            - unavailable
+            - dataLoss
+            - unauthenticated
+            - mediaTypeNotSupported
+            - acceptNotSupported
+            - methodNotSupported
+            - tooManyRequests
+        message:
+          description: Developer friendly human readable error message in English
+          type: string
+        details:
+          description: An array of extensible objects that define error information
+          type: array
+          items:
+            $ref: '#/components/schemas/ExceptionDetail'
+      required:
+        - code
+        - status
+        - message
+        - details
+    ExceptionDetail:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorInfoExceptionDetail'
+        - $ref: '#/components/schemas/BadRequestExceptionDetail'
+        - $ref: '#/components/schemas/ResourceInfoExceptionDetail'
+      discriminator:
+        propertyName: type
+        mapping:
+          errorInfo: '#/components/schemas/ErrorInfoExceptionDetail'
+          badRequest: '#/components/schemas/BadRequestExceptionDetail'
+          resourceInfo: '#/components/schemas/ResourceInfoExceptionDetail'
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+            - badRequest
+            - resourceInfo
+      required:
+        - type
+    ErrorInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - errorInfo
+        reason:
+          description: >
+            The reason for the error. This is a constant value that identifies
+            the proximate cause of the
+
+            error. Error reasons are unique within a particular domain of
+            errors.
+          type: string
+          enum:
+            - unauthenticated
+            - unexpectedArgument
+            - missingRequiredArgument
+            - wrongArgumentValue
+            - invalidPermission
+            - wrongEdition
+            - wrongAccountType
+            - resourceNotFound
+            - endpointNotFound
+            - methodNotSupported
+            - unexpectedError
+            - acceptNotSupported
+            - alreadyExists
+            - foreignKeyConflict
+            - childDevicesExist
+            - contentNotSupported
+            - deadlineExpired
+            - tooManyRequests
+            - deviceUnavailable
+            - serviceUnavailable
+            - invalidJSON
+            - resourceLocked
+            - notSupportedOnBridge
+            - outOfRetention
+            - deviceIdentificationFailed
+            - credentialValidationFailed
+            - credentialSetupFailed
+            - localUrlValidationFailed
+            - hwRegistrationFailed
+            - failedAddingCameraAfterValidation
+            - neverConnected
+            - reconnectFailed
+            - unsupportedModel
+            - purged
+            - userBlocked
+            - userTemporarilyBlocked
+            - quotaExceeded
+        domain:
+          description: |
+            Logical grouping to which the "reason" belongs
+          type: string
+        metadata:
+          $ref: '#/components/schemas/ExceptionMetadata'
+    BadRequestExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - badRequest
+        argumentViolations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArgumentViolation'
+    ArgumentViolation:
+      properties:
+        argumentName:
+          type: string
+          description: Name of the argument
+        description:
+          type: string
+          description: Description of the violation
+    ResourceInfoExceptionDetail:
+      properties:
+        type:
+          description: A string enum describing the type of detail object.
+          type: string
+          enum:
+            - resourceInfo
+        resource:
+          description: 'Referenced resource type, eg "cameras", "bridges", or "locations".'
+          type: string
+        ids:
+          type: array
+          description: Identities of resources
+          items:
+            type: string
+    ExceptionMetadata:
+      properties:
+        path:
+          description: Path of the request
+          type: string
+        method:
+          description: Method of the request
+          type: string
+    ApiHttpsBaseUrl:
+      type: object
+      description: >
+        Represents base URL to use to do REST API calls over https. This
+        includes the host and port information.
+      properties:
+        hostname:
+          type: string
+          description: |
+            Host to connect to do REST API calls
+          example: api.c000.eagleeyenetworks.com
+        port:
+          type: integer
+          example: 443
+      required:
+        - hostname
+        - port
+  responses:
+    validationError:
+      description: >-
+        The supplied object is invalid. Error detail will contain the validation
+        error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            unexpectedArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Unexpected argument: name'
+                details:
+                  - type: errorInfo
+                    reason: unexpectedArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            missingRequiredArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Missing required arguments: name, id'
+                details:
+                  - type: errorInfo
+                    reason: missingRequiredArgument
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidJSON:
+              value:
+                code: 400
+                status: invalidArgument
+                message: Invalid JSON
+                details:
+                  - type: errorInfo
+                    reason: invalidJSON
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            badRequestInvalidArgument:
+              value:
+                code: 400
+                status: invalidArgument
+                message: 'Invalid Argument: Argument name is too long'
+                details:
+                  - type: errorInfo
+                    reason: wrongArgumentValue
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: badRequest
+                    argumentViolations:
+                      - argumentName: name
+                        description: Name is too long
+    unauthorized:
+      description: You are not authenticated. Please authenticate and try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 401
+            status: unauthenticated
+            message: The client caller does not have a valid authentication credential
+            details:
+              - type: errorInfo
+                reason: unauthenticated
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+    forbidden:
+      description: You have no permission to access the specified resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            invalidPermission:
+              value:
+                code: 403
+                status: permissionDenied
+                message: >-
+                  The client caller does not have permission for the specified
+                  operation
+                details:
+                  - type: errorInfo
+                    reason: invalidPermission
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            wrongEdition:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is not enabled for the account
+                details:
+                  - type: errorInfo
+                    reason: wrongEdition
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+            wrongAccountType:
+              value:
+                code: 403
+                status: permissionDenied
+                message: This feature is only available for end users
+                details:
+                  - type: errorInfo
+                    reason: wrongAccountType
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/locations
+    resourceNotFound:
+      description: Referenced resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          examples:
+            endpointNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The API endpoint was not found
+                details:
+                  - type: errorInfo
+                    reason: endpointNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+            resourceNotFound:
+              value:
+                code: 404
+                status: notFound
+                message: The resource was not found
+                details:
+                  - type: errorInfo
+                    reason: resourceNotFound
+                    domain: apiv3
+                    metadata:
+                      path: /api/v3.0/<resource>
+                  - type: resourceInfo
+                    resource: <resource>
+                    ids:
+                      - <ids>
+    internalServerError:
+      description: Something went wrong in the server. Please try again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiV3Error'
+          example:
+            code: 500
+            status: internal
+            message: An internal error has occurred. Please try again later.
+            details:
+              - type: errorInfo
+                reason: unexpectedError
+                domain: apiv3
+                metadata:
+                  path: /api/v3.0/<resource>
+x-readme:
+  explorer-enabled: true

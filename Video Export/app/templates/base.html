@@ -30,6 +30,10 @@
         -->
         <script src="{{ url_for('static', filename='fetch.js') }}"></script>
         {% endif %}
+        {% if clip %}
+        <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" />
+        {% endif %}
         
     </head>
     <body>

@@ -31,10 +31,10 @@
                         <tr>
                             <td>{{ result.name }}</td>
                             <td>{{ result.createTimestamp }}</td>
-                            {% if result.size == 0 %}
-                            <td>-</td>
-                            {% else %}
+                            {% if result.size %}
                             <td>{{ (result.size / 1048576) | round(2) }} MB</td>
+                            {% else %}
+                            <td>-</td>
                             {% endif %}
                             <td>
                                 {% if result.mimeType == 'application/directory' %}

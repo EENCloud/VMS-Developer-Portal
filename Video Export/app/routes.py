@@ -5,9 +5,12 @@ import json
 import urllib.parse
 from functools import wraps
 
-from app.een_client import (
-    EENClient, AuthenticationError,
-    format_timestamp
+from een import (
+    EENClient,
+    TokenStorage,
+    AuthenticationError,
+    format_timestamp,
+    get_timestamps,
 )
 from flask import (
     request, render_template, session,
@@ -19,10 +22,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# Initialize the EENClient
+class FlaskSessionStore(TokenStorage):
+    def get(self, key):
+        return session.get(key)
+
+    def set(self, key, value):
+        session[key] = value
+        session.modified = True
+
+    def __contains__(self, key):
+        return key in session
+
+# Load the API Client
+token_store = FlaskSessionStore()
+redirect_uri = "http://{host}:{port}".format(
+    host=os.getenv('FLASK_RUN_HOST'),
+    port=os.getenv('FLASK_RUN_PORT')
+)
+
 client = EENClient(
     os.getenv('CLIENT_ID'),
-    os.getenv('CLIENT_SECRET')
+    os.getenv('CLIENT_SECRET'),
+    redirect_uri,
+    token_store
 )
 
 
@@ -53,8 +75,12 @@ def auth_required(f):
 def download(file_id):
     try:
         # Fetch file metadata
-        file_info = client.get_files(file_id)
+        file_info = client.get_file(
+            file_id,
+            include="size,createTimestamp"
+        )
         file_info = json.loads(file_info)
+        print(f"File Info: {file_info}")
 
         response = Response(
             stream_with_context(client.download_file(file_id)),
@@ -79,9 +105,13 @@ def download(file_id):
 def view_files(directory):
     print('Pulling Files')
     try:
+        include = include=["size","createTimestamp"]
+        print(f"Includes: {include}")
 
         response = client.get_files(
-            directory=f"/{urllib.parse.unquote(directory)}")
+            directory=f"/{urllib.parse.unquote(directory)}",
+            include=["size","createTimestamp","metadata","tags"]
+        )
         results = json.loads(response)['results']
         print(f"Files: {json.dumps(results)}")
     except AuthenticationError:
@@ -123,17 +153,29 @@ def preview(camera_id):
     if form.validate_on_submit():
         print('Exporting Clip')
         try:
-            context = {k: v for k, v in {
+            tags_list = [t.strip() for t in form.tags.data.split(',') if t.strip()]
+
+            info = {k: v for k, v in {
+                "name": form.name.data,
                 'directory': form.directory.data,
                 'notes': form.notes.data,
-                'tags': form.tags.data
+                'tags': tags_list
             }.items() if v is not None}
-            export_response = client.export_clip(
-                camera_id,
-                form.name.data,
-                start,
-                end,
-                **context
+
+            period = {
+                "startTimestamp": start,
+                "endTimestamp": end
+            }
+            data = {
+                "deviceId": camera_id,
+                "type": "video",
+                "info": info,
+                "period": period
+            }
+            print(f"Export Data: {json.dumps(data)}")
+
+            export_response = client.create_export_job(
+                data
             )
             print(export_response)
 
@@ -165,13 +207,20 @@ def preview(camera_id):
     if start and end:
         print('Pulling Clip and Camera Info')
         try:
-            response = client.get_cameras(camera_id)
+            response = client.get_camera(camera_id)
             camera = json.loads(response)
         except Exception as e:
             print(f"Failed to get camera info: {e}")
 
         try:
-            response = client.get_media(camera_id, start, end, "main")
+            response = client.list_media(
+                camera_id,
+                "main",
+                "video",
+                start,
+                endTimestamp__lte=end,
+                include="mp4Url"
+            )
             results = json.loads(response)['results']
             clip = results[0]
 
@@ -199,7 +248,7 @@ def view_clips(camera_id):
 
     print('Pulling Clips and Camera Info')
     try:
-        response = client.get_cameras(camera_id)
+        response = client.get_camera(camera_id)
         camera = json.loads(response)
     except Exception as e:
         print(f"Failed to get camera info: {e}")
@@ -210,15 +259,26 @@ def view_clips(camera_id):
     user_timezone = get_unquoted_arg('timezone') or 'UTC'
     page_token = request.args.get('page_token')
 
+    # If start and end are not provided, generate them
+    e, s = get_timestamps()
+    if not start:
+        start = s
+    if not end:
+        end = e
+
     context = {k: v for k, v in {
-        'start': format_timestamp(start, user_timezone),
-        'end': format_timestamp(end, user_timezone),
-        'type': 'main',
+        'endTimestamp__lte': format_timestamp(end, user_timezone),
         'page_token': page_token
     }.items() if v is not None}
 
     try:
-        response = client.get_media(camera_id, **context)
+        response = client.list_media(
+            camera_id,
+            "main",
+            "video",
+            start,
+            **context
+        )
         r_json = json.loads(response)
         results = r_json['results']
         next_page = r_json['nextPageToken']
@@ -264,6 +324,8 @@ def index():
     if not is_authenticated():
         return redirect(url_for('login'))
 
+
+    page_token = request.args.get('page_token')
     media = {
         'access_token': session.get('access_token'),
         'base_url': session.get('base_url')
@@ -271,9 +333,18 @@ def index():
 
     print('Pulling Camera List')
     try:
-        cam_response = json.loads(client.get_cameras())
-        feed_response = json.loads(client.get_feeds())
+        context = {k: v for k, v in {
+            'pageSize': 12,
+            'pageToken': page_token
+        }.items() if v is not None}
+        cam_response = json.loads(client.list_cameras(**context))
+        cam_ids = [cam['id'] for cam in cam_response['results']]
+        feed_response = json.loads(client.list_feeds(
+            deviceId__in=cam_ids,
+            type="preview", include="multipartUrl"))
         cam_results = cam_response['results']
+        next_page = cam_response['nextPageToken']
+        prev_page = cam_response['prevPageToken']
         feed_results = feed_response['results']
     except AuthenticationError:
         return redirect(url_for('login'))
@@ -295,7 +366,9 @@ def index():
     try:
         return render_template(
             'index.html',
-            results=cameras[0:12],
+            results=cameras,
+            next_page=next_page,
+            prev_page=prev_page,
             media=media)
     except Exception as e:
         print(f"Failed render template: {e}")

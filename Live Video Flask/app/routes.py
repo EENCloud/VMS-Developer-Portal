@@ -1,4 +1,5 @@
 from app import app
+from app.forms import AccessTokenForm
 from app.errors import AuthenticationError
 import os
 import json
@@ -303,9 +304,29 @@ def index():
 # Login Page
 # This page will redirect the user to the Eagle Eye Networks OAuth login page.
 # Review the OAuth Python example for more information.
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     code = request.args.get('code')
+    form = AccessTokenForm()
+
+    # Handle POST request with token from form
+    if request.method == 'POST' and form.validate_on_submit():
+        token = form.token.data
+        base_url = form.baseUrl.data
+        if token and base_url:
+            print("Attempting Token Auth")
+            session['access_token'] = token
+            session['base_url'] = base_url
+            session.permanent = True
+            # Try to get cameras to validate the token
+            try:
+                cam_response = get_cameras()
+                print("Token Auth successful")
+            except AuthenticationError:
+                print("Token Auth failed")
+                session.clear()
+                return render_template('login.html', form=form)
+            return redirect(url_for('index'))
 
     if (code):
         print("Attempting Code Auth")
@@ -340,7 +361,7 @@ def login():
     }
     requestAuthUrl += '?' + urllib.parse.urlencode(params)
 
-    return render_template('login.html', auth_url=requestAuthUrl)
+    return render_template('login.html', auth_url=requestAuthUrl, form=form)
 
 
 # Logout Page

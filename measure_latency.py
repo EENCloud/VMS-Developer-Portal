@@ -30,10 +30,15 @@ for frame, capture_unix, received_at in frames_gst.iter_frames_ntp(rtsp_url):
     if len(latencies) >= SAMPLE_FRAMES:
         break
 
-cv2.imwrite("latency_snapshot.jpg", last_frame)
+if not latencies:
+    print("\nNo RTCP Sender Reports received — cannot compute latency.")
+else:
+    if last_frame is not None:
+        cv2.imwrite("latency_snapshot.jpg", last_frame)
 
-print(f"\n--- Summary ({len(latencies)} frames) ---")
-print(f"  Min latency : {min(latencies):.1f} ms")
-print(f"  Max latency : {max(latencies):.1f} ms")
-print(f"  Avg latency : {sum(latencies)/len(latencies):.1f} ms")
-print("  Snapshot    : latency_snapshot.jpg")
+    print(f"\n--- Summary ({len(latencies)} frames) ---")
+    print(f"  Min latency : {min(latencies):.1f} ms")
+    print(f"  Max latency : {max(latencies):.1f} ms")
+    print(f"  Avg latency : {sum(latencies)/len(latencies):.1f} ms")
+    if last_frame is not None:
+        print("  Snapshot    : latency_snapshot.jpg")

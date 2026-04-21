@@ -91,9 +91,13 @@ def _pull_bgr(
         return None, pts_ns
     try:
         frame = np.frombuffer(mi.data, np.uint8).reshape((dims[1], dims[0], 3)).copy()
+    except (ValueError, TypeError):
+        frame = None
     finally:
         buf.unmap(mi)
 
+    if frame is None:
+        return None, pts_ns
     return frame, pts_ns
 
 
@@ -260,8 +264,13 @@ def iter_frames_ntp(
                 continue
             try:
                 frame = np.frombuffer(mi.data, np.uint8).reshape((dims[1], dims[0], 3)).copy()
+            except (ValueError, TypeError):
+                frame = None
             finally:
                 buf.unmap(mi)
+
+            if frame is None:
+                continue
 
             yield frame, _ntp_capture_unix(buf, pts_ns, pipeline, _ntp_caps, _NTP_UNIX_DELTA), received_at
     finally:

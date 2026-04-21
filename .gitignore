@@ -11,3 +11,8 @@
 # JS
 *node_modules/
 /.history
+.venv/
+.env
+tokens.json
+__pycache__/
+*.pyc

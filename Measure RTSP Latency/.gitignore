@@ -1,0 +1,8 @@
+.venv/
+.env
+tokens.json
+__pycache__/
+*.pyc
+*:Zone.Identifier
+latency_snapshot.jpg
+.claude/

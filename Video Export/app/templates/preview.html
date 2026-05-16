@@ -29,7 +29,7 @@
                         </div>
                         <div class="form-group">
                             {{ form.tags.label }}
-                            {{ form.tags }}
+                            <input id="tag-input" name="tags" type="text" class="form-control" value="{{ form.tags.data or '' }}">
                         </div>
                         <p>{{ form.submit }}</p>
                     </form>
@@ -43,6 +43,8 @@
 
 {% block script %}
 <script>
+    new Tagify(document.querySelector('#tag-input'));
+
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('export-form');
 

@@ -1,0 +1,8 @@
+name: VMS-Developer-Portal
+id: ari:cloud:compass:4337fc0d-aa55-4ff9-bd75-ef7117ff9381:component/4c6fdffe-fa4a-46ef-9e6f-a1aa05480c89/036d209d-58e7-48b6-a025-0c0dad9d1d5f
+configVersion: 1
+typeId: WEBSITE
+ownerId: ari:cloud:identity::team/02623aed-f05b-4acd-8187-7932552722de-23 # Direct to Cloud (500)
+links:
+  - type: REPOSITORY
+    url: https://github.com/EENCloud/VMS-Developer-Portal

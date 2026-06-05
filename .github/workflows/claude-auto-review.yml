@@ -1,0 +1,40 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, review_requested]
+
+# Cancel any in-flight review when a new commit lands on the same PR
+# so we always review the latest revision (and don't burn API credits
+# on superseded reviews). Same pattern as engops/claude-code-review.yml.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  claude-review:
+    # Dependabot PRs can't access org secrets, so the Vault step would
+    # fail at credential-import. Skip them at the workflow level.
+    if: github.actor != 'dependabot[bot]'
+    # Explicit minimum permissions — the reusable workflow needs to post
+    # the review comment and (where applicable) react to PR events. Set
+    # at the caller layer so the workflow works regardless of the target
+    # repo's default GITHUB_TOKEN policy.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    # Intentionally pinned to @main: every enrolled repo picks up
+    # workflow-library updates centrally. Trade-off accepted — a
+    # breaking change in workflow-library hits all enrolled repos at
+    # once, but the alternative (pin to a tag here, then re-enroll
+    # every repo on each library bump) doesn't scale at the org size.
+    # If a staged rollout is ever needed, change this line to a tag /
+    # SHA and rerun claude-review-enrollment.yml so the new template
+    # propagates as fresh PRs.
+    uses: EENCloud/workflow-library/.github/workflows/claude_auto_review.yml@main
+    secrets:
+      VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+      VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+      VAULT_CA_CERT: ${{ secrets.VAULT_CA_CERT }}

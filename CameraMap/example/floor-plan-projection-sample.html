@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EEN floor-plan camera projection — incorrect vs correct</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 24px; color: #0f172a; background: #f8fafc; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; margin: 18px 0 6px; }
+  .panel { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 18px; }
+  .plan { width: 100%; height: auto; background: #eef2f7; border: 1px solid #94a3b8; display: block; }
+  .note { color: #475569; font-size: 13px; max-width: 70ch; }
+  code { background: #eef2f7; padding: 1px 4px; border-radius: 4px; }
+  table { border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th, td { border: 1px solid #cbd5e1; padding: 3px 8px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  .out { color: #b91c1c; font-weight: 600; }
+  .controls { margin: 10px 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>Eagle Eye Networks — projecting <code>devicePosition</code> onto a floor plan</h1>
+<p class="note">
+  This single file demonstrates why a naïve interpretation of a floor's two corner
+  coordinates does not match the VMS, and the similarity transform that does. All
+  data below is from <code>GET /…/floors</code> and <code>GET /cameras?include=devicePosition</code>
+  for "Capital Factory Floor 5". The real plan image (<code>floor-plan.png</code>,
+  1588×460&nbsp;px) is loaded automatically as the background of both panels.
+</p>
+
+<div class="controls">
+  Plan image: <code>floor-plan.png</code> (loaded automatically). To try a different
+  plan, choose a file here — and update <code>FLOOR</code>/<code>IMAGE</code> in the source to match:
+  <input type="file" id="imgPicker" accept="image/png,image/svg+xml" />
+</div>
+
+<div class="panel">
+  <h2>❌ Naïve bilinear interpolation (longitude → x, latitude → y) — does NOT match the VMS</h2>
+  <p class="note">Independent per-axis stretch. Because the geo box is portrait (~21.5 m × 108 m)
+    but the image is landscape (1588×460), cameras smear across the wrong axis and several land
+    outside the plan (shown in red).</p>
+  <svg id="svgNaive" class="plan"></svg>
+</div>
+
+<div class="panel">
+  <h2>✅ Similarity transform (uniform scale + rotation + reflection) — matches the VMS</h2>
+  <p class="note">The two corners are a diagonal; combined with the image pixel dimensions they
+    define a similarity transform. A reflection is required because image pixels are y-down while
+    geographic north is up. Field-of-view wedges use the same transform for direction.</p>
+  <svg id="svgGood" class="plan"></svg>
+</div>
+
+<div class="panel">
+  <h2>Computed pixel fractions</h2>
+  <table id="tbl"></table>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * Inputs (straight from the API)
+ * ------------------------------------------------------------------ */
+
+// GET /locations/{id}/floors  -> one floor
+const FLOOR = {
+  name: 'Capital Factory Floor 5',
+  floorLevel: 5,
+  topLeftCoordinates:     { latitude: 30.2684922, longitude: -97.7405483 },
+  bottomRightCoordinates: { latitude: 30.2694626, longitude: -97.7407716 },
+};
+
+// GET /locations/{id}/floors/{floorId}.png  -> these are the image's pixel
+// dimensions (read from the PNG header). They are a REQUIRED input to the
+// correct transform.
+const IMAGE = { width: 1588, height: 460 };
+
+// GET /cameras?include=devicePosition,status
+const CAMERAS = [
+  { id:'1009eb6c', name:'CF5 3D Print Lab',        devicePosition:{ latitude:30.26880986, longitude:-97.74051703, azimuth:275.28, floor:5, rangeInMeters:11.26, fieldOfView:null } },
+  { id:'10062669', name:'CF5 BB8 (Axis 2MP)',      devicePosition:{ latitude:30.26922813, longitude:-97.74079323, azimuth:186.99, floor:5, rangeInMeters:16.22, fieldOfView:null } },
+  { id:'1000a14f', name:'CF5 Bike Racks (2MP)',    devicePosition:{ latitude:30.26910511, longitude:-97.74084618, azimuth:97.02,  floor:5, rangeInMeters:15.37, fieldOfView:null } },
+  { id:'100b613c', name:'CF5 Coworking 180°',      devicePosition:{ latitude:30.26897721, longitude:-97.74069934, azimuth:241.93, floor:5, rangeInMeters:14.75, fieldOfView:45 } },
+  { id:'1006c703', name:'CF5 Device Lab',          devicePosition:{ latitude:30.26875643, longitude:-97.74059061, azimuth:110.31, floor:5, rangeInMeters:12.22, fieldOfView:null } },
+  { id:'1002737c', name:'CF5 Entrance Fisheye',    devicePosition:{ latitude:30.26899,    longitude:-97.740626,   azimuth:80.04,  floor:5, rangeInMeters:5.11,  fieldOfView:360 } },
+  { id:'1000881c', name:'CF5 Freight Elevator',    devicePosition:{ latitude:30.269038,   longitude:-97.740729,   azimuth:31.96,  floor:5, rangeInMeters:10.48, fieldOfView:null } },
+  { id:'10035320', name:'CF5 Game Room',           devicePosition:{ latitude:30.26894803, longitude:-97.74061583, azimuth:106.79, floor:5, rangeInMeters:11.79, fieldOfView:null } },
+  { id:'1001b58d', name:'CF5 Keg Taps (2MP)',      devicePosition:{ latitude:30.26900112, longitude:-97.74079295, azimuth:175.55, floor:5, rangeInMeters:17.07, fieldOfView:null } },
+  { id:'1000cdc9', name:'CF5 Network Closet',      devicePosition:{ latitude:30.26887,    longitude:-97.74055,    azimuth:194.42, floor:5, rangeInMeters:6.58,  fieldOfView:null } },
+  { id:'100dcfaa', name:'CF5 R2D2 Door',           devicePosition:{ latitude:30.269243,   longitude:-97.740684,   azimuth:285.27, floor:5, rangeInMeters:17.71, fieldOfView:null } },
+  { id:'10102f00', name:'CF5 Scarif (4MP)',        devicePosition:{ latitude:30.269107,   longitude:-97.74063392, azimuth:203.06, floor:5, rangeInMeters:10.51, fieldOfView:45 } },
+  { id:'10057197', name:'CF5 Scarif Entrance',     devicePosition:{ latitude:30.26900895, longitude:-97.74065196, azimuth:12.24,  floor:5, rangeInMeters:9.76,  fieldOfView:null } },
+  { id:'1008bc34', name:'CF5 Stockroom (2MP)',     devicePosition:{ latitude:30.26911174, longitude:-97.74076866, azimuth:109.81, floor:5, rangeInMeters:10.72, fieldOfView:null } },
+  { id:'100d6e2a', name:'Example: Camera Offline', devicePosition:{ latitude:30.268773,   longitude:-97.740562,   azimuth:109.74, floor:5, rangeInMeters:1.37,  fieldOfView:360 } },
+  { id:'10106a81', name:'Example: Camera Off',     devicePosition:{ latitude:30.26882343, longitude:-97.74060112, azimuth:293.16, floor:5, rangeInMeters:9.32,  fieldOfView:null } },
+];
+
+/* ------------------------------------------------------------------ *
+ * Approach 1 — NAÏVE bilinear interpolation (INCORRECT)
+ * ------------------------------------------------------------------ */
+function projectNaive(lat, lng, floor, W, H) {
+  const tl = floor.topLeftCoordinates, br = floor.bottomRightCoordinates;
+  const fx = (lng - tl.longitude) / (br.longitude - tl.longitude);
+  const fy = (lat - tl.latitude)  / (br.latitude  - tl.latitude);
+  return { x: fx * W, y: fy * H };
+}
+
+/* ------------------------------------------------------------------ *
+ * Approach 2 — SIMILARITY transform (CORRECT, matches the VMS)
+ *
+ * Model: the plan is a uniformly-scaled, rotated, y-flipped drawing of the
+ * floor. We work in local meters relative to topLeft, solve the reflection-
+ * similarity that maps pixel (0,0)->(0,0) and pixel (W,H)->bottomRight, and
+ * invert it to map any geo coordinate to a pixel.
+ * ------------------------------------------------------------------ */
+const M_PER_DEG_LAT = 111320;
+
+function planTransform(floor, W, H) {
+  const tl = floor.topLeftCoordinates, br = floor.bottomRightCoordinates;
+  const midLat = ((tl.latitude + br.latitude) / 2) * Math.PI / 180;
+  const mPerLat = M_PER_DEG_LAT;
+  const mPerLng = M_PER_DEG_LAT * Math.cos(midLat);
+
+  const Ebr = (br.longitude - tl.longitude) * mPerLng;   // bottomRight in meters
+  const Nbr = (br.latitude  - tl.latitude)  * mPerLat;   // relative to topLeft
+
+  const den = W * W + H * H;
+  const a = (W * Ebr - H * Nbr) / den;                   // reflection-similarity
+  const b = (H * Ebr + W * Nbr) / den;                   // coefficients
+  const s2 = a * a + b * b;
+
+  return { a, b, s2, tl, mPerLat, mPerLng, pxPerMeter: 1 / Math.sqrt(s2) };
+}
+
+function projectSimilarity(lat, lng, t) {
+  const E = (lng - t.tl.longitude) * t.mPerLng;
+  const N = (lat - t.tl.latitude)  * t.mPerLat;
+  // inverse of [[a,b],[b,-a]] is (1/s2) * [[a,b],[b,-a]]
+  return { x: (t.a * E + t.b * N) / t.s2, y: (t.b * E - t.a * N) / t.s2 };
+}
+
+// Field-of-view wedge (or fisheye ring) in pixel space, using the same transform.
+function fovCone(cam, t) {
+  const p = cam.devicePosition;
+  if (p.latitude == null || p.longitude == null || p.azimuth == null) return null;
+  const apex = projectSimilarity(p.latitude, p.longitude, t);
+  const radius = (p.rangeInMeters > 0 ? p.rangeInMeters : 8) * t.pxPerMeter;
+
+  // unit step along compass azimuth (east=sin, north=cos), run through the map
+  const th = p.azimuth * Math.PI / 180;
+  const phi = Math.atan2(t.b * Math.sin(th) - t.a * Math.cos(th),
+                         t.a * Math.sin(th) + t.b * Math.cos(th));
+  const arc = (ang) => `${(apex.x + radius * Math.cos(ang)).toFixed(1)},${(apex.y + radius * Math.sin(ang)).toFixed(1)}`;
+
+  if (p.fieldOfView >= 360) {                            // fisheye -> ring
+    const pts = [];
+    for (let i = 0; i < 48; i++) pts.push(arc(2 * Math.PI * i / 48));
+    return pts.join(' ');
+  }
+  const fov = (p.fieldOfView > 0 ? p.fieldOfView : 60) * Math.PI / 180;
+  const pts = [`${apex.x.toFixed(1)},${apex.y.toFixed(1)}`];
+  const steps = 12;
+  for (let i = 0; i <= steps; i++) pts.push(arc(phi - fov / 2 + fov * i / steps));
+  return pts.join(' ');
+}
+
+/* ------------------------------------------------------------------ *
+ * Rendering
+ * ------------------------------------------------------------------ */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function el(name, attrs) {
+  const n = document.createElementNS(SVGNS, name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+
+const t = planTransform(FLOOR, IMAGE.width, IMAGE.height);
+
+function renderPanel(svg, project, withCones) {
+  svg.setAttribute('viewBox', `0 0 ${IMAGE.width} ${IMAGE.height}`);
+  svg.innerHTML = '';
+  svg.appendChild(el('rect', { x:0, y:0, width:IMAGE.width, height:IMAGE.height, fill:'#e2e8f0', stroke:'#94a3b8' }));
+  svg.appendChild(el('image', { id: svg.id + '-img', x:0, y:0, width:IMAGE.width, height:IMAGE.height, preserveAspectRatio:'none', opacity:0.9 }));
+
+  for (const cam of CAMERAS) {
+    const p = cam.devicePosition;
+    const pt = project(p.latitude, p.longitude);
+    const outside = pt.x < 0 || pt.x > IMAGE.width || pt.y < 0 || pt.y > IMAGE.height;
+
+    if (withCones) {
+      const pts = fovCone(cam, t);
+      if (pts) svg.appendChild(el('polygon', { points: pts, fill:'#22c55e', 'fill-opacity':0.18, stroke:'#16a34a', 'stroke-opacity':0.6, 'stroke-width':2 }));
+    }
+    svg.appendChild(el('circle', { cx:pt.x, cy:pt.y, r:9, fill: outside ? '#ef4444' : '#16a34a', stroke:'#0b1220', 'stroke-width':2 }));
+    const label = el('text', { x: pt.x + 12, y: pt.y + 5, 'font-size':18, fill:'#0f172a' });
+    label.textContent = cam.name;
+    svg.appendChild(label);
+  }
+}
+
+renderPanel(document.getElementById('svgNaive'), (la, ln) => projectNaive(la, ln, FLOOR, IMAGE.width, IMAGE.height), false);
+renderPanel(document.getElementById('svgGood'),  (la, ln) => projectSimilarity(la, ln, t), true);
+
+// Set the plan image (as the background <image> of both panels).
+function setPlanImage(url) {
+  for (const id of ['svgNaive-img', 'svgGood-img']) {
+    const img = document.getElementById(id);
+    img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+    img.setAttribute('href', url);
+  }
+}
+
+// Auto-load the bundled real plan image. (If you open this file via file:// and
+// the browser blocks the local image, use the picker below to select it.)
+setPlanImage('floor-plan.png');
+
+// Optional: override with a different plan image.
+document.getElementById('imgPicker').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) setPlanImage(URL.createObjectURL(file));
+});
+
+// Table of computed fractions.
+const tbl = document.getElementById('tbl');
+tbl.innerHTML = '<tr><th>Camera</th><th>Naïve x</th><th>Naïve y</th><th>Similarity x</th><th>Similarity y</th></tr>';
+for (const cam of CAMERAS) {
+  const p = cam.devicePosition;
+  const n = projectNaive(p.latitude, p.longitude, FLOOR, IMAGE.width, IMAGE.height);
+  const s = projectSimilarity(p.latitude, p.longitude, t);
+  const nfx = n.x / IMAGE.width, nfy = n.y / IMAGE.height;
+  const sfx = s.x / IMAGE.width, sfy = s.y / IMAGE.height;
+  const bad = (v) => (v < 0 || v > 1) ? ' class="out"' : '';
+  tbl.insertAdjacentHTML('beforeend',
+    `<tr><td>${cam.name}</td>` +
+    `<td${bad(nfx)}>${nfx.toFixed(2)}</td><td${bad(nfy)}>${nfy.toFixed(2)}</td>` +
+    `<td${bad(sfx)}>${sfx.toFixed(2)}</td><td${bad(sfy)}>${sfy.toFixed(2)}</td></tr>`);
+}
+</script>
+</body>
+</html>

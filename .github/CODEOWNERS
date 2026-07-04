@@ -1,0 +1,3 @@
+# CODEOWNERS — default owner is the repository's owning team.
+# Managed by EngOps (scripts/sync-codeowners.js). Team: Direct to Cloud (500).
+* @EENCloud/direct-to-cloud-500

@@ -4,4 +4,21 @@
         <h1>Sign In</h1>
         </br>
         <a href='{{auth_url}}'>Login with Eagle Eye Networks</a>
+
+        <hr style="margin: 30px 0;">
+
+        <h1>Or Enter Access Token</h1>
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.token.label }}
+                {{ form.token }}
+            </div>
+            <div>
+                {{ form.baseUrl.label }}
+                {{ form.baseUrl }}
+            </div>
+            <br>
+            <button type="submit" style="padding: 10px 20px;">Submit</button>
+        </form>
 {% endblock %}

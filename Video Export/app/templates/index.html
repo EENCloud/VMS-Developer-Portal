@@ -4,6 +4,14 @@
         <h1>Eagle Eye Video Export</h1>
         <p>Select a video clip to export it to your local machine.</p>
         {% if results %}
+        <div class="pagination-controls">
+            {% if prev_page %}
+                <a href="{{ url_for('index', page_token=prev_page) }}" class="pagination-button">Previous</a>
+            {% endif %}
+            {% if next_page %}
+                <a href="{{ url_for('index', page_token=next_page) }}" class="pagination-button">Next</a>
+            {% endif %}
+        </div>
             <div class="result-block">
                 <h2>Choose a Camera</h2>
                 <div class="result-grid">

@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/mapview.tsx","./src/main.tsx","./src/types.ts","./src/api/cameras.ts","./src/api/client.ts","./src/api/feeds.ts","./src/api/fixtures.ts","./src/api/locations.ts","./src/auth/oauth.ts","./src/map/cameramarker.tsx","./src/map/floorstage.tsx","./src/map/geo.ts","./src/ui/cameradetail.tsx","./src/ui/picker.tsx","./vite-env.d.ts"],"version":"5.9.3"}

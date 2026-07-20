@@ -1,0 +1,295 @@
+{
+    "totalSize": 16,
+    "nextPageToken": "",
+    "prevPageToken": "",
+    "results": [
+        {
+            "id": "1009eb6c",
+            "accountId": "00001106",
+            "name": "CF5 3D Print Lab",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26880986,
+                "longitude": -97.74051703,
+                "azimuth": 275.27560084,
+                "floor": 5,
+                "rangeInMeters": 11.256103,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2024-11-07T20:44:09.439+00:00"
+        },
+        {
+            "id": "10062669",
+            "accountId": "00001106",
+            "name": "CF5 BB8 (Axis 2MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26922813,
+                "longitude": -97.74079323,
+                "azimuth": 186.99231006,
+                "floor": 5,
+                "rangeInMeters": 16.216017,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2024-02-03T03:10:47.012+00:00"
+        },
+        {
+            "id": "1000a14f",
+            "accountId": "00001106",
+            "name": "CF5 Bike Racks (2MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26910511,
+                "longitude": -97.74084618,
+                "azimuth": 97.01920584,
+                "floor": 5,
+                "rangeInMeters": 15.373921,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2024-02-29T18:24:28.004+00:00"
+        },
+        {
+            "id": "100b613c",
+            "accountId": "00001106",
+            "name": "CF5 Coworking Space 180° (Mic)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26897721,
+                "longitude": -97.74069934,
+                "azimuth": 241.93487873,
+                "floor": 5,
+                "rangeInMeters": 14.752611,
+                "fieldOfView": 45.0
+            },
+            "createTimestamp": "2024-08-19T15:58:23.652+00:00"
+        },
+        {
+            "id": "1006c703",
+            "accountId": "00001106",
+            "name": "CF5 Device Lab (Axis 2MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26875643,
+                "longitude": -97.74059061,
+                "azimuth": 110.31433943,
+                "floor": 5,
+                "rangeInMeters": 12.220703,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2015-12-02T22:47:14.000+00:00"
+        },
+        {
+            "id": "1002737c",
+            "accountId": "00001106",
+            "name": "CF5 Entrance Fisheye",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26899,
+                "longitude": -97.740626,
+                "azimuth": 80.035545,
+                "floor": 5,
+                "rangeInMeters": 5.112741,
+                "fieldOfView": 360
+            },
+            "createTimestamp": "2015-12-12T00:43:08.000+00:00"
+        },
+        {
+            "id": "1000881c",
+            "accountId": "00001106",
+            "name": "CF5 Freight Elevator (1MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.269038,
+                "longitude": -97.740729,
+                "azimuth": 31.96261697,
+                "floor": 5,
+                "rangeInMeters": 10.478688,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2015-07-13T15:50:19.000+00:00"
+        },
+        {
+            "id": "10035320",
+            "accountId": "00001106",
+            "name": "CF5 Game Room (1MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26894803,
+                "longitude": -97.74061583,
+                "azimuth": 106.79367803,
+                "floor": 5,
+                "rangeInMeters": 11.792798,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2016-02-10T22:01:30.000+00:00"
+        },
+        {
+            "id": "1001b58d",
+            "accountId": "00001106",
+            "name": "CF5 Keg Taps (2MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26900112,
+                "longitude": -97.74079295,
+                "azimuth": 175.54690925,
+                "floor": 5,
+                "rangeInMeters": 17.067072,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2024-07-23T19:43:26.603+00:00"
+        },
+        {
+            "id": "1000cdc9",
+            "accountId": "00001106",
+            "name": "CF5 Network Closet (1MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26887,
+                "longitude": -97.74055,
+                "azimuth": 194.419435,
+                "floor": 5,
+                "rangeInMeters": 6.582221,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2017-08-07T17:38:57.000+00:00"
+        },
+        {
+            "id": "100dcfaa",
+            "accountId": "00001106",
+            "name": "CF5 R2D2 Door",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.269243,
+                "longitude": -97.740684,
+                "azimuth": 285.273676,
+                "floor": 5,
+                "rangeInMeters": 17.713336,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2024-02-09T20:45:35.348+00:00"
+        },
+        {
+            "id": "10102f00",
+            "accountId": "00001106",
+            "name": "CF5 Scarif (4MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.269107,
+                "longitude": -97.74063392,
+                "azimuth": 203.06041398,
+                "floor": 5,
+                "rangeInMeters": 10.506446,
+                "fieldOfView": 45
+            },
+            "createTimestamp": "2016-12-16T18:43:58.000+00:00"
+        },
+        {
+            "id": "10057197",
+            "accountId": "00001106",
+            "name": "CF5 Scarif Entrance (1MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26900895,
+                "longitude": -97.74065196,
+                "azimuth": 12.24195683,
+                "floor": 5,
+                "rangeInMeters": 9.758208,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2016-03-30T17:59:50.000+00:00"
+        },
+        {
+            "id": "1008bc34",
+            "accountId": "00001106",
+            "name": "CF5 Stockroom (2MP)",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26911174,
+                "longitude": -97.74076866,
+                "azimuth": 109.81045125,
+                "floor": 5,
+                "rangeInMeters": 10.71847,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2024-03-28T18:40:15.378+00:00"
+        },
+        {
+            "id": "100d6e2a",
+            "accountId": "00001106",
+            "name": "Example of Camera Offline",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.268773,
+                "longitude": -97.740562,
+                "azimuth": 109.739167,
+                "floor": 5,
+                "rangeInMeters": 1.365089,
+                "fieldOfView": 360
+            },
+            "createTimestamp": "2019-01-02T22:04:22.000+00:00"
+        },
+        {
+            "id": "10106a81",
+            "accountId": "00001106",
+            "name": "Example of Camera turned off",
+            "bridgeId": "100062b4",
+            "locationId": "c23563aa-50f3-4d9d-9f8d-533bdb521a92",
+            "speakerId": null,
+            "multiCameraId": null,
+            "devicePosition": {
+                "latitude": 30.26882343,
+                "longitude": -97.74060112,
+                "azimuth": 293.15623952,
+                "floor": 5,
+                "rangeInMeters": 9.32435,
+                "fieldOfView": null
+            },
+            "createTimestamp": "2016-11-09T13:31:23.000+00:00"
+        }
+    ]
+}

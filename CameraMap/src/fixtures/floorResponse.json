@@ -1,0 +1,28 @@
+{
+    "nextPageToken": "",
+    "totalSize": 1,
+    "prevPageToken": "",
+    "results": [
+        {
+            "name": "Capital Factory Floor 5",
+            "floorPlans": [
+                {
+                    "type": "png",
+                    "id": "7ae69cff-d32d-40c4-8f9f-42a14f69861c",
+                    "floorId": "24566cc9-81bc-4df8-8693-4a4c82490cec",
+                    "creator": "originalUpload"
+                }
+            ],
+            "topLeftCoordinates": {
+                "latitude": 30.2684922,
+                "longitude": -97.7405483
+            },
+            "floorLevel": 5,
+            "bottomRightCoordinates": {
+                "latitude": 30.2694626,
+                "longitude": -97.7407716
+            },
+            "id": "24566cc9-81bc-4df8-8693-4a4c82490cec"
+        }
+    ]
+}
